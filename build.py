@@ -477,8 +477,7 @@ def build_home(films):
     body = """
 <section class="hero">
   <div class="wrap">
-    <h1>Best B Movies.</h1>
-    <p class="hero-line">Better Movies. Brought To You.</p>
+    <h1>Better Movies. Brought To You.</h1>
     <p class="pitch">An independent film distributor &mdash; our own library
       runs from the 1930s to today, streaming straight to AVOD and TVOD
       platforms. We also present select catalogs on behalf of Blue Finch Film

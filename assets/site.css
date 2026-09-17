@@ -87,13 +87,15 @@ body {
      away to the base charcoal. Fixed, so it reads as lighting on the page
      rather than something that scrolls with the content. */
   background-color: var(--field);
-  background-image: radial-gradient(
-    120% 70% at 50% 0%,
-    var(--field-lift) 0%,
-    var(--field) 62%
-  );
+  /* Two layers: the logo's own halftone dot screen at the threshold of
+     visibility, over a soft pool of light behind the masthead. Fixed, so both
+     read as lighting on the page rather than something that scrolls. */
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(250, 240, 230, 0.028) 0.9px, transparent 1px),
+    radial-gradient(120% 70% at 50% 0%, var(--field-lift) 0%, var(--field) 62%);
+  background-size: 7px 7px, auto;
   background-attachment: fixed;
-  background-repeat: no-repeat;
+  background-repeat: repeat, no-repeat;
 }
 /* The bands sit on the vignette rather than painting over it. */
 .section,
@@ -258,8 +260,47 @@ a:hover {
   position: relative;
   overflow: hidden;
 }
+/* Spotlight behind the headline. Light, not a shape — it has no edge, and it
+   decays to nothing well before the stat row, because --red is 4.71:1 on the
+   bare ground and ANY lift under it drops below the 4.5 it needs as text. The
+   numerals survive only because they are large type at a 3:1 threshold; small
+   red must never sit inside this. */
+.hero::before {
+  content: "";
+  position: absolute;
+  left: -10%;
+  top: -30%;
+  width: 78%;
+  height: 118%;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgba(250, 10, 20, 0.12) 0%,
+    rgba(250, 10, 20, 0.05) 45%,
+    transparent 78%
+  );
+}
+/* The logo's banner quoted at a whisper: one row of sprockets on the hero's
+   bottom edge. */
+.hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8px;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(250, 240, 230, 0.15) 0 8px,
+    transparent 8px 22px
+  );
+}
 .hero > .wrap {
   max-width: 900px;
+  /* above the spotlight */
+  position: relative;
+  z-index: 1;
 }
 .eyebrow {
   font-family: var(--sans);
@@ -270,8 +311,9 @@ a:hover {
   margin: 0 0 18px;
 }
 .hero h1 {
-  font-size: clamp(46px, 7.5vw, 86px);
-  margin-bottom: 14px;
+  font-size: clamp(34px, 5.6vw, 62px);
+  margin-bottom: 26px;
+  max-width: 15em;
   color: var(--cream);
 }
 .hero .pitch {
@@ -281,17 +323,7 @@ a:hover {
   max-width: 44em;
   margin: 0 0 48px;
 }
-/* The line under the headline. Quiet sans on purpose — the headline above it
-   is the only Anton in the hero, and this reads as its answer, not a rival. */
-.hero-line {
-  font-family: var(--sans);
-  font-size: clamp(19px, 2.3vw, 26px);
-  font-weight: 400;
-  line-height: 1.35;
-  color: var(--cream);
-  margin: 0 0 30px;
-  max-width: 24em;
-}
+
 .hero-actions {
   display: flex;
   gap: 12px;

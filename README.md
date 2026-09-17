@@ -315,6 +315,18 @@ rule, one accent moment per section.
 | `--red-lt` | `#FF5A62` | Red as small text: links, badges, active nav |
 | `--yellow` | `#FAE60A` | The one filled CTA |
 
+### Texture, and the ceiling on it
+
+Three layers give the ground depth without adding colour blocks, all of them
+brand-derived rather than decorative:
+
+- a **halftone dot screen** at `rgba(cream, 0.028)` on a 7px grid — the same
+  dot pattern inside the logo's starburst, at the threshold of visibility
+- a **spotlight** behind the headline (`.hero::before`), a soft red radial with
+  no edge, peaking at `rgba(red, 0.12)`
+- a **sprocket strip** on the hero's bottom edge (`.hero::after`), one row of
+  8px perforations quoting the logo's filmstrip banner
+
 **The vignette has a hard ceiling, and it is `--red`.** The background is a
 radial gradient from `--field-lift` behind the masthead down to `--field`. Red
 needs 4.5:1 to carry text and passes only to `#101113` — by `#121417` it is
