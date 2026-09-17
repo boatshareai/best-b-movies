@@ -1,9 +1,9 @@
 /**
- * Classic Films Vault — licensing inquiry handler.
+ * Best B Movies — licensing inquiry handler.
  *
  * Sends the two emails the site promises:
  *   1. an auto-reply to the person who submitted the form
- *   2. a notification to the Classic Films Vault inbox
+ *   2. a notification to the Best B Movies inbox
  *
  * No database. Nothing is stored — the emails *are* the record.
  *
@@ -13,7 +13,7 @@
  *
  * Required environment variables:
  *   RESEND_API_KEY  API key from your transactional email provider
- *   FROM_EMAIL      verified sender, e.g. "licensing@classicfilmsvault.com"
+ *   FROM_EMAIL      verified sender, e.g. "licensing@bestbmovies.com"
  *   NOTIFY_TO       inbox that should receive inquiry notifications
  * Optional:
  *   ALLOW_ORIGIN    site origin for CORS (defaults to "*")
@@ -55,7 +55,7 @@ async function sendEmail(env, { to, subject, text, html, replyTo }) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: `Classic Films Vault <${env.FROM_EMAIL}>`,
+      from: `Best B Movies <${env.FROM_EMAIL}>`,
       to: [to],
       subject,
       text,
@@ -123,7 +123,7 @@ export default {
       `get back to you within a few business days with availability, territory, ` +
       `and licensing terms.\n\n` +
       `If you need something sooner, feel free to reply directly to this email.\n\n` +
-      `— Classic Films Vault`;
+      `— Best B Movies`;
 
     const replyHtml =
       `<p>Hi ${esc(name)},</p>` +
@@ -131,7 +131,7 @@ export default {
       `and get back to you within a few business days with availability, ` +
       `territory, and licensing terms.</p>` +
       `<p>If you need something sooner, feel free to reply directly to this email.</p>` +
-      `<p>&mdash; Classic Films Vault</p>`;
+      `<p>&mdash; Best B Movies</p>`;
 
     /* ---- 2. internal notification ------------------------------------ */
     const rows = [
@@ -175,7 +175,7 @@ export default {
       try {
         await sendEmail(env, {
           to: email,
-          subject: "We received your Classic Films Vault inquiry",
+          subject: "We received your Best B Movies inquiry",
           text: replyText,
           html: replyHtml,
         });

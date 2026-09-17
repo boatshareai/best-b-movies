@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Classic Films Vault — static site generator.
+Best B Movies — static site generator.
 
 Reads data/catalog.csv and writes a complete static site to dist/.
 Stdlib only; no pip install, no node_modules, no build toolchain.
@@ -29,20 +29,20 @@ DIST = os.path.join(HERE, "dist")
 # can't be assumed to be "/". Set SITE_BASE in the deploy workflow.
 SITE_BASE = os.environ.get("SITE_BASE", "").rstrip("/")
 
-SITE_NAME = "Classic Films Vault"
+SITE_NAME = "Best B Movies"
 
 # The three represented catalogs. Each is its own CSV so they stay
 # independently editable and one agency's data can never disturb another's --
-# data/catalog.csv in particular is the original Classic Films Vault file and
+# data/catalog.csv in particular is the original Best B Movies file and
 # is not rewritten by the represented-catalog import.
 #
-# `prefix` namespaces the slugs. Classic Films Vault keeps an empty prefix so
+# `prefix` namespaces the slugs. Best B Movies keeps an empty prefix so
 # its already-published URLs do not move; the newer catalogs are prefixed so
 # the 18 titles carried by both agencies get distinct pages.
 CATALOGS = [
     {
-        "key": "classic-films-vault",
-        "name": "Classic Films Vault",
+        "key": "best-b-movies",
+        "name": "Best B Movies",
         "file": "catalog.csv",
         "prefix": "",
         "blurb": "Classic Hollywood and international cinema, 1930s to today "
@@ -71,22 +71,22 @@ CATALOG_BY_KEY = {c["key"]: c for c in CATALOGS}
 # Populated by main() once the catalogs are loaded. Copy that quotes a count
 # reads it from here rather than hardcoding a number that goes stale the next
 # time a catalog changes size.
-COUNTS = {"total": 0, "classic-films-vault": 0, "blue-finch": 0, "sc-films": 0}
+COUNTS = {"total": 0, "best-b-movies": 0, "blue-finch": 0, "sc-films": 0}
 
 
 def catalog_names(sep=", ", last=", and "):
     names = [c["name"] for c in CATALOGS]
     return sep.join(names[:-1]) + last + names[-1]
-TAGLINE = "Classic film licensing"
+TAGLINE = "B-movie licensing"
 
 # The licensing copy is contractual language and is reproduced verbatim.
 # The opening sentence was widened to match the actual catalog range (20 titles
 # post-date 1979), rather than trimming real inventory to fit a marketing line.
-# %(cfv)d is the live Classic Films Vault count. The paragraph describes that
+# %(cfv)d is the live Best B Movies count. The paragraph describes that
 # library specifically -- the represented catalogs are covered by the separate
 # paragraph after it on the licensing page.
 LICENSING_TERMS = (
-    "Classic Films Vault represents a library of %(cfv)d films spanning classic "
+    "Best B Movies represents a library of %(cfv)d films spanning classic "
     "Hollywood, international cinema, and contemporary art-house titles from "
     "the 1930s to today. Titles are available for non-exclusive licensing across "
     "streaming, broadcast, and digital platforms, with territory and term "
@@ -120,7 +120,7 @@ HIGHLIGHTS = [
     ("Westerns", ["Western"], "Singing cowboys, cavalry pictures, and late-cycle revisionist entries."),
     ("Mystery & noir", ["Mystery", "Film-Noir", "Crime"], "Rathbone-era Holmes, Fritz Lang thrillers, and hard-boiled studio noir."),
     # Now majority Blue Finch, so the description can no longer name only the
-    # Classic Films Vault titles.
+    # Best B Movies titles.
     ("Horror & sci-fi", ["Horror", "Sci-Fi"], "Corman-Poe gothics and drive-in creature features through to contemporary independent horror."),
     ("International", None, "Kurosawa, Ozu, Mizoguchi, Ray, Buñuel, Tarkovsky, and De Sica."),
 ]
@@ -134,8 +134,8 @@ HIGHLIGHTS = [
 # time and the build fails loudly if one stops resolving.
 FEATURED = [
     (
-        "classic-films-vault",
-        "Classic Films Vault",
+        "best-b-movies",
+        "Best B Movies",
         [
             "Bicycle Thieves",
             "Stagecoach",
@@ -221,7 +221,7 @@ def load():
             if r.get("publish", "yes").lower() in ("no", "false", "0"):
                 skipped += 1
                 continue
-            # Genres are "; "-separated in the Classic Films Vault file and a
+            # Genres are "; "-separated in the Best B Movies file and a
             # single verbatim label in the agency files. Both land as a list.
             r["genre_list"] = [g for g in r["genres"].split("; ") if g]
             r["runtime_n"] = int(r["runtime"]) if r["runtime"].isdigit() else None
@@ -285,6 +285,7 @@ def page(title, body, current, depth=0, description=""):
 <meta name="robots" content="index, follow">
 <meta property="og:title" content="%(title)s">
 <meta property="og:description" content="%(desc)s">
+<meta property="og:site_name" content="%(site)s">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" sizes="32x32" href="%(up)sassets/favicon-32.png">
 <link rel="apple-touch-icon" href="%(up)sassets/favicon-180.png">
@@ -298,7 +299,7 @@ def page(title, body, current, depth=0, description=""):
     <a class="brand" href="%(up)sindex.html">
       <img src="%(up)sassets/logo-200.png" alt="" width="200" height="200" decoding="async">
       <span class="brand-text">
-        <span class="brand-name">Classic Films Vault</span>
+        <span class="brand-name">Best B Movies</span>
         <span class="mark">Licensing &amp; distribution</span>
       </span>
     </a>
@@ -310,7 +311,7 @@ def page(title, body, current, depth=0, description=""):
 </main>
 <footer class="site-foot">
   <div class="wrap">
-    <div>&copy; %(year)s Classic Films Vault. Licensing inquiries only — this site does not stream or sell films.</div>
+    <div>&copy; %(year)s Best B Movies. Licensing inquiries only — this site does not stream or sell films.</div>
     <div class="fnav">
       <a href="%(up)sbrowse.html">Browse titles</a>
       <a href="%(up)slicensing.html">Licensing &amp; contact</a>
@@ -326,6 +327,7 @@ def page(title, body, current, depth=0, description=""):
         "nav": "\n      ".join(nav),
         "body": body,
         "up": up,
+        "site": e(SITE_NAME),
         "year": 2026,
     }
 
@@ -454,16 +456,11 @@ def build_home(films):
     body = """
 <section class="hero">
   <div class="wrap">
-    <p class="eyebrow">Classic Films Vault</p>
-    <h1>%(cfv)d titles of our own, %(rep)d presented for our partners</h1>
-    <p class="pitch">Classic Films Vault is an independent film library and
-      distribution partner. Our own %(cfv)d titles &mdash; classic Hollywood and
-      international cinema &mdash; are licensed across streaming, broadcast, and
-      digital platforms, and stream on YouTube and AVOD. The other %(rep)d are
-      presented here on behalf of Blue Finch Film Releasing and SC Films
-      International: we hold no rights position on those, and availability,
-      territory, and terms are confirmed directly with each company per
-      inquiry.</p>
+    <p class="eyebrow">Best B Movies</p>
+    <h1>%(total)d Titles. Ready to License.</h1>
+    <p class="pitch">Three catalogs, one place to find them &mdash; genre
+      classics, cult favorites, and the independent features buyers are
+      actually looking for, cleared for streaming, broadcast, and digital.</p>
     <ul class="hero-split">
 %(split)s
     </ul>
@@ -490,19 +487,19 @@ def build_home(films):
     <div class="tiles">
       <div class="tile">
         <span class="label">Three catalogs, one inquiry</span>
-        <span class="sub">%(cfv)d titles in the Classic Films Vault library, plus
+        <span class="sub">%(cfv)d titles in the Best B Movies library, plus
           %(bf)d represented for Blue Finch Film Releasing and %(sc)d for SC Films
           International. Every title page says which.</span>
       </div>
       <div class="tile">
         <span class="label">Terms stated, not implied</span>
-        <span class="sub">Classic Films Vault titles are offered non-exclusively,
+        <span class="sub">Best B Movies titles are offered non-exclusively,
           territory and term per deal. Agency-represented titles carry no assumed
           position &mdash; availability is confirmed per inquiry.</span>
       </div>
       <div class="tile">
         <span class="label">Nothing hidden</span>
-        <span class="sub">%(licensed)d Classic Films Vault titles currently carry a
+        <span class="sub">%(licensed)d Best B Movies titles currently carry a
           non-exclusive licence with another platform. They are flagged in the
           catalog and remain available to license.</span>
       </div>
@@ -522,7 +519,7 @@ def build_home(films):
 """ % {
         "total": total,
         "split": split,
-        "cfv": len(in_catalog(films, "classic-films-vault")),
+        "cfv": len(in_catalog(films, "best-b-movies")),
         "rep": len(in_catalog(films, "blue-finch"))
         + len(in_catalog(films, "sc-films")),
         "bf": len(in_catalog(films, "blue-finch")),
@@ -532,17 +529,13 @@ def build_home(films):
         "chips": chips,
         "licensed": licensed,
     }
-    cfv_n = len(in_catalog(films, "classic-films-vault"))
     return page(
-        "Classic Films Vault \u2014 film library and distribution partner",
+        "Best B Movies \u2014 %d titles ready to license" % total,
         body,
         "index.html",
-        # The shared default still describes all %d titles as ours to license,
-        # which is the claim the hero now corrects, so this page states its own.
-        description="An independent film library and distribution partner. %d "
-        "titles of our own, licensed across streaming, broadcast, and digital, "
-        "plus %d presented on behalf of Blue Finch Film Releasing and SC Films "
-        "International." % (cfv_n, total - cfv_n),
+        description="Three catalogs, one place to find them \u2014 genre "
+        "classics, cult favorites, and the independent features buyers are "
+        "actually looking for, cleared for streaming, broadcast, and digital.",
     )
 
 
@@ -809,7 +802,7 @@ def build_film(f, films):
     spec.append(("Year", f["year"] or "Not listed"))
     spec.append(("Genre", ", ".join(f["genre_list"]) or "Not listed"))
     # Credits come from the agency's own title page. Rows without them (the
-    # Classic Films Vault titles, which have no source page) simply omit the
+    # Best B Movies titles, which have no source page) simply omit the
     # line rather than printing "Not listed" three times over.
     for label in ("Director", "Writer", "Cast"):
         val = (f.get(label.lower()) or "").strip()
@@ -859,7 +852,7 @@ def build_film(f, films):
     # authoritative record of availability. An agency title with no known
     # source page (Head Count) falls back to the form rather than dead-ending.
     source_url = (f.get("source_url") or "").strip()
-    if f["catalog"] != "classic-films-vault" and source_url:
+    if f["catalog"] != "best-b-movies" and source_url:
         cta = (
             "<p>Territory and term are negotiated per deal. %(name)s handles "
             "enquiries for this title — their own page for it carries the "
@@ -1038,7 +1031,7 @@ def build_licensing(films):
 <script src="assets/config.js"></script>
 <script src="assets/inquiry.js"></script>
 """ % {
-        "terms": e(LICENSING_TERMS % {"cfv": len(in_catalog(films, "classic-films-vault"))}),
+        "terms": e(LICENSING_TERMS % {"cfv": len(in_catalog(films, "best-b-movies"))}),
         "total": len(films),
         "bf": len(in_catalog(films, "blue-finch")),
         "sc": len(in_catalog(films, "sc-films")),
@@ -1051,7 +1044,7 @@ def build_licensing(films):
         body,
         "licensing.html",
         description="Licensing terms and inquiry form for %d titles across the "
-        "Classic Films Vault, Blue Finch, and SC Films International catalogs."
+        "Best B Movies, Blue Finch, and SC Films International catalogs."
         % len(films),
     )
 
@@ -1062,7 +1055,7 @@ def build_licensing(films):
 
 
 def build_about(films):
-    cfv = in_catalog(films, "classic-films-vault")
+    cfv = in_catalog(films, "best-b-movies")
     langs = sorted(
         {f["language"] for f in cfv if f["language"] and f["language"] != "English"}
     )
@@ -1071,14 +1064,15 @@ def build_about(films):
   <div class="wrap">
     <div class="rule-head"><h1>About the collection</h1></div>
     <div class="prose">
-      <p>Classic Films Vault is an independent film library and distribution
-        partner working alongside Blue Finch Film Releasing and SC Films
-        International, presenting select titles from each catalog on their
-        behalf while independently building and streaming our own library
-        across YouTube and AVOD platforms. Every title page states which
-        catalog it comes from.</p>
+      <p>Best B Movies is an independent distribution outfit running alongside
+        Blue Finch Film Releasing and SC Films International. We put select
+        titles from their catalogs in front of buyers, and we build and stream
+        our own library &mdash; genre pictures, cult favorites, the stuff that
+        never needed a red carpet &mdash; across YouTube and AVOD platforms.</p>
 
-      <h2>Classic Films Vault</h2>
+      <p>Every title page states which catalog it comes from.</p>
+
+      <h2>Best B Movies</h2>
       <p>%(cfv)d titles of classic Hollywood and international cinema, with the
         core concentrated in the 1930s through the 1970s and a smaller set of
         titles reaching into the 2000s and 2010s. The American side runs deep
@@ -1092,13 +1086,11 @@ def build_about(films):
         licensing across streaming, broadcast, and digital platforms, with
         territory and term negotiated per deal.</p>
 
-      <h2>Partner catalogs</h2>
-      <p>%(bf)d titles from Blue Finch Film Releasing and %(sc)d from SC Films
-        International &mdash; contemporary independent features and
-        family/live-action titles, presented here as their distribution
-        partner. We hold no rights position on these titles ourselves:
-        availability, territory, and terms are confirmed directly with each
-        company per inquiry.</p>
+      <h2>Partner Catalogs</h2>
+      <p>%(bf)d titles from Blue Finch Film Releasing, %(sc)d from SC Films
+        International. Independent features, horror, thriller, family titles.
+        We present them, they call the shots &mdash; availability, territory,
+        and terms confirmed direct with each company, per inquiry.</p>
 
       <p>%(bf)d titles for Blue Finch Film Releasing &mdash; contemporary
         independent features, weighted to the 2010s and 2020s, led by horror,

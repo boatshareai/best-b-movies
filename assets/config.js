@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
-   Classic Films Vault — form configuration
+   Best B Movies — form configuration
 
    Set ENDPOINT to the URL that receives inquiries. Until you do, the
    form shows a "not connected yet" notice instead of pretending to send.

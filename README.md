@@ -1,4 +1,4 @@
-# Classic Films Vault — licensing site
+# Best B Movies — licensing site
 
 A static catalog-and-contact site for three represented catalogs — Classic
 Films Vault (165), Blue Finch Film Releasing (209), and SC Films
@@ -8,7 +8,7 @@ two emails.
 
 No backend, no database, no video hosting, no user accounts.
 
-**Live:** <https://boatshareai.github.io/classic-films-vault/>
+**Live:** <https://boatshareai.github.io/best-b-movies/>
 
 Every push to `main` rebuilds and redeploys via
 `.github/workflows/deploy.yml` — so updating the catalog is: edit
@@ -41,13 +41,13 @@ at the top of `build.py`:
 
 | Catalog | File | Slug prefix |
 |---|---|---|
-| Classic Films Vault | `data/catalog.csv` | *(none)* |
+| Best B Movies | `data/catalog.csv` | *(none)* |
 | Blue Finch Film Releasing | `data/blue-finch.csv` | `bf-` |
 | SC Films International | `data/sc-films.csv` | `sc-` |
 
 Separate files so one agency's data can never disturb another's, and so
 `data/catalog.csv` stays exactly what it was before the agency catalogs
-arrived. Classic Films Vault keeps an empty slug prefix because its URLs are
+arrived. Best B Movies keeps an empty slug prefix because its URLs are
 already published and must not move; the agency catalogs are prefixed so the
 titles carried by *both* agencies get distinct pages.
 
@@ -84,7 +84,7 @@ python3 build.py
 | `status` | `Available` or `Licensed` — controls the badge. |
 | `licence_note` | Sentence shown in the Licensing box on the film page. |
 | `territory` | Territory of an existing **licence**. Shown only when `status` is `Licensed`. Unrelated to `country`: one is where the film was made, the other is where somebody already holds rights. Still unknown for every agency title. |
-| `credit` | Optional free-text note, e.g. `Directed by John Ford`. Predates the structured credit columns below and is only used by Classic Films Vault. |
+| `credit` | Optional free-text note, e.g. `Directed by John Ford`. Predates the structured credit columns below and is only used by Best B Movies. |
 | `director` | Director(s), `; `-separated. Sourced from the agency's own title page. |
 | `writer` | Writer(s), `; `-separated. |
 | `cast` | Principal cast, `; `-separated. |
@@ -101,7 +101,7 @@ options are generated from whatever is in the CSV.
 
 ### Known data gaps, carried honestly
 
-The agency catalogs arrived thinner than the Classic Films Vault data, and
+The agency catalogs arrived thinner than the Best B Movies data, and
 none of it is filled in by inference:
 
 - **Every one of the 463 titles now has a logline.** 296 of the 298 agency
@@ -130,7 +130,7 @@ none of it is filled in by inference:
   left blank for those rows rather than guessing which slot was right.
 - **Genre labels are verbatim single strings** ("Live Action", "Crime
   Thriller", "Family Animation") rather than the `;`-separated multi-genre
-  used by Classic Films Vault. They are *not* split on whitespace — "Live
+  used by Best B Movies. They are *not* split on whitespace — "Live
   Action" is a format, not Live + Action — so the genre filter lists each
   label as the source wrote it. Rolling "Horror Thriller" up under "Horror"
   would be a taxonomy decision, not a code fix.
@@ -145,12 +145,12 @@ The button in the Licensing card on a film page routes by catalog:
 
 | Catalog | Button | Goes to |
 |---|---|---|
-| Classic Films Vault | Inquire about this title | `licensing.html?title=…` (our own form) |
+| Best B Movies | Inquire about this title | `licensing.html?title=…` (our own form) |
 | Blue Finch / SC Films | View on *&lt;agency&gt;* | that title's `source_url`, new tab |
 
 The agency carries the title and fields the enquiry, so their own page is the
 authoritative record of availability — sending those leads through our form
-would just add a hop. Classic Films Vault is ours, so it keeps the form.
+would just add a hop. Best B Movies is ours, so it keeps the form.
 
 An agency title with **no** `source_url` falls back to the form rather than
 dead-ending. *Head Count* is the only one today: it has no page anywhere on
@@ -251,7 +251,7 @@ Option A.
 
 Both emails are defined in `functions/inquiry.js`.
 
-- **To the inquirer** — subject: `We received your Classic Films Vault inquiry`
+- **To the inquirer** — subject: `We received your Best B Movies inquiry`
 - **To you** — subject: `New licensing inquiry — <Company>`, body listing
   Name, Company, Email, Titles of interest, Intended use, Estimated volume,
   Message. `Reply-To` is set to the inquirer, so hitting reply just works.
@@ -363,9 +363,9 @@ brand's idiom — clapperboard stripe, the title's initial ghosted in brass.
 but *Head Count*. Images are in `assets/posters/`, named `<slug>.jpg`,
 downscaled to 600px wide and re-encoded as progressive JPEG — the card renders
 at 300×450, so the source 1700–2500px art was ~111 MB against 26 MB now. `data/catalog.csv` has **no**
-`poster` column yet: the 165 Classic Films Vault titles have no rights-holder
+`poster` column yet: the 165 Best B Movies titles have no rights-holder
 site to pull from, and TMDB needs an API key nobody has supplied. Six of the
-twelve `FEATURED` cards are real art today; the six Classic Films Vault ones
+twelve `FEATURED` cards are real art today; the six Best B Movies ones
 still fall back to the monogram placeholder.
 
 Adding art stays a per-title data edit, not a code change: add the column to

@@ -3,7 +3,7 @@
 Build data/blue-finch.csv and data/sc-films.csv from
 ../Blue_Finch_SC_Films_Catalogs.xlsx.
 
-Kept separate from etl.py so the Classic Films Vault import and its
+Kept separate from etl.py so the Best B Movies import and its
 data/catalog.csv are untouched by anything here.
 
 Source columns: Title, Year, Genre, Runtime (min), Logline,
@@ -104,7 +104,7 @@ def main():
             for r in mine:
                 # Prefixed so the two agencies' copies of a shared title get
                 # distinct URLs, and so nothing can collide with the existing
-                # Classic Films Vault slugs, which must not change.
+                # Best B Movies slugs, which must not change.
                 base = "%s-%s" % (prefix, slugify(r["title"], r["year"]))
                 slug, n = base, 2
                 while slug in slugs:

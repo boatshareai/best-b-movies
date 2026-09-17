@@ -27,7 +27,15 @@
     if (p.get("genre")) genre.value = p.get("genre");
     if (p.get("decade")) decade.value = p.get("decade");
     if (p.get("status")) status.value = p.get("status");
-    if (p.get("catalog")) catalog.value = p.get("catalog");
+    // The Best B Movies catalog key was "classic-films-vault" before the
+    // rename, and that spelling is in published deep links and the README.
+    // Without this alias such a link would silently show all 463 titles
+    // instead of the 165 it asked for.
+    var CATALOG_ALIASES = { "classic-films-vault": "best-b-movies" };
+    if (p.get("catalog")) {
+      var want = p.get("catalog");
+      catalog.value = CATALOG_ALIASES[want] || want;
+    }
     if (p.get("intl")) lang.dataset.intl = "1";
   })();
 

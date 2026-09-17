@@ -9,14 +9,14 @@ explicitly out of scope and were not touched.
 
 | Catalog | Titles | Loglines before | Loglines after | Posters |
 |---|---|---|---|---|
-| Classic Films Vault | 165 | 165 | 165 *(already complete)* | 0 — see below |
+| Best B Movies | 165 | 165 | 165 *(already complete)* | 0 — see below |
 | Blue Finch Film Releasing | 209 | 0 | **209** | **208** |
 | SC Films International | 89 | 0 | **89** | **89** |
 | **Total** | **463** | **165** | **463** | **297** |
 
 298 loglines and 297 poster images were added, and one wrong logline/poster pair
 was corrected. **No logline gaps remain** — all 463 titles have one. The only
-outstanding art is the 165 Classic Films Vault posters plus *Head Count*.
+outstanding art is the 165 Best B Movies posters plus *Head Count*.
 
 Run in two passes. The first resolved 279 titles by slug-matching against the
 agency sitemaps and category indexes, leaving 19 unmatched. The second was a
@@ -119,7 +119,7 @@ step by hand. All 297 images are on the site — 297 of 463 rows show art and
 the other 166 fall back to the typographic placeholder, mixed freely with no
 layout jump.
 
-**Classic Films Vault posters (165) were not sourced.** There is no
+**Best B Movies posters (165) were not sourced.** There is no
 rights-holder site for that catalog. IMDb's conditions of use prohibit
 scraping, and TMDB's image API needs a key that does not exist anywhere in
 the project. `data/catalog.csv` therefore still has no `poster` column.
@@ -130,6 +130,6 @@ Supply a TMDB API key and this becomes a single re-run.
 This local copy of `site/` was a partial export and could not build: it was
 missing `data/catalog.csv` entirely, `data/sc-films.csv` was 0 bytes, and
 `assets/` held none of the CSS, JS or logo files. All were restored from
-`github.com/boatshareai/classic-films-vault` (the live source of truth, whose
+`github.com/boatshareai/best-b-movies` (the live source of truth, whose
 `blue-finch.csv` was byte-identical to the local one). `python3 build.py`
 now produces all 463 film pages with no missing asset references.
