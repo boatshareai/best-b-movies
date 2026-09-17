@@ -106,9 +106,13 @@ a:hover {
   padding: 10px 0;
   color: var(--light-2);
 }
-.brand img {
-  width: 68px;
-  height: 68px;
+/* The lockup carries the wordmark, so there is no separate brand-name text to
+   sit beside it. 1.363:1 — height follows width, never a fixed square.
+   Sized so the header stays one row with the nav at desktop widths; much
+   above this and the whole bar grows to ~165px. */
+.brand-logo {
+  width: 148px;
+  height: auto;
   display: block;
   flex: 0 0 auto;
 }
@@ -117,14 +121,8 @@ a:hover {
   flex-direction: column;
   gap: 3px;
 }
-.brand-name {
-  font-family: var(--serif);
-  font-size: 21px;
-  letter-spacing: 0.01em;
-  line-height: 1.1;
-}
-.brand:hover .brand-name {
-  color: #fff;
+.brand:hover .brand-logo {
+  opacity: 0.9;
 }
 .brand .mark {
   font-size: 10px;
@@ -899,12 +897,8 @@ table.catalog .c-num {
     padding: 6px 0;
     gap: 10px;
   }
-  .brand img {
-    width: 46px;
-    height: 46px;
-  }
-  .brand-name {
-    font-size: 18px;
+  .brand-logo {
+    width: 116px;
   }
   .brand .mark {
     font-size: 9px;

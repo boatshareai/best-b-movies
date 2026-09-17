@@ -287,6 +287,7 @@ def page(title, body, current, depth=0, description=""):
 <meta property="og:description" content="%(desc)s">
 <meta property="og:site_name" content="%(site)s">
 <meta property="og:type" content="website">
+%(ogimg)s<link rel="icon" type="image/png" sizes="16x16" href="%(up)sassets/favicon-16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="%(up)sassets/favicon-32.png">
 <link rel="apple-touch-icon" href="%(up)sassets/favicon-180.png">
 <meta name="theme-color" content="#1a1a1a">
@@ -297,9 +298,9 @@ def page(title, body, current, depth=0, description=""):
 <header class="site-head">
   <div class="wrap">
     <a class="brand" href="%(up)sindex.html">
-      <img src="%(up)sassets/logo-200.png" alt="" width="200" height="200" decoding="async">
+      <img class="brand-logo" src="%(up)sassets/logo-lockup.png" alt="Best B Movies"
+           width="440" height="323" decoding="async">
       <span class="brand-text">
-        <span class="brand-name">Best B Movies</span>
         <span class="mark">Licensing &amp; distribution</span>
       </span>
     </a>
@@ -328,6 +329,17 @@ def page(title, body, current, depth=0, description=""):
         "body": body,
         "up": up,
         "site": e(SITE_NAME),
+        # og:image must be absolute — a relative path is silently ignored by
+        # every scraper. Without SITE_BASE we don't know the origin, so the
+        # tag is omitted rather than emitted broken. CI sets SITE_BASE.
+        "ogimg": (
+            '<meta property="og:image" content="%s/assets/og-image.jpg">\n'
+            '<meta property="og:image:width" content="1200">\n'
+            '<meta property="og:image:height" content="630">\n'
+            '<meta name="twitter:card" content="summary_large_image">\n' % SITE_BASE
+            if SITE_BASE
+            else ""
+        ),
         "year": 2026,
     }
 
