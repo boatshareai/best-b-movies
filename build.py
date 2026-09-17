@@ -290,7 +290,7 @@ def page(title, body, current, depth=0, description=""):
 %(ogimg)s<link rel="icon" type="image/png" sizes="16x16" href="%(up)sassets/favicon-16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="%(up)sassets/favicon-32.png">
 <link rel="apple-touch-icon" href="%(up)sassets/favicon-180.png">
-<meta name="theme-color" content="#1a1a1a">
+<meta name="theme-color" content="#000000">
 <link rel="stylesheet" href="%(up)sassets/site.css">
 </head>
 <body>

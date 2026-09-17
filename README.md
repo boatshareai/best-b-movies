@@ -266,10 +266,13 @@ GitHub Pages, S3, or any web host.
 - **Build command:** `python3 build.py`
 - **Publish directory:** `dist`
 
-The whole site is ~2.8 MB including all 463 film pages. There are no external
-requests — no CDN, no web fonts, no analytics, no trackers — so it loads fast
-and needs no cookie banner as shipped. Any single page pulls one 18 KB
-stylesheet and one 20 KB logo, both cached across the whole site.
+The built site is about 30 MB, of which 26 MB is the 297 poster images; the
+HTML for all 463 film pages is a small fraction of the rest. There are no
+external requests — no CDN, no analytics, no trackers, and the one web font is
+self-hosted — so it loads fast and needs no cookie banner as shipped. Any
+single page pulls one 30 KB stylesheet, a 15 KB logo and a 12 KB font subset,
+all cached across the whole site; posters are lazy-loaded, so a page fetches
+only the art that scrolls into view.
 
 ---
 
@@ -296,37 +299,69 @@ directly.
 
 ## Brand and palette
 
-Steel-and-brass, taken from the vault logo. Every colour is a CSS custom
-property at the top of `assets/site.css` — change them there and the whole
-site follows.
+Taken straight off the logo: black field, pillar-box red, starburst yellow,
+cream banner lettering. Every colour is a CSS custom property at the top of
+`assets/site.css` — change them there and the whole site follows.
 
 | Token | Value | Role |
 |---|---|---|
-| `--steel-dk` | `#1A1A1A` | Header, hero, footer, table head |
-| `--steel-mid` | `#2E2D2B` | Top of the hero gradient |
-| `--steel` | `#242322` | Body text on light |
+| `--black` | `#000000` | Header, hero, footer, film-page banner, table head |
+| `--black-soft` | `#141414` | Raised surfaces on black |
+| `--red` | `#FA0A14` | Primary accent — button fills, rules, text **on black only** |
+| `--red-ink` | `#B8000A` | Same hue darkened, for links and small text **on light** |
+| `--red-lt` | `#FF5A62` | Hover on black |
+| `--yellow` | `#FAE60A` | Secondary accent — **black surfaces only** |
+| `--cream` | `#FAF0E6` | Light text on black |
 | `--light` | `#E8E6E1` | Page background (warm gray, never white) |
-| `--light-2` | `#F1EFE8` | Cards, table surface, text on dark |
-| `--brass` | `#C9A15C` | The single accent — buttons, rules, accents on dark |
-| `--brass-ink` | `#7F6025` | Same hue darkened, for links and small text **on light** |
-| `--gray` | `#6B6862` | Borders, dividers, muted text |
+| `--light-2` | `#F1EFE8` | Cards, table surface |
+| `--ink` | `#242322` | Body text on light |
+| `--gray` | `#6B6862` | Borders, dividers |
 
-Two notes on why there are more tokens than the four base colours:
+Three constraints this palette carries, all of them measured rather than
+guessed:
 
-- **`--brass-ink` exists for contrast, not variety.** `#C9A15C` on `#E8E6E1`
-  is about 1.9:1 — well under the 4.5:1 minimum for body text, and every film
-  title in the catalog is a link. `--brass-ink` is the same hue darkened until
-  it passes (4.67:1). Brass proper is still the accent everywhere it sits on
-  steel or fills a button.
-- **Form errors keep a red** (`#8F3323`). It's a functional signal rather than
-  decoration, so it stays distinguishable from the accent; it's desaturated to
-  sit inside the palette. Success and warning notices are brass and steel.
+- **Dark surfaces are true black, not the old `#1A1A1A`.** `--red` scores
+  4.24:1 on `#1A1A1A`, which fails AA for body text, and 5.12:1 on `#000`.
+  The accent only works as text once the background is actually black.
+- **`--yellow` is a black-surface colour and nothing else.** It is 13.6:1 on
+  black and **1.03:1 on `--light`** — invisible. It carries the eyebrow and
+  the header tagline; it must never be used for text or borders on a light
+  surface.
+- **`--red-ink` exists for contrast, not variety.** `#FA0A14` on `--light` is
+  3.29:1. `--red-ink` is the same hue darkened until it passes on both light
+  surfaces *and* on the tinted `--red-dim` badge fill, which is the tightest
+  case at 4.59:1.
 
-Status badges use the one accent: **Available** is brass, **Licensed** is
-steel gray. The film-page hero is dark, so it overrides both with light-on-
-dark variants (`.film-head .badge-*`).
+Status badges: **Available** is red, **Licensed** is neutral gray. The
+film-page banner is black, so it overrides both with light-on-dark variants
+(`.film-head .badge-*`).
 
-All 24 foreground/background pairs on the site meet WCAG AA.
+**Form errors keep their own darker red** (`#8F3323`). Under the old gold
+system that red was clearly apart from the accent; it no longer is. The inline
+error text carries the signal, not the colour alone, so this is a legibility
+note rather than a defect — but it is worth revisiting if the form ever grows.
+
+Every foreground/background pair on the home, browse, licensing and film pages
+meets WCAG AA, checked by compositing the actual rendered colours (translucent
+badge and notice fills included) rather than comparing declared values.
+Decorative placeholder initials are `aria-hidden` and excluded, as WCAG allows.
+
+## Type
+
+| Token | Stack | Role |
+|---|---|---|
+| `--display` | `Anton`, Impact, Haettenschweiler, Arial Narrow Bold | Headings, labels, card and tile type, the header tagline |
+| `--sans` | system stack | Body copy, form controls, browse-table film titles |
+
+**Anton is self-hosted, not loaded from Google Fonts.** The site makes no
+external requests by design — see *Deploying* — so pulling it from a CDN would
+have cost that property and added a third-party request to every page. The two
+subsets live in `assets/fonts/` (latin 12 KB, latin-ext 21 KB) with
+`font-display: swap`, and the SIL Open Font License travels with them in
+`assets/fonts/OFL.txt` as the licence requires.
+
+The browse table deliberately keeps `--sans`: Anton is a condensed poster face
+and 463 rows of it would be a wall. It is bolded instead so titles still lead.
 
 ### Logo
 

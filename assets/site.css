@@ -1,28 +1,62 @@
 /* Best B Movies — licensing portfolio
-   Palette: steel and brass, taken from the vault logo. Editorial, not kitsch. */
+   Palette pulled straight off the logo: black field, pillar-box red,
+   starburst yellow, cream banner lettering. */
+
+/* Anton, self-hosted. The site makes no external requests by design — see
+   README — so the font ships from assets/ rather than a Google Fonts CDN.
+   SIL Open Font License; the licence travels with it in assets/fonts/. */
+@font-face {
+  font-family: "Anton";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/anton-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Anton";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/anton-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
 
 :root {
-  /* Steel-and-brass system, pulled from the vault logo. */
-  --steel-dk: #1a1a1a;   /* outer rim — header, hero, footer */
-  --steel: #242322;      /* body charcoal / text on light */
-  --steel-mid: #2e2d2b;  /* raised surfaces on dark */
-  --brass: #c9a15c;      /* the clapperboard — the single accent */
-  --brass-lt: #dcbb82;   /* hover only, not a second accent */
-  --brass-ink: #7f6025;   /* same hue, darkened to pass contrast on light */
-  --brass-dim: rgba(201, 161, 92, 0.14);
-  --gray: #6b6862;       /* brushed steel — borders, dividers, muted text */
-  --light: #e8e6e1;      /* warm light gray, never pure white */
-  --light-2: #f1efe8;    /* raised cards on light + text on dark */
+  /* Dark surfaces are true black, not the old warm charcoal: the accent red
+     scores 4.24:1 on #1a1a1a (fails AA for body text) and 5.12:1 on #000. */
+  --black: #000000;      /* header, hero, footer, film-page banner */
+  --black-soft: #141414; /* raised surfaces on black */
+
+  --red: #fa0a14;        /* primary accent — fills, and text on black only */
+  --red-lt: #ff5a62;     /* hover on black */
+  --red-ink: #b8000a;    /* same hue darkened to pass contrast on light,
+                            including on the tinted --red-dim badge fill */
+  --red-dim: rgba(250, 10, 20, 0.12);
+
+  /* Starburst yellow. 13.6:1 on black, but 1.03:1 on --light — it is a
+     black-surface colour only and must never carry text on a light one. */
+  --yellow: #fae60a;
+
+  --cream: #faf0e6;      /* banner lettering — light text on black */
+  --gray: #6b6862;       /* borders, dividers, muted text */
+  --light: #e8e6e1;      /* page background, warm, never pure white */
+  --light-2: #f1efe8;    /* raised cards on light */
   --rule: #cfccc4;       /* dividers on light */
+  --ink: #242322;        /* body text on light */
   --ink-soft: #5d5a55;
 
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua",
-    Georgia, serif;
+  --display: "Anton", Impact, "Haettenschweiler", "Arial Narrow Bold",
+    sans-serif;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
     Arial, sans-serif;
 
   --wrap: 1140px;
-  --shadow: 0 1px 2px rgba(26, 26, 26, 0.07), 0 8px 24px rgba(26, 26, 26, 0.09);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 *,
@@ -38,7 +72,7 @@ html {
 body {
   margin: 0;
   background: var(--light);
-  color: var(--steel);
+  color: var(--ink);
   font: 16px/1.6 var(--sans);
 }
 
@@ -46,7 +80,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -54,12 +88,12 @@ h4 {
 }
 
 a {
-  color: var(--brass-ink);
+  color: var(--red-ink);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 a:hover {
-  color: #6f5420;
+  color: #9a0008;
 }
 
 .wrap {
@@ -84,9 +118,9 @@ a:hover {
 /* ---------- header ---------- */
 
 .site-head {
-  background: var(--steel-dk);
+  background: var(--black);
   color: var(--light);
-  border-bottom: 3px solid var(--brass);
+  border-bottom: 3px solid var(--red);
 }
 
 .site-head .wrap {
@@ -125,10 +159,13 @@ a:hover {
   opacity: 0.9;
 }
 .brand .mark {
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--brass);
+  /* Yellow, not red: on black it scores 13.6:1 against red's 5.1:1, and at
+     12px this is small text that needs the headroom. */
+  color: var(--yellow);
   line-height: 1.1;
 }
 
@@ -152,27 +189,27 @@ a:hover {
   color: var(--light-2);
 }
 .nav a[aria-current="page"] {
-  color: var(--brass-lt);
-  box-shadow: inset 0 -2px 0 var(--brass);
+  color: var(--red-lt);
+  box-shadow: inset 0 -2px 0 var(--red);
 }
 .cta-short {
   display: none;
 }
 .nav .cta {
-  background: var(--brass);
-  color: var(--steel-dk);
+  background: var(--red);
+  color: var(--black);
   font-weight: 600;
   margin-left: 6px;
 }
 .nav .cta:hover {
-  background: var(--brass-lt);
-  color: var(--steel-dk);
+  background: var(--red-lt);
+  color: var(--black);
 }
 
 /* ---------- hero ---------- */
 
 .hero {
-  background: var(--steel-dk);
+  background: var(--black);
   color: var(--light);
   padding: 72px 0 64px;
   position: relative;
@@ -182,12 +219,12 @@ a:hover {
   max-width: 900px;
 }
 .eyebrow {
-  font-size: 12px;
-  letter-spacing: 0.22em;
+  font-family: var(--display);
+  font-size: 13px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--brass-lt);
+  color: var(--yellow);
   margin: 0 0 18px;
-  font-weight: 600;
 }
 .hero h1 {
   font-size: clamp(34px, 6vw, 58px);
@@ -218,13 +255,13 @@ a:hover {
   cursor: pointer;
 }
 .btn-gold {
-  background: var(--brass);
-  color: var(--steel-dk);
-  border-color: var(--brass);
+  background: var(--red);
+  color: var(--black);
+  border-color: var(--red);
 }
 .btn-gold:hover {
-  background: var(--brass-lt);
-  color: var(--steel-dk);
+  background: var(--red-lt);
+  color: var(--black);
 }
 .btn-ghost {
   border-color: rgba(241, 239, 232, 0.4);
@@ -236,13 +273,13 @@ a:hover {
   color: var(--light-2);
 }
 .btn-solid {
-  background: var(--brass);
-  color: var(--steel-dk);
-  border-color: var(--brass);
+  background: var(--red);
+  color: var(--black);
+  border-color: var(--red);
 }
 .btn-solid:hover {
-  background: var(--brass-lt);
-  color: var(--steel-dk);
+  background: var(--red-lt);
+  color: var(--black);
 }
 /* Leaves the site. The arrow is decorative — the accessible name already
    carries "(opens in a new tab)". */
@@ -309,29 +346,29 @@ a:hover {
 .tile {
   background: var(--light-2);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--brass);
+  border-top: 3px solid var(--red);
   border-radius: 3px;
   padding: 24px 22px 20px;
   text-decoration: none;
-  color: var(--steel);
+  color: var(--ink);
   display: block;
   box-shadow: var(--shadow);
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 .tile:hover {
   transform: translateY(-2px);
-  border-top-color: var(--brass);
-  color: var(--steel);
+  border-top-color: var(--red);
+  color: var(--ink);
 }
 .tile .count {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 40px;
   line-height: 1;
-  color: var(--brass-ink);
+  color: var(--red-ink);
   display: block;
 }
 .tile .label {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 19px;
   margin: 10px 0 6px;
   display: block;
@@ -356,15 +393,15 @@ a:hover {
   padding: 8px 16px;
   font-size: 14px;
   text-decoration: none;
-  color: var(--steel);
+  color: var(--ink);
 }
 .decade-chip:hover {
-  border-color: var(--brass-ink);
-  color: var(--brass-ink);
+  border-color: var(--red-ink);
+  color: var(--red-ink);
 }
 .decade-chip b {
   font-weight: 600;
-  color: var(--brass-ink);
+  color: var(--red-ink);
 }
 
 /* ---------- catalog controls ---------- */
@@ -402,15 +439,15 @@ a:hover {
   border: 1px solid var(--rule);
   border-radius: 3px;
   background: var(--light-2);
-  color: var(--steel);
+  color: var(--ink);
   width: 100%;
 }
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  outline: 2px solid var(--brass-ink);
+  outline: 2px solid var(--red-ink);
   outline-offset: -1px;
-  border-color: var(--brass-ink);
+  border-color: var(--red-ink);
 }
 .search-field {
   grid-column: 1 / -1;
@@ -431,13 +468,13 @@ a:hover {
   color: var(--ink-soft);
 }
 .result-count b {
-  color: var(--steel);
+  color: var(--ink);
   font-weight: 600;
 }
 .link-btn {
   background: none;
   border: none;
-  color: var(--brass-ink);
+  color: var(--red-ink);
   font: 14px var(--sans);
   cursor: pointer;
   text-decoration: underline;
@@ -466,7 +503,7 @@ table.catalog th {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--rule);
-  background: var(--steel-dk);
+  background: var(--black);
   padding: 12px 14px;
   position: sticky;
   top: 0;
@@ -486,7 +523,7 @@ table.catalog th button {
   align-items: center;
 }
 table.catalog th button:hover {
-  color: var(--brass-lt);
+  color: var(--red-lt);
 }
 table.catalog td {
   padding: 13px 14px;
@@ -494,7 +531,7 @@ table.catalog td {
   vertical-align: top;
 }
 table.catalog tbody tr:hover {
-  background: rgba(201, 161, 92, 0.07);
+  background: rgba(250, 10, 20, 0.06);
 }
 /* Poster thumbnail column. Deliberately narrow: it's an aid to scanning, not
    the content — the title next to it stays the thing you read and click. */
@@ -512,7 +549,7 @@ table.catalog td.c-art {
   aspect-ratio: 2 / 3;
   border-radius: 2px;
   overflow: hidden;
-  background: var(--steel-dk);
+  background: var(--black);
   border: 1px solid var(--rule);
 }
 .thumb img {
@@ -525,15 +562,16 @@ table.catalog td.c-art {
 .thumb-empty {
   display: grid;
   place-items: center;
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 20px;
   line-height: 1;
-  color: rgba(201, 161, 92, 0.45);
+  color: rgba(250, 10, 20, 0.85);
   user-select: none;
 }
 
 table.catalog .c-title {
-  font-family: var(--serif);
+  font-family: var(--sans);
+  font-weight: 700;
   font-size: 17px;
   min-width: 190px;
 }
@@ -555,7 +593,9 @@ table.catalog .c-num {
   font-variant-numeric: tabular-nums;
 }
 .muted {
-  color: #86827b;
+  /* Was #86827b, which scored 3.07:1 on --light — a pre-existing miss,
+     not something the repalette introduced. */
+  color: #67635c;
 }
 
 /* ---------- status badge ---------- */
@@ -570,9 +610,9 @@ table.catalog .c-num {
   white-space: nowrap;
 }
 .badge-available {
-  background: var(--brass-dim);
-  color: #7a5c22;
-  border: 1px solid rgba(201, 161, 92, 0.55);
+  background: var(--red-dim);
+  color: var(--red-ink);
+  border: 1px solid rgba(250, 10, 20, 0.5);
 }
 .badge-licensed {
   background: rgba(107, 104, 98, 0.12);
@@ -585,11 +625,11 @@ table.catalog .c-num {
 }
 
 /* The film-page hero is dark, so the badges need the inverse treatment —
-   the light-surface colours above are unreadable on steel. */
+   the light-surface colours above are unreadable on black. */
 .film-head .badge-available {
-  background: var(--brass-dim);
-  color: var(--brass-lt);
-  border-color: rgba(201, 161, 92, 0.6);
+  background: var(--red-dim);
+  color: var(--red-lt);
+  border-color: rgba(250, 10, 20, 0.55);
 }
 .film-head .badge-licensed {
   background: rgba(241, 239, 232, 0.09);
@@ -620,7 +660,7 @@ table.catalog .c-num {
 /* ---------- film detail ---------- */
 
 .film-head {
-  background: var(--steel-dk);
+  background: var(--black);
   color: var(--light);
   padding: 48px 0 44px;
 }
@@ -641,7 +681,7 @@ table.catalog .c-num {
   color: rgba(241, 239, 232, 0.7);
 }
 .crumbs a {
-  color: var(--brass-lt);
+  color: var(--red-lt);
 }
 .film-head h1 {
   font-size: clamp(30px, 5vw, 46px);
@@ -705,7 +745,7 @@ table.catalog .c-num {
 .aside-card {
   background: var(--light-2);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--brass);
+  border-top: 3px solid var(--red);
   border-radius: 3px;
   padding: 24px 22px;
   box-shadow: var(--shadow);
@@ -736,12 +776,12 @@ table.catalog .c-num {
   background: var(--rule);
   border-radius: 3px;
   padding: 5px 9px;
-  color: var(--steel);
+  color: var(--ink);
   text-decoration: none;
 }
 .tag:hover {
-  background: var(--brass-lt);
-  color: var(--steel-dk);
+  background: var(--red-lt);
+  color: var(--black);
 }
 
 /* ---------- prose / forms ---------- */
@@ -775,7 +815,7 @@ table.catalog .c-num {
   grid-column: 1 / -1;
 }
 .req {
-  color: var(--brass-ink);
+  color: var(--red-ink);
 }
 .hint {
   font-size: 13px;
@@ -802,12 +842,13 @@ table.catalog .c-num {
   margin: 0 0 22px;
 }
 .notice-ok {
-  background: var(--brass-dim);
-  border: 1px solid rgba(201, 161, 92, 0.5);
-  color: #6f5420;
+  background: var(--red-dim);
+  border: 1px solid rgba(250, 10, 20, 0.45);
+  color: #9a0008;
 }
-/* Errors keep a red: it is a functional signal, not decoration. Desaturated
-   so it still sits inside the steel-and-brass system. */
+/* Errors keep their own darker, desaturated red. Note this is now close to
+   the accent rather than clearly apart from it, as it was under the old gold
+   system — the inline error text carries the signal, not the colour alone. */
 .notice-err {
   background: #f4e6e2;
   border: 1px solid #d3aea4;
@@ -835,7 +876,7 @@ table.catalog .c-num {
 /* ---------- footer ---------- */
 
 .site-foot {
-  background: var(--steel-dk);
+  background: var(--black);
   color: rgba(241, 239, 232, 0.75);
   padding: 40px 0;
   font-size: 14px;
@@ -849,7 +890,7 @@ table.catalog .c-num {
   align-items: center;
 }
 .site-foot a {
-  color: var(--brass-lt);
+  color: var(--red-lt);
 }
 .site-foot .fnav {
   display: flex;
@@ -965,7 +1006,7 @@ table.catalog .c-num {
   table.catalog tr {
     background: var(--light-2);
     border: 1px solid var(--rule);
-    border-left: 3px solid var(--brass);
+    border-left: 3px solid var(--red);
     border-radius: 3px;
     margin-bottom: 12px;
     padding: 14px 16px;
@@ -1062,7 +1103,7 @@ table.catalog .c-num {
   display: none;
 }
 .carousel-track:focus-visible {
-  outline: 2px solid var(--brass-ink);
+  outline: 2px solid var(--red-ink);
   outline-offset: 4px;
   border-radius: 3px;
 }
@@ -1072,11 +1113,11 @@ table.catalog .c-num {
   width: 186px;
   scroll-snap-align: start;
   text-decoration: none;
-  color: var(--steel);
+  color: var(--ink);
   display: block;
 }
 .film-card:hover {
-  color: var(--steel);
+  color: var(--ink);
 }
 
 /* No poster art is licensed for these titles, so the card uses a typographic
@@ -1084,8 +1125,8 @@ table.catalog .c-num {
 .poster {
   position: relative;
   aspect-ratio: 2 / 3;
-  background: var(--steel-dk);
-  border: 1px solid rgba(201, 161, 92, 0.28);
+  background: var(--black);
+  border: 1px solid rgba(250, 10, 20, 0.3);
   border-radius: 3px;
   overflow: hidden;
   display: grid;
@@ -1093,7 +1134,7 @@ table.catalog .c-num {
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 .film-card:hover .poster {
-  border-color: var(--brass);
+  border-color: var(--red);
   transform: translateY(-3px);
 }
 /* clapperboard stripe, echoing the logo */
@@ -1104,8 +1145,8 @@ table.catalog .c-num {
   height: 14px;
   background: repeating-linear-gradient(
     -60deg,
-    var(--brass) 0 12px,
-    var(--steel-dk) 12px 24px
+    var(--red) 0 12px,
+    var(--black) 12px 24px
   );
   opacity: 0.85;
 }
@@ -1120,10 +1161,10 @@ table.catalog .c-num {
   display: none;
 }
 .poster .mono {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 76px;
   line-height: 1;
-  color: rgba(201, 161, 92, 0.22);
+  color: rgba(250, 230, 10, 0.28);
   user-select: none;
 }
 .poster .status-dot {
@@ -1142,23 +1183,23 @@ table.catalog .c-num {
 /* The pill sits on the dark poster, so it needs the dark-surface treatment
    rather than the light-background badge colours. */
 .poster .status-dot.badge-available {
-  border-color: rgba(201, 161, 92, 0.6);
-  color: var(--brass-lt);
+  border-color: rgba(250, 10, 20, 0.55);
+  color: var(--red-lt);
 }
 .poster .status-dot.badge-licensed {
   border-color: rgba(241, 239, 232, 0.34);
   color: var(--light);
 }
 .poster .status-dot.badge-represented {
-  border: 1px dashed rgba(201, 161, 92, 0.7);
-  color: var(--brass-lt);
+  border: 1px dashed rgba(250, 10, 20, 0.7);
+  color: var(--red-lt);
 }
 
 .film-card .cap {
   padding: 11px 2px 0;
 }
 .film-card .cap b {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 16px;
   font-weight: 600;
   line-height: 1.25;
@@ -1171,7 +1212,7 @@ table.catalog .c-num {
   overflow: hidden;
 }
 .film-card:hover .cap b {
-  color: var(--brass-ink);
+  color: var(--red-ink);
 }
 .film-card .cap-year {
   display: block;
@@ -1195,17 +1236,17 @@ table.catalog .c-num {
   line-height: 1.25;
   border-color: var(--rule);
   background: transparent;
-  color: var(--steel);
+  color: var(--ink);
 }
 .rep-tag.rep-tag-sm span {
   font-size: 9px;
   letter-spacing: 0.12em;
-  color: var(--brass-ink);
+  color: var(--red-ink);
 }
 .film-card:hover /* .rep-tag is defined further down the file with its dark-surface colours,
    so this needs two classes to win on specificity rather than source order. */
 .rep-tag.rep-tag-sm {
-  border-color: var(--brass);
+  border-color: var(--red);
 }
 
 .carousel-btn {
@@ -1216,7 +1257,7 @@ table.catalog .c-num {
   border-radius: 50%;
   border: 1px solid var(--rule);
   background: var(--light-2);
-  color: var(--steel);
+  color: var(--ink);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -1226,8 +1267,8 @@ table.catalog .c-num {
   z-index: 2;
 }
 .carousel-btn:hover:not(:disabled) {
-  border-color: var(--brass);
-  color: var(--brass-ink);
+  border-color: var(--red);
+  color: var(--red-ink);
 }
 .carousel-btn:disabled {
   opacity: 0;
@@ -1289,10 +1330,10 @@ table.catalog .c-num {
   color: var(--light-2);
 }
 .hero-split b {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 24px;
   font-weight: 600;
-  color: var(--brass);
+  color: var(--red);
 }
 
 /* catalog landing cards */
@@ -1304,11 +1345,11 @@ table.catalog .c-num {
 .cat-card {
   background: var(--light-2);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--brass);
+  border-top: 3px solid var(--red);
   border-radius: 3px;
   padding: 26px 24px 22px;
   text-decoration: none;
-  color: var(--steel);
+  color: var(--ink);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow);
@@ -1316,17 +1357,17 @@ table.catalog .c-num {
 }
 .cat-card:hover {
   transform: translateY(-2px);
-  border-color: var(--brass);
-  color: var(--steel);
+  border-color: var(--red);
+  color: var(--ink);
 }
 .cat-count {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 44px;
   line-height: 1;
-  color: var(--brass-ink);
+  color: var(--red-ink);
 }
 .cat-name {
-  font-family: var(--serif);
+  font-family: var(--display);
   font-size: 21px;
   margin: 10px 0 8px;
   line-height: 1.2;
@@ -1347,7 +1388,7 @@ table.catalog .c-num {
   margin-top: 16px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--brass-ink);
+  color: var(--red-ink);
 }
 .cat-card:hover .cat-go {
   text-decoration: underline;
@@ -1373,10 +1414,10 @@ table.catalog .c-num {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--brass-lt);
+  color: var(--red-lt);
 }
 .rep-tag:hover {
-  border-color: var(--brass);
+  border-color: var(--red);
   color: var(--light-2);
 }
 
@@ -1384,12 +1425,12 @@ table.catalog .c-num {
    dashed to read as "to be confirmed" rather than settled. */
 .badge-represented {
   background: transparent;
-  color: var(--brass-ink);
-  border: 1px dashed rgba(201, 161, 92, 0.75);
+  color: var(--red-ink);
+  border: 1px dashed rgba(250, 10, 20, 0.75);
 }
 .film-head .badge-represented {
-  color: var(--brass-lt);
-  border-color: rgba(201, 161, 92, 0.6);
+  color: var(--red-lt);
+  border-color: rgba(250, 10, 20, 0.55);
   background: transparent;
 }
 
