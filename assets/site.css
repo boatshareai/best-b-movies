@@ -48,17 +48,24 @@
      `body`. The ceiling on that vignette is set by --red, which needs 4.5:1 to
      carry text: it passes to #101113 and fails by #121417. So the gradient
      lifts to #101113 at its brightest and no further. */
-  --field: #0a0b0c;
-  --field-lift: #101113; /* the vignette's lightest point — do not raise it */
+  --field: #f7f9fb;      /* cool near-white, to sit with the blue */
+  --field-lift: #ffffff; /* the vignette's lightest point */
+  --blue: #0063a6;       /* SC Films' own blue, sampled from their logo */
+  --blue-dk: #004b80;    /* hover */
+  --blue-dim: rgba(0, 99, 166, 0.1);
+  /* For the few surfaces that are still black — the footer band and the status
+     pills over poster art. --blue is only 3.34:1 there. */
+  --blue-on-dark: #5cb3ef;
   /* Raised surfaces, kept for functional containers only (the filters panel,
      the licensing form, table rows). Decorative panels were removed. */
-  --surface: #141518;
-  --rule: #2a2d33;       /* hairlines — the only divider weight on the site */
+  --surface: #ffffff;
+  --rule: #dde3ea;       /* hairlines — the only divider weight on the site */
 
   /* Cream is back to the job it has in the logo: lettering. It is the primary
      text colour now, not a background. 16.65:1 on the field. */
   --cream: #faf0e6;
-  --text-soft: #c2bbb0;  /* secondary text — warm light gray, 9.83:1 */
+  --ink: #12181f;
+  --text-soft: #4a5560;  /* secondary text — warm light gray, 9.83:1 */
 
   --display: "Anton", Impact, "Haettenschweiler", "Arial Narrow Bold",
     sans-serif;
@@ -81,7 +88,7 @@ html {
 
 body {
   margin: 0;
-  color: var(--cream);
+  color: var(--ink);
   font: 16px/1.6 var(--sans);
   /* Depth without weight: one soft pool of light behind the masthead, falling
      away to the base charcoal. Fixed, so it reads as lighting on the page
@@ -91,7 +98,7 @@ body {
      visibility, over a soft pool of light behind the masthead. Fixed, so both
      read as lighting on the page rather than something that scrolls. */
   background-image:
-    radial-gradient(circle at 50% 50%, rgba(250, 240, 230, 0.028) 0.9px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgba(0, 60, 100, 0.05) 0.9px, transparent 1px),
     radial-gradient(120% 70% at 50% 0%, var(--field-lift) 0%, var(--field) 62%);
   background-size: 7px 7px, auto;
   background-attachment: fixed;
@@ -124,7 +131,7 @@ h4 {
 }
 
 a {
-  color: var(--red-lt);
+  color: var(--blue);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
@@ -155,9 +162,9 @@ a:hover {
 
 .site-head {
   background: var(--field);
-  color: var(--cream);
+  color: var(--ink);
   /* one thin line, not a slab — the only red on the masthead */
-  border-bottom: 1px solid var(--red);
+  border-bottom: 1px solid var(--blue);
 }
 
 .site-head .wrap {
@@ -178,7 +185,7 @@ a:hover {
   gap: 5px;
   text-decoration: none;
   padding: 12px 0;
-  color: var(--cream);
+  color: var(--ink);
 }
 /* The lockup carries the wordmark, so there is no separate brand-name text to
    sit beside it. 1.363:1 — height follows width, never a fixed square.
@@ -204,7 +211,7 @@ a:hover {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   /* On the cream header this must be ink: yellow is 1.16:1 here. */
-  color: var(--cream);
+  color: var(--ink);
   line-height: 1.1;
 }
 
@@ -216,7 +223,7 @@ a:hover {
   padding-bottom: 4px;
 }
 .nav a {
-  color: var(--cream);
+  color: var(--ink);
   text-decoration: none;
   font-size: 14px;
   padding: 8px 12px;
@@ -224,12 +231,12 @@ a:hover {
   white-space: nowrap;
 }
 .nav a:hover {
-  background: rgba(250, 240, 230, 0.09);
-  color: var(--cream);
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--ink);
 }
 .nav a[aria-current="page"] {
-  color: var(--red-lt);
-  box-shadow: inset 0 -2px 0 var(--red);
+  color: var(--blue);
+  box-shadow: inset 0 -2px 0 var(--blue);
 }
 .cta-short {
   display: none;
@@ -238,23 +245,23 @@ a:hover {
   /* Quiet on purpose. The hero holds the one gold CTA; two filled buttons on
      a screen is the weight this pass exists to remove. */
   background: transparent;
-  color: var(--cream);
+  color: var(--ink);
   font-weight: 600;
   margin-left: 10px;
-  border: 1px solid rgba(250, 240, 230, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.26);
   padding: 7px 14px;
 }
 .nav .cta:hover {
-  background: rgba(250, 240, 230, 0.07);
-  border-color: var(--cream);
-  color: var(--cream);
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--ink);
+  color: var(--ink);
 }
 
 /* ---------- hero ---------- */
 
 .hero {
   background: var(--field);
-  color: var(--cream);
+  color: var(--ink);
   border-bottom: 1px solid var(--rule);
   padding: 132px 0 116px;
   position: relative;
@@ -275,8 +282,8 @@ a:hover {
   pointer-events: none;
   background: radial-gradient(
     closest-side,
-    rgba(250, 10, 20, 0.12) 0%,
-    rgba(250, 10, 20, 0.05) 45%,
+    rgba(0, 99, 166, 0.1) 0%,
+    rgba(0, 99, 166, 0.04) 45%,
     transparent 78%
   );
 }
@@ -292,7 +299,7 @@ a:hover {
   pointer-events: none;
   background-image: repeating-linear-gradient(
     90deg,
-    rgba(250, 240, 230, 0.15) 0 8px,
+    rgba(0, 60, 100, 0.22) 0 8px,
     transparent 8px 22px
   );
 }
@@ -307,14 +314,14 @@ a:hover {
   font-size: 13px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--red-lt);
+  color: var(--blue);
   margin: 0 0 18px;
 }
 .hero h1 {
   font-size: clamp(34px, 5.6vw, 62px);
   margin-bottom: 26px;
   max-width: 15em;
-  color: var(--cream);
+  color: var(--ink);
 }
 .hero .pitch {
   font-size: 16px;
@@ -341,31 +348,31 @@ a:hover {
   cursor: pointer;
 }
 .btn-gold {
-  background: var(--yellow);
-  color: var(--black);
+  background: var(--blue);
+  color: #ffffff;
   border-color: transparent;
 }
 .btn-gold:hover {
-  background: var(--yellow-dk);
-  color: var(--black);
+  background: var(--blue-dk);
+  color: #ffffff;
 }
 .btn-ghost {
-  border-color: rgba(250, 240, 230, 0.42);
-  color: var(--cream);
+  border-color: rgba(0, 0, 0, 0.32);
+  color: var(--ink);
 }
 .btn-ghost:hover {
-  border-color: var(--cream);
-  background: rgba(250, 240, 230, 0.1);
-  color: var(--cream);
+  border-color: var(--ink);
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--ink);
 }
 .btn-solid {
-  background: var(--yellow);
-  color: var(--black);
+  background: var(--blue);
+  color: #ffffff;
   border-color: transparent;
 }
 .btn-solid:hover {
-  background: var(--yellow-dk);
-  color: var(--black);
+  background: var(--blue-dk);
+  color: #ffffff;
 }
 
 /* The gold fill is 15:1 on the charcoal and defines its own edge, so the heavy
@@ -447,21 +454,21 @@ a:hover {
   border-radius: 0;
   padding: 26px 0 22px;
   text-decoration: none;
-  color: var(--cream);
+  color: var(--ink);
   display: block;
   box-shadow: var(--shadow);
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 .tile:hover {
   transform: translateY(-2px);
-  border-top-color: var(--red);
-  color: var(--cream);
+  border-top-color: var(--blue);
+  color: var(--ink);
 }
 .tile .count {
   font-family: var(--display);
   font-size: 40px;
   line-height: 1;
-  color: var(--red-lt);
+  color: var(--blue);
   display: block;
 }
 .tile .label {
@@ -490,15 +497,15 @@ a:hover {
   padding: 8px 16px;
   font-size: 14px;
   text-decoration: none;
-  color: var(--cream);
+  color: var(--ink);
 }
 .decade-chip:hover {
-  border-color: var(--red-lt);
-  color: var(--red-lt);
+  border-color: var(--blue);
+  color: var(--blue);
 }
 .decade-chip b {
   font-weight: 600;
-  color: var(--red-lt);
+  color: var(--blue);
 }
 
 /* ---------- catalog controls ---------- */
@@ -536,15 +543,15 @@ a:hover {
   border: 1px solid var(--rule);
   border-radius: 3px;
   background: var(--field);
-  color: var(--cream);
+  color: var(--ink);
   width: 100%;
 }
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  outline: 2px solid var(--red-lt);
+  outline: 2px solid var(--blue);
   outline-offset: -1px;
-  border-color: var(--red-lt);
+  border-color: var(--blue);
 }
 .search-field {
   grid-column: 1 / -1;
@@ -565,13 +572,13 @@ a:hover {
   color: var(--text-soft);
 }
 .result-count b {
-  color: var(--cream);
+  color: var(--ink);
   font-weight: 600;
 }
 .link-btn {
   background: none;
   border: none;
-  color: var(--red-lt);
+  color: var(--blue);
   font: 14px var(--sans);
   cursor: pointer;
   text-decoration: underline;
@@ -599,8 +606,10 @@ table.catalog th {
   font: 600 11px/1.3 var(--sans);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-soft);
-  background: var(--black);
+  /* The head was a black band under the dark themes. On the blue/white scheme
+     it takes the blue: white on it is 6.30:1. */
+  color: #ffffff;
+  background: var(--blue);
   padding: 12px 14px;
   position: sticky;
   top: 0;
@@ -620,7 +629,7 @@ table.catalog th button {
   align-items: center;
 }
 table.catalog th button:hover {
-  color: var(--red-lt);
+  color: #cfe6f7;
 }
 table.catalog td {
   padding: 13px 14px;
@@ -692,7 +701,8 @@ table.catalog .c-num {
 .muted {
   /* Was #86827b, which scored 3.07:1 on --light — a pre-existing miss,
      not something the repalette introduced. */
-  color: #9a9286;
+  /* cool gray to match the blue system; 5.02:1 on white, 4.76:1 on the field */
+  color: #66707e;
 }
 
 /* ---------- status badge ---------- */
@@ -707,14 +717,14 @@ table.catalog .c-num {
   white-space: nowrap;
 }
 .badge-available {
-  background: var(--red-dim);
-  color: var(--red-lt);
+  background: var(--blue-dim);
+  color: var(--blue);
   border: 1px solid rgba(250, 10, 20, 0.5);
 }
 .badge-licensed {
-  background: rgba(250, 240, 230, 0.08);
+  background: rgba(0, 0, 0, 0.06);
   color: var(--text-soft);
-  border: 1px solid rgba(250, 240, 230, 0.32);
+  border: 1px solid rgba(0, 0, 0, 0.26);
 }
 .badge-lg {
   font-size: 13px;
@@ -750,7 +760,7 @@ table.catalog .c-num {
 
 .film-head {
   background: var(--field);
-  color: var(--cream);
+  color: var(--ink);
   border-bottom: 1px solid var(--rule);
   padding: 48px 0 44px;
 }
@@ -771,11 +781,11 @@ table.catalog .c-num {
   color: var(--text-soft);
 }
 .crumbs a {
-  color: var(--red-lt);
+  color: var(--blue);
 }
 .film-head h1 {
   font-size: clamp(30px, 5vw, 46px);
-  color: var(--cream);
+  color: var(--ink);
   margin-bottom: 14px;
 }
 .film-meta {
@@ -788,7 +798,7 @@ table.catalog .c-num {
   margin-bottom: 22px;
 }
 .film-meta .sep {
-  color: rgba(250, 240, 230, 0.4);
+  color: rgba(0, 0, 0, 0.38);
 }
 
 .film-body {
@@ -866,11 +876,11 @@ table.catalog .c-num {
   background: var(--rule);
   border-radius: 3px;
   padding: 5px 9px;
-  color: var(--cream);
+  color: var(--ink);
   text-decoration: none;
 }
 .tag:hover {
-  background: var(--red-lt);
+  background: var(--blue);
   color: var(--black);
 }
 
@@ -905,7 +915,7 @@ table.catalog .c-num {
   grid-column: 1 / -1;
 }
 .req {
-  color: var(--red-lt);
+  color: var(--blue);
 }
 .hint {
   font-size: 13px;
@@ -932,22 +942,21 @@ table.catalog .c-num {
   margin: 0 0 22px;
 }
 .notice-ok {
-  background: var(--red-dim);
+  background: var(--blue-dim);
   border: 1px solid rgba(250, 10, 20, 0.45);
-  color: var(--red-lt);
+  color: var(--blue);
 }
-/* On a dark field an error cannot be a pale pink box — it would be the
-   brightest thing on the page. It is a deeper red wash with light type, and
-   the inline error text carries the signal rather than the colour alone,
-   since the accent is also red. */
+/* Back to a light treatment on the light ground. Red is no longer the accent
+   here — blue is — so the error red reads as a distinct signal again, which it
+   did not under the red-accent themes. */
 .notice-err {
-  background: rgba(143, 51, 35, 0.3);
-  border: 1px solid rgba(255, 138, 128, 0.55);
-  color: #ffb0a6;
+  background: #fdecea;
+  border: 1px solid #f3c2bc;
+  color: #96261a;
 }
 .notice-warn {
-  background: rgba(250, 240, 230, 0.07);
-  border: 1px solid rgba(250, 240, 230, 0.3);
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.26);
   color: var(--text-soft);
 }
 [hidden] {
@@ -955,13 +964,13 @@ table.catalog .c-num {
 }
 
 .err-text {
-  color: #ffb0a6;
+  color: #96261a;
   font-size: 13px;
   margin: 0;
 }
 .field input[aria-invalid="true"],
 .field select[aria-invalid="true"] {
-  border-color: #ff8a80;
+  border-color: #96261a;
 }
 
 /* ---------- footer ---------- */
@@ -981,7 +990,7 @@ table.catalog .c-num {
   align-items: center;
 }
 .site-foot a {
-  color: var(--red-lt);
+  color: var(--blue-on-dark);
 }
 .site-foot .fnav {
   display: flex;
@@ -1194,7 +1203,7 @@ table.catalog .c-num {
   display: none;
 }
 .carousel-track:focus-visible {
-  outline: 2px solid var(--red-lt);
+  outline: 2px solid var(--blue);
   outline-offset: 4px;
   border-radius: 3px;
 }
@@ -1204,11 +1213,11 @@ table.catalog .c-num {
   width: 186px;
   scroll-snap-align: start;
   text-decoration: none;
-  color: var(--cream);
+  color: var(--ink);
   display: block;
 }
 .film-card:hover {
-  color: var(--cream);
+  color: var(--ink);
 }
 
 /* No poster art is licensed for these titles, so the card uses a typographic
@@ -1225,7 +1234,7 @@ table.catalog .c-num {
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 .film-card:hover .poster {
-  border-color: var(--red);
+  border-color: var(--blue);
   transform: translateY(-3px);
 }
 /* clapperboard stripe, echoing the logo */
@@ -1236,7 +1245,7 @@ table.catalog .c-num {
   height: 14px;
   background: repeating-linear-gradient(
     -60deg,
-    var(--red) 0 12px,
+    var(--blue) 0 12px,
     var(--black) 12px 24px
   );
   opacity: 0.85;
@@ -1275,7 +1284,7 @@ table.catalog .c-num {
    rather than the light-background badge colours. */
 .poster .status-dot.badge-available {
   border-color: rgba(250, 10, 20, 0.55);
-  color: var(--red-lt);
+  color: var(--blue-on-dark);
 }
 .poster .status-dot.badge-licensed {
   border-color: rgba(241, 239, 232, 0.34);
@@ -1283,7 +1292,7 @@ table.catalog .c-num {
 }
 .poster .status-dot.badge-represented {
   border: 1px dashed rgba(250, 10, 20, 0.7);
-  color: var(--red-lt);
+  color: var(--blue-on-dark);
 }
 
 .film-card .cap {
@@ -1303,7 +1312,7 @@ table.catalog .c-num {
   overflow: hidden;
 }
 .film-card:hover .cap b {
-  color: var(--red-lt);
+  color: var(--blue);
 }
 .film-card .cap-year {
   display: block;
@@ -1327,17 +1336,17 @@ table.catalog .c-num {
   line-height: 1.25;
   border-color: var(--rule);
   background: transparent;
-  color: var(--cream);
+  color: var(--ink);
 }
 .rep-tag.rep-tag-sm span {
   font-size: 9px;
   letter-spacing: 0.12em;
-  color: var(--red-lt);
+  color: var(--blue);
 }
 .film-card:hover /* .rep-tag is defined further down the file with its dark-surface colours,
    so this needs two classes to win on specificity rather than source order. */
 .rep-tag.rep-tag-sm {
-  border-color: var(--red);
+  border-color: var(--blue);
 }
 
 .carousel-btn {
@@ -1348,7 +1357,7 @@ table.catalog .c-num {
   border-radius: 50%;
   border: 1px solid var(--rule);
   background: var(--surface);
-  color: var(--cream);
+  color: var(--ink);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -1358,8 +1367,8 @@ table.catalog .c-num {
   z-index: 2;
 }
 .carousel-btn:hover:not(:disabled) {
-  border-color: var(--red);
-  color: var(--red-lt);
+  border-color: var(--blue);
+  color: var(--blue);
 }
 .carousel-btn:disabled {
   opacity: 0;
@@ -1410,7 +1419,7 @@ table.catalog .c-num {
   max-width: 46em;
 }
 .hero-split a {
-  color: var(--cream);
+  color: var(--ink);
   text-decoration: none;
   font-size: 15px;
   display: flex;
@@ -1418,7 +1427,7 @@ table.catalog .c-num {
   gap: 7px;
 }
 .hero-split a:hover {
-  color: var(--red-lt);
+  color: var(--blue);
 }
 .hero-split b {
   font-family: var(--display);
@@ -1426,7 +1435,7 @@ table.catalog .c-num {
   font-weight: 600;
   /* --red-ink, not --red: the 620px override takes these to 20px, below the
      >=24px large-text floor that lets --red pass on a light surface. */
-  color: var(--red-lt);
+  color: var(--blue);
 }
 
 /* catalog landing cards */
@@ -1442,7 +1451,7 @@ table.catalog .c-num {
   border-radius: 3px;
   padding: 26px 24px 22px;
   text-decoration: none;
-  color: var(--cream);
+  color: var(--ink);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow);
@@ -1450,14 +1459,14 @@ table.catalog .c-num {
 }
 .cat-card:hover {
   transform: translateY(-2px);
-  border-color: var(--red);
-  color: var(--cream);
+  border-color: var(--blue);
+  color: var(--ink);
 }
 .cat-count {
   font-family: var(--display);
   font-size: 44px;
   line-height: 1;
-  color: var(--red-lt);
+  color: var(--blue);
 }
 .cat-name {
   font-family: var(--sans);
@@ -1481,7 +1490,7 @@ table.catalog .c-num {
   margin-top: 16px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--red-lt);
+  color: var(--blue);
 }
 .cat-card:hover .cat-go {
   text-decoration: underline;
@@ -1496,9 +1505,9 @@ table.catalog .c-num {
   margin-left: 10px;
   padding: 9px 14px;
   border-radius: 3px;
-  border: 1px solid rgba(250, 240, 230, 0.24);
-  background: rgba(250, 240, 230, 0.05);
-  color: var(--cream);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ink);
   text-decoration: none;
   font-size: 13px;
   vertical-align: middle;
@@ -1507,22 +1516,22 @@ table.catalog .c-num {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--red-lt);
+  color: var(--blue);
 }
 .rep-tag:hover {
-  border-color: var(--red);
-  color: var(--cream);
+  border-color: var(--blue);
+  color: var(--ink);
 }
 
 /* Represented: carried by an agency, but no rights position asserted —
    dashed to read as "to be confirmed" rather than settled. */
 .badge-represented {
   background: transparent;
-  color: var(--red-lt);
+  color: var(--blue);
   border: 1px dashed rgba(250, 10, 20, 0.75);
 }
 .film-head .badge-represented {
-  color: var(--red-lt);
+  color: var(--blue);
   border-color: rgba(250, 10, 20, 0.55);
   background: transparent;
 }
