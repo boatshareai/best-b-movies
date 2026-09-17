@@ -184,15 +184,16 @@ a:hover {
   align-items: flex-start;
   gap: 4px;
   text-decoration: none;
-  padding: 8px 0;
+  padding: 6px 0;
   color: var(--ink);
 }
 /* The lockup carries the wordmark, so there is no separate brand-name text to
    sit beside it. 1.363:1 — height follows width, never a fixed square.
-   Sized so the header stays one row with the nav at desktop widths; much
-   above this and the whole bar grows to ~165px. */
+   Sized so the header stays one row with the nav at desktop widths, and
+   kept small because the bar's height is the first thing pushing the
+   home page's carousel below the fold: 120px here cost ~20px of bar. */
 .brand-logo {
-  width: 120px;
+  width: 96px;
   height: auto;
   display: block;
   flex: 0 0 auto;
@@ -263,7 +264,7 @@ a:hover {
   background: var(--field);
   color: var(--ink);
   border-bottom: 1px solid var(--rule);
-  padding: 48px 0 40px;
+  padding: 24px 0 20px;
   position: relative;
   overflow: hidden;
 }
@@ -319,7 +320,10 @@ a:hover {
 }
 .hero h1 {
   font-size: clamp(32px, 5.2vw, 56px);
-  margin-bottom: 20px;
+  /* the browser default h1 top margin is 0.67em — 38px at this size, and
+     the hero's own padding already provides that space */
+  margin-top: 0;
+  margin-bottom: 14px;
   max-width: 15em;
   color: var(--ink);
 }
@@ -328,7 +332,7 @@ a:hover {
   line-height: 1.65;
   color: var(--text-soft);
   max-width: 44em;
-  margin: 0 0 26px;
+  margin: 0 0 20px;
 }
 
 .hero-actions {
@@ -393,8 +397,11 @@ a:hover {
 
 /* ---------- sections ---------- */
 
+/* Tight at the top so the first carousel clears the fold on the home
+   page; the hairline between bands carries the separation that the
+   padding used to. */
 .section {
-  padding: 52px 0;
+  padding: 22px 0 30px;
 }
 .section-cream {
   background: var(--field);
@@ -1173,7 +1180,7 @@ table.catalog .c-num {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 22px;
+  margin-bottom: 12px;
 }
 .featured-head h2 {
   margin: 0;
@@ -1208,9 +1215,15 @@ table.catalog .c-num {
   border-radius: 3px;
 }
 
+/* Narrower than it was. The poster is 2:3, so every pixel of card width
+   costs 1.5 of card height, which makes this the cheapest way to bring
+   the whole row above the fold on the home page. At 186px the six
+   featured cards overflowed the track by ~115px; at 160px they fit, so
+   the arrows disable themselves above ~1130px wide and the row still
+   swipes below that. */
 .film-card {
   flex: 0 0 auto;
-  width: 186px;
+  width: 160px;
   scroll-snap-align: start;
   text-decoration: none;
   color: var(--ink);
@@ -1409,13 +1422,13 @@ table.catalog .c-num {
 /* hero: combined total headlines, per-catalog counts stay visible under it */
 .hero-split {
   list-style: none;
-  margin: 0 0 24px;
+  margin: 0 0 14px;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 12px 40px;
   border-top: 1px solid var(--rule);
-  padding-top: 20px;
+  padding-top: 15px;
   max-width: 46em;
 }
 .hero-split a {

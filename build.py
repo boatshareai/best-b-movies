@@ -30,6 +30,8 @@ DIST = os.path.join(HERE, "dist")
 SITE_BASE = os.environ.get("SITE_BASE", "").rstrip("/")
 
 SITE_NAME = "Best B Movies"
+# Our own catalog, as opposed to the two we present for someone else.
+OWN_CATALOG = "best-b-movies"
 
 # The three represented catalogs. Each is its own CSV so they stay
 # independently editable and one agency's data can never disturb another's --
@@ -355,7 +357,7 @@ def page(title, body, current, depth=0, description=""):
 # --------------------------------------------------------------------------
 
 
-def featured_card(f):
+def featured_card(f, show_rep=True):
     art = poster_art(f)
     # The full badge wording ("Licensed - non-exclusive") is too wide for a
     # card pill; the bare status reads fine at this size.
@@ -369,8 +371,7 @@ def featured_card(f):
           <span class="cap">
             <b>%(title)s</b>
             <span class="cap-year">%(year)s</span>
-            <span class="rep-tag rep-tag-sm"><span>Represented by</span> %(cat)s</span>
-          </span>
+%(rep)s          </span>
         </a>""" % {
         "slug": e(f["slug"]),
         "art": art,
@@ -380,7 +381,19 @@ def featured_card(f):
         # .muted fails contrast at this size; .cap-year's own colour passes
         # and this is real information, not decoration.
         "year": e(f["year"]) or "Year not listed",
-        "cat": e(f["catalog_name"]),
+        # The tag names the rights holder, which is the point on a
+        # partner's row and pure repetition on our own: the heading
+        # above it already says whose library it is, and the header
+        # logo says it again. It is also the tallest thing in the
+        # caption, so dropping it is what lets the whole poster clear
+        # the fold on the home page.
+        "rep": (
+            '            <span class="rep-tag rep-tag-sm">'
+            '<span>Represented by</span> %s</span>\n'
+            % e(f["catalog_name"])
+            if show_rep
+            else ""
+        ),
     }
 
 
@@ -411,7 +424,7 @@ def build_featured(films, keys=None, start=0):
                     "removed, or publish=no). Fix FEATURED in build.py or the "
                     "catalog CSV." % (want, cat_key)
                 )
-            cards.append(featured_card(f))
+            cards.append(featured_card(f, show_rep=cat_key != OWN_CATALOG))
         n = len(in_catalog(films, cat_key))
         # Each track needs its own accessible name; three rows all announcing
         # "Featured titles" would be useless to a screen reader.
