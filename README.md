@@ -434,6 +434,21 @@ The track is a native scroll-snap scroller, so touch swipe and keyboard
 scrolling work even if `carousel.js` never loads; the script only adds the
 arrow buttons and their disabled states. Nothing autoplays.
 
+## Custom domain
+
+Put the bare hostname in a `CNAME` file at the repo root (`bestbmovies.com`,
+no scheme, no trailing slash) and `build.py` copies it into `dist/`. Pages
+deploys from a workflow rather than a branch here, so the file has to be in
+the published artifact -- a `CNAME` sitting only in the repo does nothing.
+Then set the domain on the Pages config:
+
+    gh api -X PUT repos/boatshareai/best-b-movies/pages -f cname=bestbmovies.com
+
+**Point DNS first.** Once Pages knows the domain, `boatshareai.github.io`
+301-redirects to it, so attaching it before the records resolve takes the
+project URL down with it. Apex needs four A records to GitHub
+(185.199.108-111.153); `www` is a CNAME to `boatshareai.github.io`.
+
 ## Notes on behaviour
 
 - **Deep links.** `browse.html?genre=Western`, `?decade=1940s`,

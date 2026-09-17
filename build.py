@@ -1176,6 +1176,14 @@ def main():
         shutil.rmtree(DIST)
     os.makedirs(os.path.join(DIST, "films"))
     shutil.copytree(ASSETS, os.path.join(DIST, "assets"))
+    # A custom domain is one file: put the bare hostname in ./CNAME and it
+    # rides along into the published artifact. GitHub Pages needs it inside
+    # the deployed output, not just in the repo, because this deploys from a
+    # workflow rather than from a branch. No file, no custom domain -- the
+    # project URL keeps working.
+    cname = os.path.join(HERE, "CNAME")
+    if os.path.isfile(cname):
+        shutil.copy2(cname, os.path.join(DIST, "CNAME"))
 
     def write(rel, content):
         path = os.path.join(DIST, rel)
