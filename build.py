@@ -126,24 +126,49 @@ HIGHLIGHTS = [
 ]
 
 
-# Marquee titles for the home-page carousel, in display order. Each entry is
-# (title, catalog key): the catalog is part of the key because a title can
-# legitimately exist in more than one catalog. Resolved against the CSVs at
-# build time -- never a second copy of the data -- and the build fails if a
-# pair stops resolving.
+# Marquee titles for the home-page carousels, in display order.
+# One carousel per catalog, never mixed. The rights position differs between
+# our own library and the partner catalogs, so a single shuffled row would
+# imply a uniformity that doesn't exist. Each entry is
+# (catalog key, heading, [titles]); titles resolve against the CSVs at build
+# time and the build fails loudly if one stops resolving.
 FEATURED = [
-    ("Bicycle Thieves", "classic-films-vault"),
-    ("A Bronx Tale", "blue-finch"),
-    ("Stagecoach", "classic-films-vault"),
-    ("Monster Island (aka Orang Ikan)", "sc-films"),
-    ("M", "classic-films-vault"),
-    ("Papillon", "blue-finch"),
-    ("Charade", "classic-films-vault"),
-    ("Dragonkeeper", "sc-films"),
-    ("Dead Man's Shoes", "blue-finch"),
-    ("Foreign Correspondent", "classic-films-vault"),
-    ("Frances Ha", "blue-finch"),
-    ("Pather Panchali", "classic-films-vault"),
+    (
+        "classic-films-vault",
+        "Classic Films Vault",
+        [
+            "Bicycle Thieves",
+            "Stagecoach",
+            "M",
+            "Charade",
+            "Foreign Correspondent",
+            "Pather Panchali",
+        ],
+    ),
+    (
+        "blue-finch",
+        "Presented for Blue Finch Film Releasing",
+        [
+            "A Bronx Tale",
+            "Papillon",
+            "Dead Man's Shoes",
+            "Frances Ha",
+            "The Player",
+            "A Bittersweet Life",
+        ],
+    ),
+    (
+        "sc-films",
+        "Presented for SC Films International",
+        [
+            "Monster Island (aka Orang Ikan)",
+            "Dragonkeeper",
+            "Bel Ami",
+            "Poupelle of Chimney Town",
+            "Marmaduke",
+            "Big Fish and Begonia",
+        ],
+    ),
 ]
 
 
@@ -310,26 +335,13 @@ def page(title, body, current, depth=0, description=""):
 # --------------------------------------------------------------------------
 
 
-def build_featured(films):
-    by_key = {(f["title"].strip().lower(), f["catalog"]): f for f in films}
-    cards = []
-    for want, cat in FEATURED:
-        f = by_key.get((want.strip().lower(), cat))
-        if f is None:
-            raise SystemExit(
-                "featured title %r is not in the %s catalog (renamed, removed, "
-                "or publish=no). Fix FEATURED in build.py or the catalog CSV."
-                % (want, cat)
-            )
-        # Optional `poster` column: drop a filename in and the card uses the
-        # real key art instead of the placeholder.
-        art = poster_art(f)
-        # The full badge wording ("Licensed - non-exclusive") is too wide for a
-        # card pill; the bare status reads fine at this size.
-        bcls = badge(f["status"])[0]
-        btxt = f["status"] or "Available"
-        cards.append(
-            """        <a class="film-card" href="films/%(slug)s.html" title="%(title)s">
+def featured_card(f):
+    art = poster_art(f)
+    # The full badge wording ("Licensed - non-exclusive") is too wide for a
+    # card pill; the bare status reads fine at this size.
+    bcls = badge(f["status"])[0]
+    btxt = f["status"] or "Available"
+    return """        <a class="film-card" href="films/%(slug)s.html" title="%(title)s">
           <span class="poster">
             %(art)s
             <span class="status-dot %(bcls)s">%(btxt)s</span>
@@ -339,37 +351,63 @@ def build_featured(films):
             <span class="cap-year">%(year)s</span>
             <span class="rep-tag rep-tag-sm"><span>Represented by</span> %(cat)s</span>
           </span>
-        </a>"""
-            % {
-                "slug": e(f["slug"]),
-                "art": art,
-                "bcls": e(bcls),
-                "btxt": e(btxt),
-                "title": e(f["title"]),
-                # .muted fails contrast at this size; .cap-year's own colour
-                # passes and this is real information, not decoration.
-                "year": e(f["year"]) or "Year not listed",
-                "cat": e(f["catalog_name"]),
-            }
-        )
+        </a>""" % {
+        "slug": e(f["slug"]),
+        "art": art,
+        "bcls": e(bcls),
+        "btxt": e(btxt),
+        "title": e(f["title"]),
+        # .muted fails contrast at this size; .cap-year's own colour passes
+        # and this is real information, not decoration.
+        "year": e(f["year"]) or "Year not listed",
+        "cat": e(f["catalog_name"]),
+    }
 
-    return """
-<section class="section section-white">
+
+def build_featured(films):
+    by_key = {(f["title"].strip().lower(), f["catalog"]): f for f in films}
+    sections = []
+    for cat_key, heading, titles in FEATURED:
+        cards = []
+        for want in titles:
+            f = by_key.get((want.strip().lower(), cat_key))
+            if f is None:
+                raise SystemExit(
+                    "featured title %r is not in the %s catalog (renamed, "
+                    "removed, or publish=no). Fix FEATURED in build.py or the "
+                    "catalog CSV." % (want, cat_key)
+                )
+            cards.append(featured_card(f))
+        n = len(in_catalog(films, cat_key))
+        # Each track needs its own accessible name; three rows all announcing
+        # "Featured titles" would be useless to a screen reader.
+        sections.append(
+            """
+<section class="section %(shade)s">
   <div class="wrap">
     <div class="featured-head">
-      <h2>Featured titles</h2>
-      <a class="all-link" href="browse.html">View all %(total)d titles &rsaquo;</a>
+      <h2>%(heading)s</h2>
+      <a class="all-link" href="browse.html?catalog=%(key)s">View all %(n)d titles &rsaquo;</a>
     </div>
     <div class="carousel" data-carousel>
-      <button type="button" class="carousel-btn prev" aria-label="Scroll featured titles left">&lsaquo;</button>
-      <div class="carousel-track" tabindex="0" role="group" aria-label="Featured titles">
+      <button type="button" class="carousel-btn prev" aria-label="Scroll %(label)s left">&lsaquo;</button>
+      <div class="carousel-track" tabindex="0" role="group" aria-label="%(label)s">
 %(cards)s
       </div>
-      <button type="button" class="carousel-btn next" aria-label="Scroll featured titles right">&rsaquo;</button>
+      <button type="button" class="carousel-btn next" aria-label="Scroll %(label)s right">&rsaquo;</button>
     </div>
   </div>
-</section>
-""" % {"cards": "\n".join(cards), "total": len(films)}
+</section>"""
+            % {
+                "shade": "section-white" if len(sections) % 2 == 0 else "section-cream",
+                "heading": e(heading),
+                "key": urllib.parse.quote(cat_key),
+                "n": n,
+                "label": e(heading),
+                "cards": "\n".join(cards),
+            }
+        )
+    return "\n".join(sections)
 
 
 def build_home(films):
@@ -417,11 +455,15 @@ def build_home(films):
 <section class="hero">
   <div class="wrap">
     <p class="eyebrow">Classic Films Vault</p>
-    <h1>%(total)d titles available for licensing</h1>
-    <p class="pitch">Three represented catalogs &mdash; classic Hollywood and
-      international cinema, contemporary independent features, and live action
-      and family animation &mdash; licensed across streaming, broadcast, and
-      digital platforms.</p>
+    <h1>%(cfv)d titles of our own, %(rep)d presented for our partners</h1>
+    <p class="pitch">Classic Films Vault is an independent film library and
+      distribution partner. Our own %(cfv)d titles &mdash; classic Hollywood and
+      international cinema &mdash; are licensed across streaming, broadcast, and
+      digital platforms, and stream on YouTube and AVOD. The other %(rep)d are
+      presented here on behalf of Blue Finch Film Releasing and SC Films
+      International: we hold no rights position on those, and availability,
+      territory, and terms are confirmed directly with each company per
+      inquiry.</p>
     <ul class="hero-split">
 %(split)s
     </ul>
@@ -481,6 +523,8 @@ def build_home(films):
         "total": total,
         "split": split,
         "cfv": len(in_catalog(films, "classic-films-vault")),
+        "rep": len(in_catalog(films, "blue-finch"))
+        + len(in_catalog(films, "sc-films")),
         "bf": len(in_catalog(films, "blue-finch")),
         "sc": len(in_catalog(films, "sc-films")),
         "featured": build_featured(films),
@@ -488,10 +532,17 @@ def build_home(films):
         "chips": chips,
         "licensed": licensed,
     }
+    cfv_n = len(in_catalog(films, "classic-films-vault"))
     return page(
-        "Classic Films Vault \u2014 %d titles for licensing" % total,
+        "Classic Films Vault \u2014 film library and distribution partner",
         body,
         "index.html",
+        # The shared default still describes all %d titles as ours to license,
+        # which is the claim the hero now corrects, so this page states its own.
+        description="An independent film library and distribution partner. %d "
+        "titles of our own, licensed across streaming, broadcast, and digital, "
+        "plus %d presented on behalf of Blue Finch Film Releasing and SC Films "
+        "International." % (cfv_n, total - cfv_n),
     )
 
 
@@ -1020,10 +1071,12 @@ def build_about(films):
   <div class="wrap">
     <div class="rule-head"><h1>About the collection</h1></div>
     <div class="prose">
-      <p>We represent %(total)d titles across three catalogs: our own Classic
-        Films Vault library, and two agency catalogs we carry on behalf of
-        Blue Finch Film Releasing and SC Films International. Every title page
-        states which catalog it comes from.</p>
+      <p>Classic Films Vault is an independent film library and distribution
+        partner working alongside Blue Finch Film Releasing and SC Films
+        International, presenting select titles from each catalog on their
+        behalf while independently building and streaming our own library
+        across YouTube and AVOD platforms. Every title page states which
+        catalog it comes from.</p>
 
       <h2>Classic Films Vault</h2>
       <p>%(cfv)d titles of classic Hollywood and international cinema, with the
@@ -1039,13 +1092,19 @@ def build_about(films):
         licensing across streaming, broadcast, and digital platforms, with
         territory and term negotiated per deal.</p>
 
-      <h2>Represented catalogs</h2>
+      <h2>Partner catalogs</h2>
+      <p>%(bf)d titles from Blue Finch Film Releasing and %(sc)d from SC Films
+        International &mdash; contemporary independent features and
+        family/live-action titles, presented here as their distribution
+        partner. We hold no rights position on these titles ourselves:
+        availability, territory, and terms are confirmed directly with each
+        company per inquiry.</p>
+
       <p>%(bf)d titles for Blue Finch Film Releasing &mdash; contemporary
         independent features, weighted to the 2010s and 2020s, led by horror,
         drama, and thriller. %(sc)d titles for SC Films International &mdash;
         live action and family animation, with documentary and genre titles
-        alongside. We hold no assumed rights position on these: availability,
-        territory, and terms are confirmed per inquiry.</p>
+        alongside.</p>
 
       <p>We are a licensing and distribution operation only &mdash; this site is
         a catalog and a contact form, not a streaming service.</p>
