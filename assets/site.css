@@ -42,6 +42,7 @@
   /* Starburst yellow. 13.6:1 on black, but 1.03:1 on --light — it is a
      black-surface colour only and must never carry text on a light one. */
   --yellow: #fae60a;
+  --yellow-dk: #e8d509;  /* hover on a gold fill; black on it is still 13.9:1 */
 
   --cream: #faf0e6;      /* banner lettering — light text on black */
   --gray: #6b6862;       /* borders, dividers, muted text */
@@ -200,16 +201,17 @@ a:hover {
   display: none;
 }
 .nav .cta {
-  background: var(--red);
+  background: var(--yellow);
   color: var(--black);
   font-weight: 600;
   margin-left: 6px;
   /* 2px rather than 3: this one is nav-sized, and 3px reads as a slab on it */
-  border: 2px solid var(--yellow);
+  border: 2px solid var(--red);
   padding: 6px 10px;
 }
 .nav .cta:hover {
-  background: var(--red-lt);
+  background: var(--yellow-dk);
+  border-color: var(--red-ink);
   color: var(--black);
 }
 
@@ -263,12 +265,13 @@ a:hover {
   cursor: pointer;
 }
 .btn-gold {
-  background: var(--red);
+  background: var(--yellow);
   color: var(--black);
-  border-color: var(--yellow);
+  border-color: var(--red);
 }
 .btn-gold:hover {
-  background: var(--red-lt);
+  background: var(--yellow-dk);
+  border-color: var(--red-ink);
   color: var(--black);
 }
 .btn-ghost {
@@ -281,18 +284,21 @@ a:hover {
   color: var(--ink);
 }
 .btn-solid {
-  background: var(--red);
+  background: var(--yellow);
   color: var(--black);
-  border-color: var(--yellow);
+  border-color: var(--red);
 }
 .btn-solid:hover {
-  background: var(--red-lt);
+  background: var(--yellow-dk);
+  border-color: var(--red-ink);
   color: var(--black);
 }
 
-/* The logo's lettering is a red face inside a gold keyline. Reproduced here on
-   the filled buttons: 3px of gold, and the padding drops by the same 2px so the
-   button's outer size is unchanged. */
+/* The logo's starburst is a solid gold field with a red edge; the buttons take
+   the same treatment. The red border is not decoration here — gold is 1.28:1
+   against the white page, so the border is what gives the button an edge
+   (4.10:1, clearing the 3:1 needed for a UI boundary). Padding is reduced by
+   the border width so the outer size is unchanged. */
 .btn-gold,
 .btn-solid {
   border-width: 3px;

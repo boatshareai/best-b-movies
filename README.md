@@ -327,14 +327,17 @@ Constraints, measured rather than guessed:
   tagline, both now ink or red). It survives only where a black accent
   remains. If gold needs to carry more weight, it has to be a *filled block*
   with dark text on it, never ink on the page.
-- **Red button fills take black text, not white.** White on `#FA0A14` is
-  4.10:1 and fails; black is 5.12:1.
-- **Filled buttons carry a gold keyline**, echoing the logo's lettering — the
-  red face of the B sits inside a gold outline. 3px on `.btn-gold` /
-  `.btn-solid`, 2px on the nav-sized `.nav .cta`, with padding reduced by the
-  same amount so the outer size is unchanged. The keyline is decoration: the
-  button's boundary against the page is carried by the red fill (3.65:1 on
-  white), not by the gold, which is 1.03:1 there.
+- **Filled buttons are gold with a red border and black text**, taking the
+  starburst's own treatment — a solid gold field with a red edge. 3px on
+  `.btn-gold` / `.btn-solid`, 2px on the nav-sized `.nav .cta`, with padding
+  reduced by the same amount so the outer size is unchanged.
+- **On these buttons the border is structural, not decoration.** Gold is
+  1.28:1 against the white page, so the fill cannot define the button's edge;
+  the red border does, at 4.10:1, clearing the 3:1 that WCAG 1.4.11 asks of a
+  UI boundary. This is also the one place gold earns its keep on a light
+  theme — as a filled block with dark text on it, never as ink.
+- **Black text on gold is 16.39:1.** That is the strongest pairing on the
+  site; the earlier red fill gave the same text only 5.12:1.
 
 Status badges are the same on every surface now. The film banner used to be
 black and carried light-on-dark `.film-head .badge-*` overrides; it is light,
