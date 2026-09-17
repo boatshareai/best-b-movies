@@ -99,15 +99,15 @@ options are generated from whatever is in the CSV.
 The agency catalogs arrived thinner than the Classic Films Vault data, and
 none of it is filled in by inference:
 
-- **Loglines for 296 of the 298 agency titles** were sourced in Sept 2026 from
-  each title's own page on `bluefinchfilms.com` / `scfilmsinternational.com`
-  and rewritten in the house style — not pasted from the sites' marketing
-  copy. Two rows are still empty and are left that way rather than guessed at,
-  so the browse table shows "Not listed" for them: *Head Count* (no page on
-  the Blue Finch site under any slug) and *The Boxcar Children* (page exists,
-  but carries only credits and no plot). See `SOURCING_REPORT.md`, which also
-  records three content defects found on the agencies' own sites — including
-  one page that serves a different film entirely.
+- **Every one of the 463 titles now has a logline.** 296 of the 298 agency
+  titles were sourced in Sept 2026 from each title's own page on
+  `bluefinchfilms.com` / `scfilmsinternational.com` and rewritten in the house
+  style — not pasted from the sites' marketing copy. The last two, *Head
+  Count* and *The Boxcar Children*, had nothing usable on their agency's site
+  and were written from general public sources instead. See
+  `SOURCING_REPORT.md`, which also records three content defects found on the
+  agencies' own sites — including one page that serves a different film
+  entirely.
 - **No runtimes** for any of the 298. The runtime filter's "Not listed"
   option finds them.
 - **No year** for 85 of the 89 SC Films titles. The decade filter has a
@@ -337,9 +337,18 @@ Adding art stays a per-title data edit, not a code change: add the column to
 whichever CSV, fill in the rows you have art for, drop the images in, and
 rebuild. Cards mix freely — art and placeholder side by side is fine.
 
-Note that `poster` is only read by `build_featured()`. The film pages and the
-browse table do not render poster art at all, so 291 of the 297 images are
-carried as data, waiting on a template change, and are not on the site today.
+`poster` is read in three places, all sharing `poster_art()` in `build.py` so
+the fallback can't drift: the home-page carousel, the film-page hero, and the
+browse table. The browse rows are built client side, so `assets/catalog.js`
+mirrors `poster_art()` and `monogram()` — **change the fallback in one and you
+must change it in the other.**
+
+Titles with no `poster` are not a special case anywhere: they get the same
+typographic placeholder (clapperboard stripe, the title's initial in brass),
+so a table of 463 rows mixes art and placeholder without any layout jump.
+Table thumbnails and film-page heroes are both `loading="lazy"` with explicit
+`width`/`height`, so browsing all 463 rows fetches only what scrolls into
+view.
 
 The track is a native scroll-snap scroller, so touch swipe and keyboard
 scrolling work even if `carousel.js` never loads; the script only adds the

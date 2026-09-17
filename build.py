@@ -157,6 +157,27 @@ def monogram(title):
     return (t[:1] or "?").upper()
 
 
+def poster_art(f, prefix="", w=300, h=450):
+    """Real key art when the row has a `poster`, the typographic placeholder
+    when it doesn't.
+
+    Shared by the carousel and the film page so the two can't drift apart;
+    `catalog.js` mirrors it for the browse table, which is rendered client
+    side. `prefix` is the hop back to the site root ("../" from films/).
+
+    alt="" on purpose: every place a poster appears, the title is already
+    adjacent as real text, so naming the film again would just make screen
+    readers say it twice.
+    """
+    name = (f.get("poster") or "").strip()
+    if name:
+        return (
+            '<img src="%sassets/posters/%s" alt="" loading="lazy" '
+            'decoding="async" width="%d" height="%d">' % (prefix, e(name), w, h)
+        )
+    return '<span class="mono" aria-hidden="true">%s</span>' % e(monogram(f["title"]))
+
+
 def load():
     """Every published title across all three catalogs, each tagged with its
     source catalog."""
@@ -301,17 +322,8 @@ def build_featured(films):
                 % (want, cat)
             )
         # Optional `poster` column: drop a filename in and the card uses the
-        # real key art instead of the placeholder. No row has one yet.
-        poster = f.get("poster", "").strip()
-        if poster:
-            art = (
-                '<img src="assets/posters/%s" alt="" loading="lazy" '
-                'width="300" height="450">' % e(poster)
-            )
-        else:
-            art = '<span class="mono" aria-hidden="true">%s</span>' % e(
-                monogram(f["title"])
-            )
+        # real key art instead of the placeholder.
+        art = poster_art(f)
         # The full badge wording ("Licensed - non-exclusive") is too wide for a
         # card pill; the bare status reads fine at this size.
         bcls = badge(f["status"])[0]
@@ -578,6 +590,7 @@ def build_browse(films):
             "l": f["language"],
             "r": f["runtime_n"],
             "o": f["logline"],
+            "p": (f.get("poster") or "").strip(),
             "st": f["status"],
             "c": f["catalog"],
             "cn": f["catalog_name"],
@@ -647,6 +660,7 @@ def build_browse(films):
       <table class="catalog">
         <thead>
           <tr>
+            <th scope="col" class="c-art-h"><span class="vh">Poster</span></th>
             <th scope="col"><button type="button" data-sort="t">Title</button></th>
             <th scope="col"><button type="button" data-sort="y">Year</button></th>
             <th scope="col">Genre</th>
@@ -781,10 +795,15 @@ def build_film(f, films):
   <div class="wrap">
     <p class="crumbs"><a href="../index.html">Home</a> &rsaquo;
       <a href="../browse.html">Browse</a> &rsaquo; %(title)s</p>
-    <h1>%(title)s</h1>
-    <div class="film-meta">%(meta)s</div>
-    <span class="badge %(bcls)s badge-lg">%(btxt)s</span>
-    %(rep)s
+    <div class="film-head-grid">
+      <span class="poster film-poster">%(art)s</span>
+      <div>
+        <h1>%(title)s</h1>
+        <div class="film-meta">%(meta)s</div>
+        <span class="badge %(bcls)s badge-lg">%(btxt)s</span>
+        %(rep)s
+      </div>
+    </div>
   </div>
 </section>
 
@@ -815,6 +834,7 @@ def build_film(f, films):
 """ % {
         "title": e(f["title"]),
         "meta": meta_html,
+        "art": poster_art(f, prefix="../"),
         "bcls": badge_cls,
         "btxt": e(badge_txt),
         "synopsis": synopsis,

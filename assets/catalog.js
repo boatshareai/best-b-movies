@@ -110,6 +110,29 @@
     Represented: "badge-represented"
   };
 
+  // Mirrors monogram()/poster_art() in build.py. Kept in step by hand because
+  // these rows are rendered client side; if you change the fallback in one
+  // place, change it in the other.
+  function monogram(t) {
+    var s = String(t || "").replace(/^(the|a|an)\s+/i, "").trim();
+    return (s.charAt(0) || "?").toUpperCase();
+  }
+
+  function art(f) {
+    if (f.p) {
+      return (
+        '<span class="thumb"><img src="assets/posters/' +
+        encodeURIComponent(f.p) +
+        '" alt="" loading="lazy" decoding="async" width="44" height="66"></span>'
+      );
+    }
+    return (
+      '<span class="thumb thumb-empty" aria-hidden="true">' +
+      esc(monogram(f.t)) +
+      "</span>"
+    );
+  }
+
   function row(f) {
     var badge =
       '<span class="badge ' +
@@ -119,6 +142,9 @@
       "</span>";
     return (
       "<tr>" +
+      '<td class="c-art">' +
+      art(f) +
+      "</td>" +
       '<td class="c-title"><a href="films/' +
       encodeURIComponent(f.s) +
       '.html">' +

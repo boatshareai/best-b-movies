@@ -451,8 +451,8 @@ table.catalog {
   width: 100%;
   border-collapse: collapse;
   font-size: 15px;
-  /* seven columns now; below this the wrapper scrolls horizontally */
-  min-width: 940px;
+  /* eight columns now; below this the wrapper scrolls horizontally */
+  min-width: 1000px;
 }
 table.catalog th {
   text-align: left;
@@ -490,6 +490,42 @@ table.catalog td {
 table.catalog tbody tr:hover {
   background: rgba(201, 161, 92, 0.07);
 }
+/* Poster thumbnail column. Deliberately narrow: it's an aid to scanning, not
+   the content — the title next to it stays the thing you read and click. */
+table.catalog th.c-art-h,
+table.catalog td.c-art {
+  width: 60px;
+  padding-right: 0;
+}
+table.catalog td.c-art {
+  padding-top: 11px;
+}
+.thumb {
+  display: block;
+  width: 44px;
+  aspect-ratio: 2 / 3;
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--steel-dk);
+  border: 1px solid var(--rule);
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Same typographic fallback the carousel uses, sized for a 44px box. */
+.thumb-empty {
+  display: grid;
+  place-items: center;
+  font-family: var(--serif);
+  font-size: 20px;
+  line-height: 1;
+  color: rgba(201, 161, 92, 0.45);
+  user-select: none;
+}
+
 table.catalog .c-title {
   font-family: var(--serif);
   font-size: 17px;
@@ -561,12 +597,37 @@ table.catalog .c-num {
   color: var(--ink-soft);
 }
 
+/* Visually hidden, still read aloud — used for the poster column header,
+   which needs a name for screen readers but no visible label. */
+.vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ---------- film detail ---------- */
 
 .film-head {
   background: var(--steel-dk);
   color: var(--light);
   padding: 48px 0 44px;
+}
+/* Key art beside the title. The hero is already the dark surface posters are
+   designed to sit on, so the art needs no frame of its own beyond .poster. */
+.film-head-grid {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 34px;
+  align-items: start;
+}
+.film-poster {
+  width: 200px;
 }
 .crumbs {
   font-size: 13px;
@@ -793,6 +854,15 @@ table.catalog .c-num {
 /* ---------- responsive ---------- */
 
 @media (max-width: 860px) {
+  /* Poster above the title rather than beside it; narrower so it doesn't
+     push the h1 below the fold on a phone. */
+  .film-head-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .film-poster {
+    width: 132px;
+  }
   .film-body {
     grid-template-columns: 1fr;
     gap: 32px;
@@ -897,10 +967,26 @@ table.catalog .c-num {
     border-radius: 3px;
     margin-bottom: 12px;
     padding: 14px 16px;
+    /* contains the floated thumbnail below */
+    overflow: hidden;
   }
   table.catalog td {
     border: none;
     padding: 2px 0;
+  }
+  /* In card mode the thumbnail floats left and the card text wraps beside it,
+     which keeps the poster visible without stealing a whole row. */
+  table.catalog td.c-art {
+    width: auto;
+    float: left;
+    margin: 2px 14px 6px 0;
+    padding: 0;
+  }
+  table.catalog td.c-art .thumb {
+    width: 58px;
+  }
+  table.catalog td.c-art .thumb-empty {
+    font-size: 26px;
   }
   table.catalog td.c-logline {
     max-width: none;

@@ -10,12 +10,13 @@ explicitly out of scope and were not touched.
 | Catalog | Titles | Loglines before | Loglines after | Posters |
 |---|---|---|---|---|
 | Classic Films Vault | 165 | 165 | 165 *(already complete)* | 0 — see below |
-| Blue Finch Film Releasing | 209 | 0 | **208** | **208** |
-| SC Films International | 89 | 0 | **88** | **89** |
-| **Total** | **463** | **165** | **461** | **297** |
+| Blue Finch Film Releasing | 209 | 0 | **209** | **208** |
+| SC Films International | 89 | 0 | **89** | **89** |
+| **Total** | **463** | **165** | **463** | **297** |
 
-296 loglines and 297 poster images were added, and one wrong logline/poster pair
-was corrected. Two gaps remain, listed below.
+298 loglines and 297 poster images were added, and one wrong logline/poster pair
+was corrected. **No logline gaps remain** — all 463 titles have one. The only
+outstanding art is the 165 Classic Films Vault posters plus *Head Count*.
 
 Run in two passes. The first resolved 279 titles by slug-matching against the
 agency sitemaps and category indexes, leaving 19 unmatched. The second was a
@@ -53,16 +54,21 @@ and all 18 from the second (18/18 correct).
 
 ## Gaps — no confident match found
 
-Two titles remain unresolved out of 463.
+Two titles had nothing usable on their agency's site, and were closed from
+general public sources (Wikipedia and film press) rather than left blank:
 
-- **Head Count** (Blue Finch, 2018) — no page found on `bluefinchfilms.com`
-  under any slug variant, via the site's own WordPress search, via `site:`
-  queries, or in the sitemap. No logline, no poster.
+- **Head Count** (Blue Finch, 2018) — no page on `bluefinchfilms.com` under
+  any slug variant, via the site's own WordPress search, via `site:` queries,
+  or in the sitemap. Logline written from public sources. **Still the one
+  agency title with no poster.**
 - **The Boxcar Children** (SC Films) — the page exists and the poster was
-  obtained, but the page carries only voice-cast and director credits with no
-  plot text at all. Re-checked directly against every `<p>` in the page body
-  after a verifier claimed a synopsis was present; there isn't one. Logline
-  left blank.
+  obtained, but it carries only voice-cast and director credits with no plot
+  text at all. Re-checked directly against every `<p>` in the page body after
+  a verifier claimed a synopsis was present; there isn't one. Logline written
+  from public sources.
+
+Both were rewritten in the same house style, and the film each one refers to
+was confirmed against the catalog's own year, genre and credits first.
 
 The other 17 of the original 19 gaps were closed in the second pass. They had
 been missed because the first pass only probed `/library/`, `/coming-soon/`
@@ -104,11 +110,14 @@ naive scrape:
 
 ## Two things worth knowing
 
-**The `poster` column is only read by `build_featured()`.** Film detail pages
-and the browse table render no poster art at all, so only the 6 Blue Finch /
-SC Films titles among the 12 `FEATURED` entries display art today. The other
-274 images are data in place, waiting on a template change that was not part
-of this pass.
+**Posters now render everywhere.** `build.py` was extended so the `poster`
+column drives three places, not just the home-page carousel: the carousel, the
+film-page hero (beside the title, on the dark banner), and a thumbnail column
+in the browse table. All three share `poster_art()`; because browse rows are
+built client side, `assets/catalog.js` mirrors it and the two must be kept in
+step by hand. All 297 images are on the site — 297 of 463 rows show art and
+the other 166 fall back to the typographic placeholder, mixed freely with no
+layout jump.
 
 **Classic Films Vault posters (165) were not sourced.** There is no
 rights-holder site for that catalog. IMDb's conditions of use prohibit
