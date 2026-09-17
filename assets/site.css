@@ -1185,6 +1185,19 @@ table.catalog .c-num {
 .featured-head h2 {
   margin: 0;
 }
+/* Catalog index rows. The eyebrow labels the row rather than introducing a
+   whole section, so it sits tight under its heading instead of carrying the
+   hero's 18px. */
+.section > .wrap > .eyebrow {
+  margin-bottom: 5px;
+}
+.cat-line {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  max-width: 54em;
+  margin: 0 0 18px;
+}
 .featured-head .all-link {
   font-size: 14px;
   white-space: nowrap;
@@ -1335,33 +1348,6 @@ table.catalog .c-num {
   font-variant-numeric: tabular-nums;
 }
 
-/* Same component as the film page's Represented by tag, sized for a card and
-   restyled for a light surface. */
-/* .rep-tag is defined further down the file with its dark-surface colours,
-   so this needs two classes to win on specificity rather than source order. */
-.rep-tag.rep-tag-sm {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  margin: 9px 0 0;
-  padding: 6px 8px;
-  font-size: 12px;
-  line-height: 1.25;
-  border-color: var(--rule);
-  background: transparent;
-  color: var(--ink);
-}
-.rep-tag.rep-tag-sm span {
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  color: var(--blue);
-}
-.film-card:hover /* .rep-tag is defined further down the file with its dark-surface colours,
-   so this needs two classes to win on specificity rather than source order. */
-.rep-tag.rep-tag-sm {
-  border-color: var(--blue);
-}
-
 .carousel-btn {
   position: absolute;
   top: 92px;
@@ -1449,64 +1435,6 @@ table.catalog .c-num {
   /* --red-ink, not --red: the 620px override takes these to 20px, below the
      >=24px large-text floor that lets --red pass on a light surface. */
   color: var(--blue);
-}
-
-/* catalog landing cards */
-.cat-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 20px;
-}
-.cat-card {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-top: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 26px 24px 22px;
-  text-decoration: none;
-  color: var(--ink);
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--shadow);
-  transition: transform 0.15s ease, border-color 0.15s ease;
-}
-.cat-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--blue);
-  color: var(--ink);
-}
-.cat-count {
-  font-family: var(--display);
-  font-size: 44px;
-  line-height: 1;
-  color: var(--blue);
-}
-.cat-name {
-  font-family: var(--sans);
-  font-size: 21px;
-  margin: 10px 0 8px;
-  line-height: 1.2;
-}
-.cat-blurb {
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--text-soft);
-}
-.cat-facts {
-  font-size: 12.5px;
-  color: var(--text-soft);
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
-}
-.cat-go {
-  margin-top: 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--blue);
-}
-.cat-card:hover .cat-go {
-  text-decoration: underline;
 }
 
 /* "Represented by" on the film page — a claim about provenance, so it sits

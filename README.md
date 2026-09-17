@@ -52,12 +52,15 @@ already published and must not move; the agency catalogs are prefixed so the
 titles carried by *both* agencies get distinct pages.
 
 Adding a fourth catalog is a new CSV plus one entry in `CATALOGS` — the
-landing cards, the catalog filter, the counts, and the "Represented by" tags
+index rows, the catalog filter, the counts, and the "Represented by" column
 all derive from that list.
 
-`catalog.html` is the landing view (one card per catalog); `browse.html` is
-the single browse UI shared by all of them, deep-linkable as
-`browse.html?catalog=blue-finch`.
+`catalog.html` is the index: one row per catalog, each carrying that
+catalog's name, whether we own it or present it, its size and character,
+and a carousel of its art. `browse.html` is the single browse UI shared by
+all of them, deep-linkable as `browse.html?catalog=blue-finch`. The two
+pages deliberately do not overlap: the index is the art-led way in, browse
+is the filterable table, and no fact is stated on both.
 
 ## Updating a catalog
 
@@ -89,7 +92,7 @@ python3 build.py
 | `writer` | Writer(s), `; `-separated. |
 | `cast` | Principal cast, `; `-separated. |
 | `source_url` | The title's page on the agency's own site. Drives the licensing button — see **Where the licensing button goes**. |
-| `poster` | Optional. Filename in `assets/posters/`, e.g. `bf-papillon-1973.jpg`. Used by the home-page carousel only; blank falls back to a typographic placeholder. |
+| `poster` | Optional. Filename in `assets/posters/`, e.g. `bf-papillon-1973.jpg`. Drives the carousels, the film-page hero and the browse table; blank falls back to a typographic placeholder. |
 | `publish` | `yes` to include the title on the site, `no` to hold it back without deleting the row. Blank counts as `yes`. |
 | `cross_listed` | `yes` if the title appears in both agency catalogs. A neutral marker only — it is not rendered anywhere on the site. |
 
@@ -287,7 +290,7 @@ site/
 │   ├── site.css         all styles
 │   ├── catalog.js       browse page: search, filter, sort
 │   ├── inquiry.js       form validation, prefill, submit
-│   ├── carousel.js      home-page featured-titles carousel
+│   ├── carousel.js      featured-titles carousels (home + catalogs)
 │   └── config.js        ← your form endpoint goes here
 ├── functions/inquiry.js serverless email handler
 ├── brand/               logo masters — NOT published, see brand/README.md
@@ -369,16 +372,26 @@ centre-cropped.
 
 ## Featured titles
 
-The home-page carousel sits directly below the hero, ahead of the stat
-blocks — the combined-total claim lands harder when the next thing you see is
-twelve actual titles, spread across all three catalogs.
+`build_featured()` renders these, and the same function serves both pages in
+two modes. The home page takes `keys=["best-b-movies"]` and shows our own
+library only, directly below the hero. `catalog.html` takes `as_index=True`
+and gets all three, where the row *is* that catalog's entry on the page — it
+carries the name, the ownership label, the count and the blurb, which is why
+there is no descriptive card beside it.
 
-Edit the `FEATURED` list at the top of `build.py`. Each entry is a
-`(title, catalog key)` pair: the catalog is part of the key because a title
-can legitimately exist in more than one catalog. Entries are resolved against
-the CSVs at build time — the carousel never holds a second copy of the data —
-and **the build fails loudly** if a pair stops resolving, so renaming or
-unpublishing a film can't silently leave an empty card.
+Edit the `FEATURED` list at the top of `build.py`. Each entry is
+`(catalog key, home-page heading, [titles])`: the catalog is part of the key
+because a title can legitimately exist in more than one catalog, and the
+heading is only used outside index mode, where the catalog's own name would
+be redundant. Entries are resolved against the CSVs at build time — the
+carousel never holds a second copy of the data — and **the build fails
+loudly** if a pair stops resolving, so renaming or unpublishing a film can't
+silently leave an empty card.
+
+Six cards fit inside the track above ~1130px wide, so at desktop sizes the
+arrows disable themselves (they are `opacity: 0`, so they vanish rather than
+sit there dead). Add a seventh title to a `FEATURED` entry if you want them
+back.
 
 Each card shows the key art, title, year, licensing status, and the same
 Represented by badge used on film detail pages.
@@ -405,8 +418,8 @@ whichever CSV, fill in the rows you have art for, drop the images in, and
 rebuild. Cards mix freely — art and placeholder side by side is fine.
 
 `poster` is read in three places, all sharing `poster_art()` in `build.py` so
-the fallback can't drift: the home-page carousel, the film-page hero, and the
-browse table. The browse rows are built client side, so `assets/catalog.js`
+the fallback can't drift: the carousels, the film-page hero, and the browse
+table. The browse rows are built client side, so `assets/catalog.js`
 mirrors `poster_art()` and `monogram()` — **change the fallback in one and you
 must change it in the other.**
 
@@ -423,9 +436,11 @@ arrow buttons and their disabled states. Nothing autoplays.
 
 ## Notes on behaviour
 
-- **Deep links.** `catalog.html?genre=Western`, `?decade=1940s`,
-  `?status=Licensed`, `?q=holmes`, and `?intl=1` all pre-apply filters. The
-  home page tiles and the film-page genre tags use them.
+- **Deep links.** `browse.html?genre=Western`, `?decade=1940s`,
+  `?status=Licensed`, `?q=holmes`, `?catalog=blue-finch` and `?intl=1` all
+  pre-apply filters. The home page tiles, the catalog index rows and the
+  film-page genre tags use them. `?catalog=classic-films-vault` still
+  resolves, to `best-b-movies`, so links published before the rename work.
 - **Prefill.** "Inquire about this title" links to
   `licensing.html?title=<film>`, which fills the Titles of interest field and
   tells the visitor it did.

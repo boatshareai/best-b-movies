@@ -357,7 +357,7 @@ def page(title, body, current, depth=0, description=""):
 # --------------------------------------------------------------------------
 
 
-def featured_card(f, show_rep=True):
+def featured_card(f):
     art = poster_art(f)
     # The full badge wording ("Licensed - non-exclusive") is too wide for a
     # card pill; the bare status reads fine at this size.
@@ -371,7 +371,7 @@ def featured_card(f, show_rep=True):
           <span class="cap">
             <b>%(title)s</b>
             <span class="cap-year">%(year)s</span>
-%(rep)s          </span>
+          </span>
         </a>""" % {
         "slug": e(f["slug"]),
         "art": art,
@@ -381,19 +381,6 @@ def featured_card(f, show_rep=True):
         # .muted fails contrast at this size; .cap-year's own colour passes
         # and this is real information, not decoration.
         "year": e(f["year"]) or "Year not listed",
-        # The tag names the rights holder, which is the point on a
-        # partner's row and pure repetition on our own: the heading
-        # above it already says whose library it is, and the header
-        # logo says it again. It is also the tallest thing in the
-        # caption, so dropping it is what lets the whole poster clear
-        # the fold on the home page.
-        "rep": (
-            '            <span class="rep-tag rep-tag-sm">'
-            '<span>Represented by</span> %s</span>\n'
-            % e(f["catalog_name"])
-            if show_rep
-            else ""
-        ),
     }
 
 
@@ -402,11 +389,16 @@ def band_shade(i):
     return "section-cream" if i % 2 == 0 else "section-white"
 
 
-def build_featured(films, keys=None, start=0):
+def build_featured(films, keys=None, start=0, as_index=False):
     """Carousel sections, optionally limited to certain catalogs.
 
-    The home page carries our own library only; the partner catalogs live on
-    catalog.html, where the page is already about whose titles are whose.
+    Two modes for the same row. The home page uses the plain one: a single
+    carousel of our own library under a heading of its own wording.
+    `as_index=True` is the catalogs page, where the row *is* the entry for
+    that catalog -- it carries the catalog's real name, whether we own it or
+    present it, and its size and character, so that a separate descriptive
+    card would only say all of it twice.
+
     `start` seeds the band alternation so a page that already opened with a
     section does not repeat its shade.
     """
@@ -424,18 +416,37 @@ def build_featured(films, keys=None, start=0):
                     "removed, or publish=no). Fix FEATURED in build.py or the "
                     "catalog CSV." % (want, cat_key)
                 )
-            cards.append(featured_card(f, show_rep=cat_key != OWN_CATALOG))
+            cards.append(featured_card(f))
         n = len(in_catalog(films, cat_key))
+        if as_index:
+            cat = CATALOG_BY_KEY[cat_key]
+            heading = cat["name"]
+            # The one thing a visitor has to be able to tell at a glance:
+            # which of these we control and which we only present.
+            kicker = (
+                "Our own library"
+                if cat_key == OWN_CATALOG
+                else "Presented on behalf of the rights holder"
+            )
+            eyebrow = '    <p class="eyebrow">%s</p>\n' % e(kicker)
+            # The count lives here, so the link does not repeat it.
+            line = '    <p class="cat-line">%d titles. %s</p>\n' % (n, e(cat["blurb"]))
+            link = "Browse this catalog &rsaquo;"
+        else:
+            eyebrow = ""
+            line = ""
+            link = "View all %d titles &rsaquo;" % n
         # Each track needs its own accessible name; three rows all announcing
         # "Featured titles" would be useless to a screen reader.
         sections.append(
             """
 <section class="section %(shade)s">
   <div class="wrap">
-    <div class="featured-head">
+%(eyebrow)s    <div class="featured-head">
       <h2>%(heading)s</h2>
-      <a class="all-link" href="browse.html?catalog=%(key)s">View all %(n)d titles &rsaquo;</a>
+      <a class="all-link" href="browse.html?catalog=%(key)s">%(link)s</a>
     </div>
+%(line)s
     <div class="carousel" data-carousel>
       <button type="button" class="carousel-btn prev" aria-label="Scroll %(label)s left">&lsaquo;</button>
       <div class="carousel-track" tabindex="0" role="group" aria-label="%(label)s">
@@ -452,8 +463,10 @@ def build_featured(films, keys=None, start=0):
                 # own sections came first.
                 "shade": band_shade(start + len(sections)),
                 "heading": e(heading),
+                "eyebrow": eyebrow,
+                "line": line,
+                "link": link,
                 "key": urllib.parse.quote(cat_key),
-                "n": n,
                 "label": e(heading),
                 "cards": "\n".join(cards),
             }
@@ -608,66 +621,27 @@ def build_home(films):
 
 
 def build_catalog(films):
-    """Landing view: one card per represented catalog."""
-    cards = []
-    for cat in CATALOGS:
-        mine = in_catalog(films, cat["key"])
-        years = sorted(int(f["year"]) for f in mine if f["year"].isdigit())
-        span = "%d\u2013%d" % (years[0], years[-1]) if years else ""
-        top = {}
-        for f in mine:
-            for g in f["genre_list"]:
-                top[g] = top.get(g, 0) + 1
-        leading = ", ".join(
-            g for g, _ in sorted(top.items(), key=lambda kv: (-kv[1], kv[0]))[:4]
-        )
-        facts = []
-        if span:
-            facts.append("Years %s" % span)
-        if leading:
-            facts.append("Mostly %s" % leading)
-        cards.append(
-            """      <a class="cat-card" href="browse.html?catalog=%(key)s">
-        <span class="cat-count">%(n)d</span>
-        <span class="cat-name">%(name)s</span>
-        <span class="cat-blurb">%(blurb)s</span>
-        <span class="cat-facts">%(facts)s</span>
-        <span class="cat-go">Browse this catalog &rsaquo;</span>
-      </a>"""
-            % {
-                "key": e(cat["key"]),
-                "n": len(mine),
-                "name": e(cat["name"]),
-                "blurb": e(cat["blurb"]),
-                "facts": e(" \u00b7 ".join(facts)),
-            }
-        )
+    """Index of the three catalogs: one art-led row each.
 
+    This page used to carry a descriptive card per catalog *and* a carousel
+    per catalog, which said the name, the size and the character of each one
+    twice over -- and gave our own library a card but no art. Now the row is
+    the entry: see build_featured(as_index=True).
+    """
     body = """
 <section class="section section-cream">
   <div class="wrap">
     <div class="rule-head"><h1>Catalogs</h1></div>
-    <p class="lede">%(total)d titles across three catalogs &mdash; our own
-      library, plus two we present on behalf of their rights holders. Pick one
-      to browse it on its own, or search all three at once; the same filters
-      apply either way.</p>
-
-    <div class="cat-cards">
-%(cards)s
-    </div>
-
-    <p style="margin-top:34px">
-      <a class="btn btn-solid" href="browse.html">Browse all %(total)d titles</a>
-    </p>
+    <p class="lede">%(total)d titles in three catalogs &mdash; our own library,
+      plus two we present on behalf of their rights holders. Take them one at a
+      time below, or <a href="browse.html">search all three at once</a>.</p>
   </div>
 </section>
-%(partners)s
+%(rows)s
 """ % {
-        "cards": "\n".join(cards),
         "total": len(films),
-        # The partner carousels sit here rather than on the home page: this is
-        # the page that already explains whose titles are whose.
-        "partners": build_featured(films, keys=["blue-finch", "sc-films"], start=1),
+        # start=1: the intro above is band 0.
+        "rows": build_featured(films, as_index=True, start=1),
     }
 
     return page(
