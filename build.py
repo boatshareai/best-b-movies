@@ -290,7 +290,7 @@ def page(title, body, current, depth=0, description=""):
 %(ogimg)s<link rel="icon" type="image/png" sizes="16x16" href="%(up)sassets/favicon-16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="%(up)sassets/favicon-32.png">
 <link rel="apple-touch-icon" href="%(up)sassets/favicon-180.png">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="%(site_bg)s">
 <link rel="stylesheet" href="%(up)sassets/site.css">
 </head>
 <body>
@@ -329,6 +329,8 @@ def page(title, body, current, depth=0, description=""):
         "body": body,
         "up": up,
         "site": e(SITE_NAME),
+        # matches .site-head, which is what sits under the address bar
+        "site_bg": "#ffffff",
         # og:image must be absolute — a relative path is silently ignored by
         # every scraper. Without SITE_BASE we don't know the origin, so the
         # tag is omitted rather than emitted broken. CI sets SITE_BASE.
@@ -378,6 +380,11 @@ def featured_card(f):
     }
 
 
+def band_shade(i):
+    """Alternating section background, as one sequence across the whole page."""
+    return "section-cream" if i % 2 == 0 else "section-white"
+
+
 def build_featured(films):
     by_key = {(f["title"].strip().lower(), f["catalog"]): f for f in films}
     sections = []
@@ -413,7 +420,9 @@ def build_featured(films):
   </div>
 </section>"""
             % {
-                "shade": "section-white" if len(sections) % 2 == 0 else "section-cream",
+                # starts on cream: the hero above is white, and two white
+                # bands running together would read as one section
+                "shade": band_shade(len(sections)),
                 "heading": e(heading),
                 "key": urllib.parse.quote(cat_key),
                 "n": n,
@@ -469,10 +478,11 @@ def build_home(films):
 <section class="hero">
   <div class="wrap">
     <p class="eyebrow">Best B Movies</p>
-    <h1>%(total)d Titles. Every Genre Worth Knowing.</h1>
-    <p class="pitch">Our own library, plus hand-picked catalogs from Blue Finch
-      Film Releasing and SC Films International &mdash; one place to find what
-      you&rsquo;re actually looking for.</p>
+    <h1>Genre Films, Done Right.</h1>
+    <p class="pitch">An independent distributor of genre and cult cinema &mdash;
+      our own library runs from the 1930s to today, streaming straight to AVOD
+      and TVOD platforms. We also present select catalogs on behalf of Blue
+      Finch Film Releasing and SC Films International.</p>
     <ul class="hero-split">
 %(split)s
     </ul>
@@ -483,7 +493,7 @@ def build_home(films):
   </div>
 </section>
 %(featured)s
-<section class="section section-cream">
+<section class="section %(lib_shade)s">
   <div class="wrap">
     <div class="rule-head"><h2>What&rsquo;s in the library</h2></div>
     <div class="tiles">
@@ -493,7 +503,7 @@ def build_home(films):
   </div>
 </section>
 
-<section class="section section-white">
+<section class="section %(how_shade)s">
   <div class="wrap">
     <div class="rule-head"><h2>How licensing works</h2></div>
     <div class="tiles">
@@ -537,20 +547,25 @@ def build_home(films):
         "bf": len(in_catalog(films, "blue-finch")),
         "sc": len(in_catalog(films, "sc-films")),
         "featured": build_featured(films),
+        # The featured carousels consume the first len(FEATURED) bands; these
+        # two carry that same alternation on rather than restarting it.
+        "lib_shade": band_shade(len(FEATURED)),
+        "how_shade": band_shade(len(FEATURED) + 1),
         "tiles": "\n".join(tiles),
         "chips": chips,
         "licensed": licensed,
     }
     return page(
-        "Best B Movies \u2014 %d titles, every genre worth knowing" % total,
+        "Best B Movies \u2014 genre films, done right",
         body,
         "index.html",
         # Mirrors the hero rather than the site-wide default, which still
         # describes all %d titles as ours to license. Says nothing about the
         # rights position on the partner catalogs, because we don't hold one.
-        description="Our own library, plus hand-picked catalogs from Blue "
-        "Finch Film Releasing and SC Films International \u2014 one place to "
-        "find what you\u2019re actually looking for.",
+        description="An independent distributor of genre and cult cinema. Our "
+        "own library runs from the 1930s to today, streaming to AVOD and TVOD "
+        "platforms, alongside select catalogs presented for Blue Finch Film "
+        "Releasing and SC Films International.",
     )
 
 
@@ -805,7 +820,11 @@ def build_film(f, films):
         meta.append("%d min" % f["runtime_n"])
     if f["language"]:
         meta.append(e(f["language"]))
-    meta_html = '<span class="sep">/</span>'.join("<span>%s</span>" % m for m in meta)
+    # decorative divider: screen readers should not announce "slash" between
+    # year, genre and runtime
+    meta_html = '<span class="sep" aria-hidden="true">/</span>'.join(
+        "<span>%s</span>" % m for m in meta
+    )
 
     rep = (
         '<a class="rep-tag" href="../browse.html?catalog=%s">'
@@ -975,7 +994,7 @@ def build_licensing(films):
         comes from.</p>
     </div>
 
-    <h3 style="font-family:var(--serif);font-size:24px;margin:44px 0 18px">Send an inquiry</h3>
+    <h3 style="font-size:24px;margin:44px 0 18px">Send an inquiry</h3>
 
     <div class="form-card">
       <div class="notice notice-ok" id="ok" hidden role="status">%(confirm)s</div>

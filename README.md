@@ -299,52 +299,49 @@ directly.
 
 ## Brand and palette
 
-Taken straight off the logo: black field, pillar-box red, starburst yellow,
-cream banner lettering. Every colour is a CSS custom property at the top of
-`assets/site.css` — change them there and the whole site follows.
+Taken off the logo, on a light field. Black is an accent — the filmstrip
+elements of the mark — not the page. Every colour is a CSS custom property at
+the top of `assets/site.css`.
 
 | Token | Value | Role |
 |---|---|---|
-| `--black` | `#000000` | Header, hero, footer, film-page banner, table head |
-| `--black-soft` | `#141414` | Raised surfaces on black |
-| `--red` | `#FA0A14` | Primary accent — button fills, rules, text **on black only** |
-| `--red-ink` | `#B8000A` | Same hue darkened, for links and small text **on light** |
-| `--red-lt` | `#FF5A62` | Hover on black |
-| `--yellow` | `#FAE60A` | Secondary accent — **black surfaces only** |
-| `--cream` | `#FAF0E6` | Light text on black |
-| `--light` | `#E8E6E1` | Page background (warm gray, never white) |
-| `--light-2` | `#F1EFE8` | Cards, table surface |
-| `--ink` | `#242322` | Body text on light |
-| `--gray` | `#6B6862` | Borders, dividers |
+| `--light-2` | `#FFFFFF` | Hero, film banner, header, raised cards |
+| `--light` | `#F4F1EC` | Alternating section band, warm off-white |
+| `--ink` | `#1A1A1A` | Body text, and the dark accent on light |
+| `--black` | `#000000` | Accent only: footer band, table head, poster frames, the rule under the header |
+| `--red` | `#FA0A14` | Primary accent — button fills, large display numerals |
+| `--red-ink` | `#B8000A` | Same hue darkened, for links and small text on light |
+| `--yellow` | `#FAE60A` | Secondary accent — **fills on black only** |
+| `--cream` | `#FAF0E6` | Light text, on the black accent surfaces |
+| `--rule` | `#CFCCC4` | Dividers |
 
-Three constraints this palette carries, all of them measured rather than
-guessed:
+Constraints, measured rather than guessed:
 
-- **Dark surfaces are true black, not the old `#1A1A1A`.** `--red` scores
-  4.24:1 on `#1A1A1A`, which fails AA for body text, and 5.12:1 on `#000`.
-  The accent only works as text once the background is actually black.
-- **`--yellow` is a black-surface colour and nothing else.** It is 13.6:1 on
-  black and **1.03:1 on `--light`** — invisible. It carries the eyebrow and
-  the header tagline; it must never be used for text or borders on a light
-  surface.
-- **`--red-ink` exists for contrast, not variety.** `#FA0A14` on `--light` is
-  3.29:1. `--red-ink` is the same hue darkened until it passes on both light
-  surfaces *and* on the tinted `--red-dim` badge fill, which is the tightest
-  case at 4.59:1.
+- **`--red` is not a body-text colour on light.** It is 3.29:1 on `--light`,
+  which passes only for large text (≥24px) and fills. Anything smaller uses
+  `--red-ink`, tuned against the tightest case — the tinted `--red-dim` badge
+  fill at 4.59:1, not the plain background.
+- **`--yellow` cannot appear on a light surface at all.** 13.6:1 on black,
+  **1.03:1 on `--light`** — invisible. Flipping the theme to light therefore
+  cost yellow every place it used to live (the hero eyebrow and the header
+  tagline, both now ink or red). It survives only where a black accent
+  remains. If gold needs to carry more weight, it has to be a *filled block*
+  with dark text on it, never ink on the page.
+- **Red button fills take black text, not white.** White on `#FA0A14` is
+  4.10:1 and fails; black is 5.12:1.
 
-Status badges: **Available** is red, **Licensed** is neutral gray. The
-film-page banner is black, so it overrides both with light-on-dark variants
-(`.film-head .badge-*`).
+Status badges are the same on every surface now. The film banner used to be
+black and carried light-on-dark `.film-head .badge-*` overrides; it is light,
+so those are gone and it inherits the standard badges.
 
-**Form errors keep their own darker red** (`#8F3323`). Under the old gold
-system that red was clearly apart from the accent; it no longer is. The inline
-error text carries the signal, not the colour alone, so this is a legibility
-note rather than a defect — but it is worth revisiting if the form ever grows.
+**Form errors keep their own darker red** (`#8F3323`), which is close to the
+accent rather than clearly apart from it as it was under the old gold system.
+The inline error text carries the signal, not the colour alone.
 
 Every foreground/background pair on the home, browse, licensing and film pages
-meets WCAG AA, checked by compositing the actual rendered colours (translucent
-badge and notice fills included) rather than comparing declared values.
-Decorative placeholder initials are `aria-hidden` and excluded, as WCAG allows.
+meets WCAG AA, checked by compositing the actual rendered colours — translucent
+fills included — rather than comparing declared values. Decorative glyphs
+(placeholder initials, the `/` meta separator) are `aria-hidden` and exempt.
 
 ## Type
 

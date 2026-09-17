@@ -29,8 +29,9 @@
 :root {
   /* Dark surfaces are true black, not the old warm charcoal: the accent red
      scores 4.24:1 on #1a1a1a (fails AA for body text) and 5.12:1 on #000. */
-  --black: #000000;      /* header, hero, footer, film-page banner */
-  --black-soft: #141414; /* raised surfaces on black */
+  /* Black is an accent now, not the field: footer band, table head, poster
+     frames, rules — the filmstrip elements of the logo, not the page. */
+  --black: #000000;
 
   --red: #fa0a14;        /* primary accent — fills, and text on black only */
   --red-lt: #ff5a62;     /* hover on black */
@@ -44,10 +45,10 @@
 
   --cream: #faf0e6;      /* banner lettering — light text on black */
   --gray: #6b6862;       /* borders, dividers, muted text */
-  --light: #e8e6e1;      /* page background, warm, never pure white */
-  --light-2: #f1efe8;    /* raised cards on light */
+  --light: #f4f1ec;      /* page background — warm off-white */
+  --light-2: #ffffff;    /* raised cards, hero, film banner */
   --rule: #cfccc4;       /* dividers on light */
-  --ink: #242322;        /* body text on light */
+  --ink: #1a1a1a;        /* body text, and the dark accent on light */
   --ink-soft: #5d5a55;
 
   --display: "Anton", Impact, "Haettenschweiler", "Arial Narrow Bold",
@@ -118,9 +119,10 @@ a:hover {
 /* ---------- header ---------- */
 
 .site-head {
-  background: var(--black);
-  color: var(--light);
-  border-bottom: 3px solid var(--red);
+  background: var(--light-2);
+  color: var(--ink);
+  /* the black band under the header is the logo's filmstrip, not a field */
+  border-bottom: 4px solid var(--black);
 }
 
 .site-head .wrap {
@@ -135,10 +137,13 @@ a:hover {
 .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  /* tagline sits under the lockup, not beside it */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
   text-decoration: none;
-  padding: 10px 0;
-  color: var(--light-2);
+  padding: 12px 0;
+  color: var(--ink);
 }
 /* The lockup carries the wordmark, so there is no separate brand-name text to
    sit beside it. 1.363:1 — height follows width, never a fixed square.
@@ -163,9 +168,8 @@ a:hover {
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  /* Yellow, not red: on black it scores 13.6:1 against red's 5.1:1, and at
-     12px this is small text that needs the headroom. */
-  color: var(--yellow);
+  /* On the light header this must be ink: yellow is 1.03:1 here. */
+  color: var(--ink);
   line-height: 1.1;
 }
 
@@ -177,7 +181,7 @@ a:hover {
   padding-bottom: 4px;
 }
 .nav a {
-  color: var(--rule);
+  color: var(--ink);
   text-decoration: none;
   font-size: 14px;
   padding: 8px 12px;
@@ -185,11 +189,11 @@ a:hover {
   white-space: nowrap;
 }
 .nav a:hover {
-  background: rgba(241, 239, 232, 0.1);
-  color: var(--light-2);
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--ink);
 }
 .nav a[aria-current="page"] {
-  color: var(--red-lt);
+  color: var(--red-ink);
   box-shadow: inset 0 -2px 0 var(--red);
 }
 .cta-short {
@@ -209,8 +213,9 @@ a:hover {
 /* ---------- hero ---------- */
 
 .hero {
-  background: var(--black);
-  color: var(--light);
+  background: var(--light-2);
+  color: var(--ink);
+  border-bottom: 1px solid var(--rule);
   padding: 72px 0 64px;
   position: relative;
   overflow: hidden;
@@ -223,18 +228,18 @@ a:hover {
   font-size: 13px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--yellow);
+  color: var(--red-ink);
   margin: 0 0 18px;
 }
 .hero h1 {
   font-size: clamp(34px, 6vw, 58px);
   margin-bottom: 18px;
-  color: var(--light-2);
+  color: var(--ink);
 }
 .hero .pitch {
   font-size: clamp(17px, 2.2vw, 21px);
   line-height: 1.5;
-  color: var(--rule);
+  color: var(--ink-soft);
   max-width: 40em;
   margin: 0 0 32px;
 }
@@ -264,13 +269,13 @@ a:hover {
   color: var(--black);
 }
 .btn-ghost {
-  border-color: rgba(241, 239, 232, 0.4);
-  color: var(--light);
+  border-color: rgba(0, 0, 0, 0.35);
+  color: var(--ink);
 }
 .btn-ghost:hover {
-  border-color: var(--light);
-  background: rgba(241, 239, 232, 0.08);
-  color: var(--light-2);
+  border-color: var(--black);
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--ink);
 }
 .btn-solid {
   background: var(--red);
@@ -626,16 +631,8 @@ table.catalog .c-num {
 
 /* The film-page hero is dark, so the badges need the inverse treatment —
    the light-surface colours above are unreadable on black. */
-.film-head .badge-available {
-  background: var(--red-dim);
-  color: var(--red-lt);
-  border-color: rgba(250, 10, 20, 0.55);
-}
-.film-head .badge-licensed {
-  background: rgba(241, 239, 232, 0.09);
-  color: var(--light);
-  border-color: rgba(241, 239, 232, 0.34);
-}
+/* The film banner is light now, so it inherits the standard badges rather
+   than overriding them with light-on-dark variants. */
 
 .empty {
   padding: 48px 20px;
@@ -660,12 +657,13 @@ table.catalog .c-num {
 /* ---------- film detail ---------- */
 
 .film-head {
-  background: var(--black);
-  color: var(--light);
+  background: var(--light-2);
+  color: var(--ink);
+  border-bottom: 1px solid var(--rule);
   padding: 48px 0 44px;
 }
-/* Key art beside the title. The hero is already the dark surface posters are
-   designed to sit on, so the art needs no frame of its own beyond .poster. */
+/* Key art beside the title. The poster keeps its own black frame (.poster),
+   which is what gives the art an edge now that the banner behind it is light. */
 .film-head-grid {
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
@@ -678,14 +676,14 @@ table.catalog .c-num {
 .crumbs {
   font-size: 13px;
   margin-bottom: 20px;
-  color: rgba(241, 239, 232, 0.7);
+  color: var(--ink-soft);
 }
 .crumbs a {
-  color: var(--red-lt);
+  color: var(--red-ink);
 }
 .film-head h1 {
   font-size: clamp(30px, 5vw, 46px);
-  color: var(--light-2);
+  color: var(--ink);
   margin-bottom: 14px;
 }
 .film-meta {
@@ -693,12 +691,12 @@ table.catalog .c-num {
   flex-wrap: wrap;
   gap: 8px 20px;
   font-size: 15px;
-  color: var(--rule);
+  color: var(--ink-soft);
   align-items: center;
   margin-bottom: 22px;
 }
 .film-meta .sep {
-  color: rgba(241, 239, 232, 0.35);
+  color: rgba(0, 0, 0, 0.42);
 }
 
 .film-body {
@@ -877,7 +875,7 @@ table.catalog .c-num {
 
 .site-foot {
   background: var(--black);
-  color: rgba(241, 239, 232, 0.75);
+  color: var(--cream);
   padding: 40px 0;
   font-size: 14px;
   margin-top: 0;
@@ -936,7 +934,7 @@ table.catalog .c-num {
   }
   .brand {
     padding: 6px 0;
-    gap: 10px;
+    gap: 4px;
   }
   .brand-logo {
     width: 116px;
@@ -1176,7 +1174,7 @@ table.catalog .c-num {
   text-transform: uppercase;
   padding: 4px 6px;
   border-radius: 2px;
-  background: rgba(26, 26, 26, 0.85);
+  background: rgba(0, 0, 0, 0.92);
   border: 1px solid rgba(241, 239, 232, 0.3);
   color: var(--light);
 }
@@ -1314,12 +1312,12 @@ table.catalog .c-num {
   display: flex;
   flex-wrap: wrap;
   gap: 10px 28px;
-  border-top: 1px solid rgba(241, 239, 232, 0.18);
+  border-top: 1px solid var(--rule);
   padding-top: 20px;
   max-width: 46em;
 }
 .hero-split a {
-  color: var(--rule);
+  color: var(--ink);
   text-decoration: none;
   font-size: 15px;
   display: flex;
@@ -1327,13 +1325,15 @@ table.catalog .c-num {
   gap: 7px;
 }
 .hero-split a:hover {
-  color: var(--light-2);
+  color: var(--red-ink);
 }
 .hero-split b {
   font-family: var(--display);
   font-size: 24px;
   font-weight: 600;
-  color: var(--red);
+  /* --red-ink, not --red: the 620px override takes these to 20px, below the
+     >=24px large-text floor that lets --red pass on a light surface. */
+  color: var(--red-ink);
 }
 
 /* catalog landing cards */
@@ -1403,9 +1403,9 @@ table.catalog .c-num {
   margin-left: 10px;
   padding: 9px 14px;
   border-radius: 3px;
-  border: 1px solid rgba(241, 239, 232, 0.28);
-  background: rgba(241, 239, 232, 0.06);
-  color: var(--light);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ink);
   text-decoration: none;
   font-size: 13px;
   vertical-align: middle;
@@ -1414,11 +1414,11 @@ table.catalog .c-num {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--red-lt);
+  color: var(--red-ink);
 }
 .rep-tag:hover {
   border-color: var(--red);
-  color: var(--light-2);
+  color: var(--ink);
 }
 
 /* Represented: carried by an agency, but no rights position asserted —
@@ -1429,7 +1429,7 @@ table.catalog .c-num {
   border: 1px dashed rgba(250, 10, 20, 0.75);
 }
 .film-head .badge-represented {
-  color: var(--red-lt);
+  color: var(--red-ink);
   border-color: rgba(250, 10, 20, 0.55);
   background: transparent;
 }
