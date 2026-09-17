@@ -44,17 +44,21 @@
   --yellow: #fae60a;
   --yellow-dk: #e8d509;  /* hover on a gold fill; black on it is still 13.9:1 */
 
-  /* One cream, and it is every field on the site: header, hero, film banner,
-     every section band — and, on the black accents, the light text. There is
-     no second near-white competing with it. */
+  /* The field: a deep navy with a blue undertone rather than flat black. Black
+     had no depth and read heavy; this carries the "serious distributor" half of
+     the brand while the red, gold and cream above it carry the pop-culture
+     half. The warmth in this palette comes from the accents, not the ground. */
+  --field: #0b1220;
+  /* Raised surfaces — tiles, cards, the licensing form, table rows. Only 1.30:1
+     against the field, so these lean on --rule for their edge rather than on
+     the lift alone; box-shadow does almost nothing on a dark ground. */
+  --surface: #1c2a41;
+  --rule: #313d5c;       /* dividers and card edges, 1.74:1 on the field */
+
+  /* Cream is back to the job it has in the logo: lettering. It is the primary
+     text colour now, not a background. 16.65:1 on the field. */
   --cream: #faf0e6;
-  /* White is no longer a background. It is the raised surface that sits on the
-     cream: tiles, cards, filters, table rows. */
-  --surface: #ffffff;
-  --rule: #d6c8b4;       /* dividers, warmed to sit on the cream */
-  --gray: #6e6154;       /* borders — warm, same family as the ink */
-  --ink: #1a1a1a;        /* body text, and the dark accent on light */
-  --ink-soft: #5f5244;   /* warm gray-brown secondary, not a cold neutral */
+  --text-soft: #c2bbb0;  /* secondary text — warm light gray, 9.83:1 */
 
   --display: "Anton", Impact, "Haettenschweiler", "Arial Narrow Bold",
     sans-serif;
@@ -62,7 +66,7 @@
     Arial, sans-serif;
 
   --wrap: 1140px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 *,
@@ -77,8 +81,8 @@ html {
 
 body {
   margin: 0;
-  background: var(--cream);
-  color: var(--ink);
+  background: var(--field);
+  color: var(--cream);
   font: 16px/1.6 var(--sans);
 }
 
@@ -94,12 +98,12 @@ h4 {
 }
 
 a {
-  color: var(--red-ink);
+  color: var(--red-lt);
   text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 a:hover {
-  color: #9a0008;
+  color: #ff8b90;
 }
 
 .wrap {
@@ -124,10 +128,10 @@ a:hover {
 /* ---------- header ---------- */
 
 .site-head {
-  background: var(--cream);
-  color: var(--ink);
+  background: var(--field);
+  color: var(--cream);
   /* the black band under the header is the logo's filmstrip, not a field */
-  border-bottom: 4px solid var(--black);
+  border-bottom: 4px solid var(--red);
 }
 
 .site-head .wrap {
@@ -148,7 +152,7 @@ a:hover {
   gap: 5px;
   text-decoration: none;
   padding: 12px 0;
-  color: var(--ink);
+  color: var(--cream);
 }
 /* The lockup carries the wordmark, so there is no separate brand-name text to
    sit beside it. 1.363:1 — height follows width, never a fixed square.
@@ -174,7 +178,7 @@ a:hover {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   /* On the cream header this must be ink: yellow is 1.16:1 here. */
-  color: var(--ink);
+  color: var(--cream);
   line-height: 1.1;
 }
 
@@ -186,7 +190,7 @@ a:hover {
   padding-bottom: 4px;
 }
 .nav a {
-  color: var(--ink);
+  color: var(--cream);
   text-decoration: none;
   font-size: 14px;
   padding: 8px 12px;
@@ -194,11 +198,11 @@ a:hover {
   white-space: nowrap;
 }
 .nav a:hover {
-  background: rgba(0, 0, 0, 0.06);
-  color: var(--ink);
+  background: rgba(250, 240, 230, 0.09);
+  color: var(--cream);
 }
 .nav a[aria-current="page"] {
-  color: var(--red-ink);
+  color: var(--red-lt);
   box-shadow: inset 0 -2px 0 var(--red);
 }
 .cta-short {
@@ -215,15 +219,15 @@ a:hover {
 }
 .nav .cta:hover {
   background: var(--yellow-dk);
-  border-color: var(--red-ink);
+  border-color: var(--red-lt);
   color: var(--black);
 }
 
 /* ---------- hero ---------- */
 
 .hero {
-  background: var(--cream);
-  color: var(--ink);
+  background: var(--field);
+  color: var(--cream);
   border-bottom: 1px solid var(--rule);
   padding: 72px 0 64px;
   position: relative;
@@ -237,18 +241,18 @@ a:hover {
   font-size: 13px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--red-ink);
+  color: var(--red-lt);
   margin: 0 0 18px;
 }
 .hero h1 {
   font-size: clamp(34px, 6vw, 58px);
   margin-bottom: 18px;
-  color: var(--ink);
+  color: var(--cream);
 }
 .hero .pitch {
   font-size: clamp(17px, 2.2vw, 21px);
   line-height: 1.5;
-  color: var(--ink-soft);
+  color: var(--text-soft);
   max-width: 40em;
   margin: 0 0 32px;
 }
@@ -275,17 +279,17 @@ a:hover {
 }
 .btn-gold:hover {
   background: var(--yellow-dk);
-  border-color: var(--red-ink);
+  border-color: var(--red-lt);
   color: var(--black);
 }
 .btn-ghost {
-  border-color: rgba(0, 0, 0, 0.35);
-  color: var(--ink);
+  border-color: rgba(250, 240, 230, 0.42);
+  color: var(--cream);
 }
 .btn-ghost:hover {
-  border-color: var(--black);
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--ink);
+  border-color: var(--cream);
+  background: rgba(250, 240, 230, 0.1);
+  color: var(--cream);
 }
 .btn-solid {
   background: var(--yellow);
@@ -294,7 +298,7 @@ a:hover {
 }
 .btn-solid:hover {
   background: var(--yellow-dk);
-  border-color: var(--red-ink);
+  border-color: var(--red-lt);
   color: var(--black);
 }
 
@@ -323,7 +327,7 @@ a:hover {
   padding: 64px 0;
 }
 .section-cream {
-  background: var(--cream);
+  background: var(--field);
 }
 /* Every band is the same cream now, so the rhythm comes from a hairline
    between them rather than from two alternating tones. */
@@ -331,7 +335,7 @@ a:hover {
   border-top: 1px solid var(--rule);
 }
 .section-white {
-  background: var(--cream);
+  background: var(--field);
 }
 .section h2 {
   font-size: clamp(24px, 3.4vw, 34px);
@@ -342,7 +346,7 @@ a:hover {
   font-size: clamp(28px, 4.2vw, 40px);
 }
 .section > .wrap > .lede {
-  color: var(--ink-soft);
+  color: var(--text-soft);
   max-width: 46em;
   font-size: 17px;
   margin-top: -4px;
@@ -380,7 +384,7 @@ a:hover {
   border-radius: 3px;
   padding: 24px 22px 20px;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--cream);
   display: block;
   box-shadow: var(--shadow);
   transition: transform 0.15s ease, border-color 0.15s ease;
@@ -388,13 +392,13 @@ a:hover {
 .tile:hover {
   transform: translateY(-2px);
   border-top-color: var(--red);
-  color: var(--ink);
+  color: var(--cream);
 }
 .tile .count {
   font-family: var(--display);
   font-size: 40px;
   line-height: 1;
-  color: var(--red-ink);
+  color: var(--red-lt);
   display: block;
 }
 .tile .label {
@@ -405,7 +409,7 @@ a:hover {
 }
 .tile .sub {
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--text-soft);
   line-height: 1.45;
 }
 
@@ -423,15 +427,15 @@ a:hover {
   padding: 8px 16px;
   font-size: 14px;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--cream);
 }
 .decade-chip:hover {
-  border-color: var(--red-ink);
-  color: var(--red-ink);
+  border-color: var(--red-lt);
+  color: var(--red-lt);
 }
 .decade-chip b {
   font-weight: 600;
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 
 /* ---------- catalog controls ---------- */
@@ -458,7 +462,7 @@ a:hover {
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--text-soft);
   font-weight: 600;
 }
 .field input,
@@ -468,16 +472,16 @@ a:hover {
   padding: 10px 11px;
   border: 1px solid var(--rule);
   border-radius: 3px;
-  background: var(--surface);
-  color: var(--ink);
+  background: var(--field);
+  color: var(--cream);
   width: 100%;
 }
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  outline: 2px solid var(--red-ink);
+  outline: 2px solid var(--red-lt);
   outline-offset: -1px;
-  border-color: var(--red-ink);
+  border-color: var(--red-lt);
 }
 .search-field {
   grid-column: 1 / -1;
@@ -495,16 +499,16 @@ a:hover {
 }
 .result-count {
   font-size: 14px;
-  color: var(--ink-soft);
+  color: var(--text-soft);
 }
 .result-count b {
-  color: var(--ink);
+  color: var(--cream);
   font-weight: 600;
 }
 .link-btn {
   background: none;
   border: none;
-  color: var(--red-ink);
+  color: var(--red-lt);
   font: 14px var(--sans);
   cursor: pointer;
   text-decoration: underline;
@@ -532,7 +536,7 @@ table.catalog th {
   font: 600 11px/1.3 var(--sans);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--rule);
+  color: var(--text-soft);
   background: var(--black);
   padding: 12px 14px;
   position: sticky;
@@ -612,7 +616,7 @@ table.catalog .c-title a:hover {
   text-decoration: underline;
 }
 table.catalog .c-logline {
-  color: var(--ink-soft);
+  color: var(--text-soft);
   font-size: 14px;
   line-height: 1.45;
   max-width: 360px;
@@ -625,7 +629,7 @@ table.catalog .c-num {
 .muted {
   /* Was #86827b, which scored 3.07:1 on --light — a pre-existing miss,
      not something the repalette introduced. */
-  color: #6b5c4e;
+  color: #9a9286;
 }
 
 /* ---------- status badge ---------- */
@@ -641,13 +645,13 @@ table.catalog .c-num {
 }
 .badge-available {
   background: var(--red-dim);
-  color: var(--red-ink);
+  color: var(--red-lt);
   border: 1px solid rgba(250, 10, 20, 0.5);
 }
 .badge-licensed {
-  background: rgba(107, 104, 98, 0.12);
-  color: #55524c;
-  border: 1px solid rgba(107, 104, 98, 0.45);
+  background: rgba(250, 240, 230, 0.08);
+  color: var(--text-soft);
+  border: 1px solid rgba(250, 240, 230, 0.32);
 }
 .badge-lg {
   font-size: 13px;
@@ -662,7 +666,7 @@ table.catalog .c-num {
 .empty {
   padding: 48px 20px;
   text-align: center;
-  color: var(--ink-soft);
+  color: var(--text-soft);
 }
 
 /* Visually hidden, still read aloud — used for the poster column header,
@@ -682,8 +686,8 @@ table.catalog .c-num {
 /* ---------- film detail ---------- */
 
 .film-head {
-  background: var(--cream);
-  color: var(--ink);
+  background: var(--field);
+  color: var(--cream);
   border-bottom: 1px solid var(--rule);
   padding: 48px 0 44px;
 }
@@ -701,14 +705,14 @@ table.catalog .c-num {
 .crumbs {
   font-size: 13px;
   margin-bottom: 20px;
-  color: var(--ink-soft);
+  color: var(--text-soft);
 }
 .crumbs a {
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 .film-head h1 {
   font-size: clamp(30px, 5vw, 46px);
-  color: var(--ink);
+  color: var(--cream);
   margin-bottom: 14px;
 }
 .film-meta {
@@ -716,12 +720,12 @@ table.catalog .c-num {
   flex-wrap: wrap;
   gap: 8px 20px;
   font-size: 15px;
-  color: var(--ink-soft);
+  color: var(--text-soft);
   align-items: center;
   margin-bottom: 22px;
 }
 .film-meta .sep {
-  color: rgba(0, 0, 0, 0.42);
+  color: rgba(250, 240, 230, 0.4);
 }
 
 .film-body {
@@ -736,7 +740,7 @@ table.catalog .c-num {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   font-family: var(--sans);
-  color: var(--ink-soft);
+  color: var(--text-soft);
   font-weight: 600;
   margin-bottom: 12px;
 }
@@ -758,7 +762,7 @@ table.catalog .c-num {
 }
 .spec dt {
   flex: 0 0 130px;
-  color: var(--ink-soft);
+  color: var(--text-soft);
 }
 .spec dd {
   margin: 0;
@@ -781,7 +785,7 @@ table.catalog .c-num {
 .aside-card p {
   font-size: 14px;
   line-height: 1.55;
-  color: var(--ink-soft);
+  color: var(--text-soft);
 }
 .aside-card .btn {
   width: 100%;
@@ -799,7 +803,7 @@ table.catalog .c-num {
   background: var(--rule);
   border-radius: 3px;
   padding: 5px 9px;
-  color: var(--ink);
+  color: var(--cream);
   text-decoration: none;
 }
 .tag:hover {
@@ -838,11 +842,11 @@ table.catalog .c-num {
   grid-column: 1 / -1;
 }
 .req {
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 .hint {
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--text-soft);
   margin: 0;
 }
 .form-card textarea {
@@ -867,33 +871,34 @@ table.catalog .c-num {
 .notice-ok {
   background: var(--red-dim);
   border: 1px solid rgba(250, 10, 20, 0.45);
-  color: #9a0008;
+  color: var(--red-lt);
 }
-/* Errors keep their own darker, desaturated red. Note this is now close to
-   the accent rather than clearly apart from it, as it was under the old gold
-   system — the inline error text carries the signal, not the colour alone. */
+/* On a dark field an error cannot be a pale pink box — it would be the
+   brightest thing on the page. It is a deeper red wash with light type, and
+   the inline error text carries the signal rather than the colour alone,
+   since the accent is also red. */
 .notice-err {
-  background: #f4e6e2;
-  border: 1px solid #d3aea4;
-  color: #8f3323;
+  background: rgba(143, 51, 35, 0.3);
+  border: 1px solid rgba(255, 138, 128, 0.55);
+  color: #ffb0a6;
 }
 .notice-warn {
-  background: rgba(107, 104, 98, 0.1);
-  border: 1px solid rgba(107, 104, 98, 0.4);
-  color: #4e4b46;
+  background: rgba(250, 240, 230, 0.07);
+  border: 1px solid rgba(250, 240, 230, 0.3);
+  color: var(--text-soft);
 }
 [hidden] {
   display: none !important;
 }
 
 .err-text {
-  color: #8f3323;
+  color: #ffb0a6;
   font-size: 13px;
   margin: 0;
 }
 .field input[aria-invalid="true"],
 .field select[aria-invalid="true"] {
-  border-color: #8f3323;
+  border-color: #ff8a80;
 }
 
 /* ---------- footer ---------- */
@@ -1063,7 +1068,7 @@ table.catalog .c-num {
     font-size: 11px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--ink-soft);
+    color: var(--text-soft);
     margin-right: 6px;
   }
   table.catalog td.c-title::before,
@@ -1126,7 +1131,7 @@ table.catalog .c-num {
   display: none;
 }
 .carousel-track:focus-visible {
-  outline: 2px solid var(--red-ink);
+  outline: 2px solid var(--red-lt);
   outline-offset: 4px;
   border-radius: 3px;
 }
@@ -1136,11 +1141,11 @@ table.catalog .c-num {
   width: 186px;
   scroll-snap-align: start;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--cream);
   display: block;
 }
 .film-card:hover {
-  color: var(--ink);
+  color: var(--cream);
 }
 
 /* No poster art is licensed for these titles, so the card uses a typographic
@@ -1235,12 +1240,12 @@ table.catalog .c-num {
   overflow: hidden;
 }
 .film-card:hover .cap b {
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 .film-card .cap-year {
   display: block;
   font-size: 13px;
-  color: var(--ink-soft);
+  color: var(--text-soft);
   margin-top: 3px;
   font-variant-numeric: tabular-nums;
 }
@@ -1259,12 +1264,12 @@ table.catalog .c-num {
   line-height: 1.25;
   border-color: var(--rule);
   background: transparent;
-  color: var(--ink);
+  color: var(--cream);
 }
 .rep-tag.rep-tag-sm span {
   font-size: 9px;
   letter-spacing: 0.12em;
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 .film-card:hover /* .rep-tag is defined further down the file with its dark-surface colours,
    so this needs two classes to win on specificity rather than source order. */
@@ -1280,7 +1285,7 @@ table.catalog .c-num {
   border-radius: 50%;
   border: 1px solid var(--rule);
   background: var(--surface);
-  color: var(--ink);
+  color: var(--cream);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -1291,7 +1296,7 @@ table.catalog .c-num {
 }
 .carousel-btn:hover:not(:disabled) {
   border-color: var(--red);
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 .carousel-btn:disabled {
   opacity: 0;
@@ -1342,7 +1347,7 @@ table.catalog .c-num {
   max-width: 46em;
 }
 .hero-split a {
-  color: var(--ink);
+  color: var(--cream);
   text-decoration: none;
   font-size: 15px;
   display: flex;
@@ -1350,7 +1355,7 @@ table.catalog .c-num {
   gap: 7px;
 }
 .hero-split a:hover {
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 .hero-split b {
   font-family: var(--display);
@@ -1358,7 +1363,7 @@ table.catalog .c-num {
   font-weight: 600;
   /* --red-ink, not --red: the 620px override takes these to 20px, below the
      >=24px large-text floor that lets --red pass on a light surface. */
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 
 /* catalog landing cards */
@@ -1374,7 +1379,7 @@ table.catalog .c-num {
   border-radius: 3px;
   padding: 26px 24px 22px;
   text-decoration: none;
-  color: var(--ink);
+  color: var(--cream);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow);
@@ -1383,13 +1388,13 @@ table.catalog .c-num {
 .cat-card:hover {
   transform: translateY(-2px);
   border-color: var(--red);
-  color: var(--ink);
+  color: var(--cream);
 }
 .cat-count {
   font-family: var(--display);
   font-size: 44px;
   line-height: 1;
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 .cat-name {
   font-family: var(--display);
@@ -1400,11 +1405,11 @@ table.catalog .c-num {
 .cat-blurb {
   font-size: 14px;
   line-height: 1.55;
-  color: var(--ink-soft);
+  color: var(--text-soft);
 }
 .cat-facts {
   font-size: 12.5px;
-  color: var(--ink-soft);
+  color: var(--text-soft);
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--rule);
@@ -1413,7 +1418,7 @@ table.catalog .c-num {
   margin-top: 16px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 .cat-card:hover .cat-go {
   text-decoration: underline;
@@ -1428,9 +1433,9 @@ table.catalog .c-num {
   margin-left: 10px;
   padding: 9px 14px;
   border-radius: 3px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  background: rgba(0, 0, 0, 0.04);
-  color: var(--ink);
+  border: 1px solid rgba(250, 240, 230, 0.24);
+  background: rgba(250, 240, 230, 0.05);
+  color: var(--cream);
   text-decoration: none;
   font-size: 13px;
   vertical-align: middle;
@@ -1439,34 +1444,34 @@ table.catalog .c-num {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--red-ink);
+  color: var(--red-lt);
 }
 .rep-tag:hover {
   border-color: var(--red);
-  color: var(--ink);
+  color: var(--cream);
 }
 
 /* Represented: carried by an agency, but no rights position asserted —
    dashed to read as "to be confirmed" rather than settled. */
 .badge-represented {
   background: transparent;
-  color: var(--red-ink);
+  color: var(--red-lt);
   border: 1px dashed rgba(250, 10, 20, 0.75);
 }
 .film-head .badge-represented {
-  color: var(--red-ink);
+  color: var(--red-lt);
   border-color: rgba(250, 10, 20, 0.55);
   background: transparent;
 }
 
 .synopsis.muted {
-  color: var(--ink-soft);
+  color: var(--text-soft);
   font-style: italic;
 }
 
 table.catalog .c-rep {
   font-size: 13.5px;
-  color: var(--ink-soft);
+  color: var(--text-soft);
   min-width: 120px;
 }
 

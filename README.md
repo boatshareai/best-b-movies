@@ -299,69 +299,53 @@ directly.
 
 ## Brand and palette
 
-Taken off the logo, on a light field. Black is an accent — the filmstrip
-elements of the mark — not the page. Every colour is a CSS custom property at
-the top of `assets/site.css`.
+A deep navy field with the logo's own red, gold and cream sitting on top of it.
+The field carries the "serious distributor" half of the brand; the accents carry
+the "grounded in the art form" half. The warmth comes from the accents, not the
+ground — the navy is deliberately not a cold techy blue, and never competes with
+the branding for attention.
 
 | Token | Value | Role |
 |---|---|---|
-| `--cream` | `#FAF0E6` | **The field.** Header, hero, film banner, every section band — and the light text on the black accents |
-| `--surface` | `#FFFFFF` | Raised surfaces only: tiles, cards, filters, table rows |
-| `--ink` | `#1A1A1A` | Body text, and the dark accent on the cream |
-| `--ink-soft` | `#5F5244` | Secondary text — warm gray-brown, same family as the ink |
-| `--black` | `#000000` | Accent only: footer band, table head, poster frames, the rule under the header |
-| `--red` | `#FA0A14` | Primary accent — button borders, large display numerals |
-| `--red-ink` | `#B8000A` | Same hue darkened, for links and small text on the cream |
-| `--yellow` | `#FAE60A` | Button fills, and fills on black. Never ink |
-| `--rule` | `#D6C8B4` | Dividers, warmed to sit on the cream |
-| `--gray` | `#6E6154` | Borders — warm, not a cold neutral |
+| `--field` | `#0B1220` | **The field.** Header, hero, film banner, every section band, form controls |
+| `--surface` | `#1C2A41` | Raised: tiles, cards, the licensing form, table rows |
+| `--cream` | `#FAF0E6` | Primary text. 16.65:1 on the field |
+| `--text-soft` | `#C2BBB0` | Secondary text — warm light gray, 9.83:1 |
+| `--rule` | `#313D5C` | Dividers and card edges, 1.74:1 on the field |
+| `--red` | `#FA0A14` | Accent — button borders, the rule under the header, display numerals |
+| `--red-lt` | `#FF5A62` | Red as *text* on the field: links, badges, active nav. 6.14:1 |
+| `--yellow` | `#FAE60A` | Button fills. 14.61:1 on the field |
+| `--black` | `#000000` | Deeper than the field: footer band, table head, poster frames — and the text on gold buttons |
 
-**There is one cream, and it is every field on the site.** White is no longer a
-background; it is the raised surface that sits *on* the cream. The two were
-previously near-identical whites doing different jobs under one token, which is
-what made them worth separating rather than merging.
+Three things this arrangement gets right that the earlier grounds did not:
 
-**Section bands no longer alternate in tone** — they are all the same cream, so
-the rhythm comes from a hairline (`.section + .section`) rather than from two
-shades. `.section-cream` and `.section-white` still exist because `build.py`
-alternates them, but they now render identically.
+- **Red is usable as body text again.** `--red` is 4.56:1 on this navy. On the
+  old `#1A1A1A` it was 4.24:1 and failed AA; on the cream it was 3.65:1 and was
+  large-text-only. The navy is the first ground where the primary accent clears
+  4.5:1 outright.
+- **The gold fill now defines its own button.** Gold is 14.61:1 against the
+  field, so the button edge no longer depends on its red border the way it did
+  on cream (3.65:1). The border is back to being reinforcement rather than
+  structure.
+- **Three depth levels instead of two.** Field → surface → black. Form controls
+  take `--field` so they read as recessed wells inside a `--surface` panel;
+  on a dark ground a control the same colour as its container disappears.
 
-Constraints, measured rather than guessed:
+**Direction matters on a dark ground.** `--red-ink` (`#B8000A`), the darkened
+red that carried links on the light themes, is **2.71:1 here and unusable** —
+red text on the field must be `--red-lt`. The same inversion applies to every
+secondary tone: a colour tuned for dark-on-light is not merely suboptimal when
+the ground flips, it fails.
 
-- **`--red` is not a body-text colour on light.** It is 3.29:1 on `--light`,
-  which passes only for large text (≥24px) and fills. Anything smaller uses
-  `--red-ink`, tuned against the tightest case — the tinted `--red-dim` badge
-  fill at 4.59:1, not the plain background.
-- **`--yellow` cannot appear on a light surface at all.** 13.6:1 on black,
-  **1.03:1 on `--light`** — invisible. Flipping the theme to light therefore
-  cost yellow every place it used to live (the hero eyebrow and the header
-  tagline, both now ink or red). It survives only where a black accent
-  remains. If gold needs to carry more weight, it has to be a *filled block*
-  with dark text on it, never ink on the page.
-- **Filled buttons are gold with a red border and black text**, taking the
-  starburst's own treatment — a solid gold field with a red edge. 3px on
-  `.btn-gold` / `.btn-solid`, 2px on the nav-sized `.nav .cta`, with padding
-  reduced by the same amount so the outer size is unchanged.
-- **On these buttons the border is structural, not decoration.** Gold is
-  1.16:1 against the cream field, so the fill cannot define the button's edge;
-  the red border does, at 3.65:1, clearing the 3:1 that WCAG 1.4.11 asks of a
-  UI boundary. This is also the one place gold earns its keep on a light
-  theme — as a filled block with dark text on it, never as ink.
-- **Black text on gold is 16.39:1.** That is the strongest pairing on the
-  site; the earlier red fill gave the same text only 5.12:1.
-
-Status badges are the same on every surface now. The film banner used to be
-black and carried light-on-dark `.film-head .badge-*` overrides; it is light,
-so those are gone and it inherits the standard badges.
-
-**Form errors keep their own darker red** (`#8F3323`), which is close to the
-accent rather than clearly apart from it as it was under the old gold system.
-The inline error text carries the signal, not the colour alone.
+**Errors cannot be a pale box here.** A light alert panel would be the
+brightest thing on a dark page. Errors are a deep red wash with light type, and
+the inline message carries the signal rather than the colour alone, since the
+accent is also red.
 
 Every foreground/background pair on the home, browse, licensing and film pages
-meets WCAG AA, checked by compositing the actual rendered colours — translucent
-fills included — rather than comparing declared values. Decorative glyphs
-(placeholder initials, the `/` meta separator) are `aria-hidden` and exempt.
+meets WCAG AA at desktop and 375px, checked by compositing the actual rendered
+colours — translucent badge, notice and error fills included, with the invalid
+form states forced visible. Decorative glyphs are `aria-hidden` and exempt.
 
 ## Type
 
