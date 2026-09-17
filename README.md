@@ -84,6 +84,7 @@ python3 build.py
 | `licence_note` | Sentence shown in the Licensing box on the film page. |
 | `territory` | Territory of an existing licence. Shown only when `status` is `Licensed`. |
 | `credit` | Optional note, e.g. `Directed by John Ford`. |
+| `poster` | Optional. Filename in `assets/posters/`, e.g. `bf-papillon-1973.jpg`. Used by the home-page carousel only; blank falls back to a typographic placeholder. |
 | `publish` | `yes` to include the title on the site, `no` to hold it back without deleting the row. Blank counts as `yes`. |
 | `cross_listed` | `yes` if the title appears in both agency catalogs. A neutral marker only — it is not rendered anywhere on the site. |
 
@@ -98,8 +99,15 @@ options are generated from whatever is in the CSV.
 The agency catalogs arrived thinner than the Classic Films Vault data, and
 none of it is filled in by inference:
 
-- **No loglines** for any of the 298 agency titles. The browse table shows
-  "Not listed"; the film page says so in a sentence.
+- **Loglines for 296 of the 298 agency titles** were sourced in Sept 2026 from
+  each title's own page on `bluefinchfilms.com` / `scfilmsinternational.com`
+  and rewritten in the house style — not pasted from the sites' marketing
+  copy. Two rows are still empty and are left that way rather than guessed at,
+  so the browse table shows "Not listed" for them: *Head Count* (no page on
+  the Blue Finch site under any slug) and *The Boxcar Children* (page exists,
+  but carries only credits and no plot). See `SOURCING_REPORT.md`, which also
+  records three content defects found on the agencies' own sites — including
+  one page that serves a different film entirely.
 - **No runtimes** for any of the 298. The runtime filter's "Not listed"
   option finds them.
 - **No year** for 85 of the 89 SC Films titles. The decade filter has a
@@ -315,10 +323,23 @@ and add the file to `assets/posters/`, and the card uses the real key art;
 leave it out and the card falls back to a typographic placeholder in the
 brand's idiom — clapperboard stripe, the title's initial ghosted in brass.
 
-No catalog currently has a `poster` column, so every card is a placeholder
-today. Adding art is a per-title data edit, not a code change: add the column
-to whichever CSV, fill in the rows you have art for, drop the images in, and
+`blue-finch.csv` and `sc-films.csv` now carry a `poster` column, filled for
+297 of their 298 titles from each agency's own key art (Sept 2026) — every one
+but *Head Count*. Images are in `assets/posters/`, named `<slug>.jpg`,
+downscaled to 600px wide and re-encoded as progressive JPEG — the card renders
+at 300×450, so the source 1700–2500px art was ~111 MB against 26 MB now. `data/catalog.csv` has **no**
+`poster` column yet: the 165 Classic Films Vault titles have no rights-holder
+site to pull from, and TMDB needs an API key nobody has supplied. Six of the
+twelve `FEATURED` cards are real art today; the six Classic Films Vault ones
+still fall back to the monogram placeholder.
+
+Adding art stays a per-title data edit, not a code change: add the column to
+whichever CSV, fill in the rows you have art for, drop the images in, and
 rebuild. Cards mix freely — art and placeholder side by side is fine.
+
+Note that `poster` is only read by `build_featured()`. The film pages and the
+browse table do not render poster art at all, so 291 of the 297 images are
+carried as data, waiting on a template change, and are not on the site today.
 
 The track is a native scroll-snap scroller, so touch swipe and keyboard
 scrolling work even if `carousel.js` never loads; the script only adds the
