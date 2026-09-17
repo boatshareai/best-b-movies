@@ -457,10 +457,10 @@ def build_home(films):
 <section class="hero">
   <div class="wrap">
     <p class="eyebrow">Best B Movies</p>
-    <h1>%(total)d Titles. Ready to License.</h1>
-    <p class="pitch">Three catalogs, one place to find them &mdash; genre
-      classics, cult favorites, and the independent features buyers are
-      actually looking for, cleared for streaming, broadcast, and digital.</p>
+    <h1>%(total)d Titles. Every Genre Worth Knowing.</h1>
+    <p class="pitch">Our own library, plus hand-picked catalogs from Blue Finch
+      Film Releasing and SC Films International &mdash; one place to find what
+      you&rsquo;re actually looking for.</p>
     <ul class="hero-split">
 %(split)s
     </ul>
@@ -530,12 +530,15 @@ def build_home(films):
         "licensed": licensed,
     }
     return page(
-        "Best B Movies \u2014 %d titles ready to license" % total,
+        "Best B Movies \u2014 %d titles, every genre worth knowing" % total,
         body,
         "index.html",
-        description="Three catalogs, one place to find them \u2014 genre "
-        "classics, cult favorites, and the independent features buyers are "
-        "actually looking for, cleared for streaming, broadcast, and digital.",
+        # Mirrors the hero rather than the site-wide default, which still
+        # describes all %d titles as ours to license. Says nothing about the
+        # rights position on the partner catalogs, because we don't hold one.
+        description="Our own library, plus hand-picked catalogs from Blue "
+        "Finch Film Releasing and SC Films International \u2014 one place to "
+        "find what you\u2019re actually looking for.",
     )
 
 
