@@ -44,16 +44,16 @@
   --yellow: #fae60a;
   --yellow-dk: #e8d509;  /* hover on a gold fill; black on it is still 13.9:1 */
 
-  /* The field: a deep navy with a blue undertone rather than flat black. Black
-     had no depth and read heavy; this carries the "serious distributor" half of
-     the brand while the red, gold and cream above it carry the pop-culture
-     half. The warmth in this palette comes from the accents, not the ground. */
-  --field: #0b1220;
-  /* Raised surfaces — tiles, cards, the licensing form, table rows. Only 1.30:1
-     against the field, so these lean on --rule for their edge rather than on
-     the lift alone; box-shadow does almost nothing on a dark ground. */
-  --surface: #1c2a41;
-  --rule: #313d5c;       /* dividers and card edges, 1.74:1 on the field */
+  /* Deep charcoal-black, lit by a soft vignette rather than left flat — see
+     `body`. The ceiling on that vignette is set by --red, which needs 4.5:1 to
+     carry text: it passes to #101113 and fails by #121417. So the gradient
+     lifts to #101113 at its brightest and no further. */
+  --field: #0a0b0c;
+  --field-lift: #101113; /* the vignette's lightest point — do not raise it */
+  /* Raised surfaces, kept for functional containers only (the filters panel,
+     the licensing form, table rows). Decorative panels were removed. */
+  --surface: #141518;
+  --rule: #2a2d33;       /* hairlines — the only divider weight on the site */
 
   /* Cream is back to the job it has in the logo: lettering. It is the primary
      text colour now, not a background. 16.65:1 on the field. */
@@ -81,16 +81,40 @@ html {
 
 body {
   margin: 0;
-  background: var(--field);
   color: var(--cream);
   font: 16px/1.6 var(--sans);
+  /* Depth without weight: one soft pool of light behind the masthead, falling
+     away to the base charcoal. Fixed, so it reads as lighting on the page
+     rather than something that scrolls with the content. */
+  background-color: var(--field);
+  background-image: radial-gradient(
+    120% 70% at 50% 0%,
+    var(--field-lift) 0%,
+    var(--field) 62%
+  );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+/* The bands sit on the vignette rather than painting over it. */
+.section,
+.hero,
+.site-head,
+.film-head {
+  background: transparent;
 }
 
-h1,
+/* Anton is reserved for the page headline and the stat numerals. Everything
+   else — section headings, nav, labels, body — is the quiet sans, so the two
+   loud moments actually land. */
+h1 {
+  font-family: var(--display);
+  font-weight: 400;
+  letter-spacing: 0;
+}
 h2,
 h3,
 h4 {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.01em;
@@ -130,8 +154,8 @@ a:hover {
 .site-head {
   background: var(--field);
   color: var(--cream);
-  /* the black band under the header is the logo's filmstrip, not a field */
-  border-bottom: 4px solid var(--red);
+  /* one thin line, not a slab — the only red on the masthead */
+  border-bottom: 1px solid var(--red);
 }
 
 .site-head .wrap {
@@ -173,7 +197,7 @@ a:hover {
   opacity: 0.9;
 }
 .brand .mark {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -209,18 +233,19 @@ a:hover {
   display: none;
 }
 .nav .cta {
-  background: var(--yellow);
-  color: var(--black);
+  /* Quiet on purpose. The hero holds the one gold CTA; two filled buttons on
+     a screen is the weight this pass exists to remove. */
+  background: transparent;
+  color: var(--cream);
   font-weight: 600;
-  margin-left: 6px;
-  /* 2px rather than 3: this one is nav-sized, and 3px reads as a slab on it */
-  border: 2px solid var(--red);
-  padding: 6px 10px;
+  margin-left: 10px;
+  border: 1px solid rgba(250, 240, 230, 0.3);
+  padding: 7px 14px;
 }
 .nav .cta:hover {
-  background: var(--yellow-dk);
-  border-color: var(--red-lt);
-  color: var(--black);
+  background: rgba(250, 240, 230, 0.07);
+  border-color: var(--cream);
+  color: var(--cream);
 }
 
 /* ---------- hero ---------- */
@@ -229,7 +254,7 @@ a:hover {
   background: var(--field);
   color: var(--cream);
   border-bottom: 1px solid var(--rule);
-  padding: 72px 0 64px;
+  padding: 132px 0 116px;
   position: relative;
   overflow: hidden;
 }
@@ -237,7 +262,7 @@ a:hover {
   max-width: 900px;
 }
 .eyebrow {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-size: 13px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -245,16 +270,27 @@ a:hover {
   margin: 0 0 18px;
 }
 .hero h1 {
-  font-size: clamp(34px, 6vw, 58px);
-  margin-bottom: 18px;
+  font-size: clamp(46px, 7.5vw, 86px);
+  margin-bottom: 14px;
   color: var(--cream);
 }
 .hero .pitch {
-  font-size: clamp(17px, 2.2vw, 21px);
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 1.65;
   color: var(--text-soft);
-  max-width: 40em;
-  margin: 0 0 32px;
+  max-width: 44em;
+  margin: 0 0 48px;
+}
+/* The line under the headline. Quiet sans on purpose — the headline above it
+   is the only Anton in the hero, and this reads as its answer, not a rival. */
+.hero-line {
+  font-family: var(--sans);
+  font-size: clamp(19px, 2.3vw, 26px);
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--cream);
+  margin: 0 0 30px;
+  max-width: 24em;
 }
 .hero-actions {
   display: flex;
@@ -275,11 +311,10 @@ a:hover {
 .btn-gold {
   background: var(--yellow);
   color: var(--black);
-  border-color: var(--red);
+  border-color: transparent;
 }
 .btn-gold:hover {
   background: var(--yellow-dk);
-  border-color: var(--red-lt);
   color: var(--black);
 }
 .btn-ghost {
@@ -294,23 +329,19 @@ a:hover {
 .btn-solid {
   background: var(--yellow);
   color: var(--black);
-  border-color: var(--red);
+  border-color: transparent;
 }
 .btn-solid:hover {
   background: var(--yellow-dk);
-  border-color: var(--red-lt);
   color: var(--black);
 }
 
-/* The logo's starburst is a solid gold field with a red edge; the buttons take
-   the same treatment. The red border is not decoration here — gold is 1.28:1
-   against the white page, so the border is what gives the button an edge
-   (4.10:1, clearing the 3:1 needed for a UI boundary). Padding is reduced by
-   the border width so the outer size is unchanged. */
+/* The gold fill is 15:1 on the charcoal and defines its own edge, so the heavy
+   keyline the light themes needed is now just weight. One clean fill. */
 .btn-gold,
 .btn-solid {
-  border-width: 3px;
-  padding: 12px 22px;
+  border-width: 0;
+  padding: 15px 26px;
 }
 /* Leaves the site. The arrow is decorative — the accessible name already
    carries "(opens in a new tab)". */
@@ -324,7 +355,7 @@ a:hover {
 /* ---------- sections ---------- */
 
 .section {
-  padding: 64px 0;
+  padding: 96px 0;
 }
 .section-cream {
   background: var(--field);
@@ -355,8 +386,8 @@ a:hover {
 .rule-head {
   display: flex;
   align-items: baseline;
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 20px;
+  margin-bottom: 44px;
 }
 .rule-head h1,
 .rule-head h2 {
@@ -375,14 +406,14 @@ a:hover {
 .tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 18px;
+  gap: 34px;
 }
 .tile {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-top: 3px solid var(--red);
-  border-radius: 3px;
-  padding: 24px 22px 20px;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 26px 0 22px;
   text-decoration: none;
   color: var(--cream);
   display: block;
@@ -402,7 +433,7 @@ a:hover {
   display: block;
 }
 .tile .label {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-size: 19px;
   margin: 10px 0 6px;
   display: block;
@@ -772,7 +803,7 @@ table.catalog .c-num {
 .aside-card {
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--red);
+  border-top: 1px solid var(--rule);
   border-radius: 3px;
   padding: 24px 22px;
   box-shadow: var(--shadow);
@@ -1034,7 +1065,7 @@ table.catalog .c-num {
   table.catalog tr {
     background: var(--surface);
     border: 1px solid var(--rule);
-    border-left: 3px solid var(--red);
+    border-left: 1px solid var(--rule);
     border-radius: 3px;
     margin-bottom: 12px;
     padding: 14px 16px;
@@ -1227,7 +1258,7 @@ table.catalog .c-num {
   padding: 11px 2px 0;
 }
 .film-card .cap b {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-size: 16px;
   font-weight: 600;
   line-height: 1.25;
@@ -1337,13 +1368,13 @@ table.catalog .c-num {
 /* hero: combined total headlines, per-catalog counts stay visible under it */
 .hero-split {
   list-style: none;
-  margin: 0 0 30px;
+  margin: 0 0 42px;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 28px;
+  gap: 12px 40px;
   border-top: 1px solid var(--rule);
-  padding-top: 20px;
+  padding-top: 32px;
   max-width: 46em;
 }
 .hero-split a {
@@ -1375,7 +1406,7 @@ table.catalog .c-num {
 .cat-card {
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--red);
+  border-top: 1px solid var(--rule);
   border-radius: 3px;
   padding: 26px 24px 22px;
   text-decoration: none;
@@ -1397,7 +1428,7 @@ table.catalog .c-num {
   color: var(--red-lt);
 }
 .cat-name {
-  font-family: var(--display);
+  font-family: var(--sans);
   font-size: 21px;
   margin: 10px 0 8px;
   line-height: 1.2;

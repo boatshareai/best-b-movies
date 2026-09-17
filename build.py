@@ -477,12 +477,12 @@ def build_home(films):
     body = """
 <section class="hero">
   <div class="wrap">
-    <p class="eyebrow">Best B Movies</p>
-    <h1>Direct Access to Film Licensing.</h1>
-    <p class="pitch">An independent distributor of genre and cult cinema &mdash;
-      our own library runs from the 1930s to today, streaming straight to AVOD
-      and TVOD platforms. We also present select catalogs on behalf of Blue
-      Finch Film Releasing and SC Films International.</p>
+    <h1>Best B Movies.</h1>
+    <p class="hero-line">Better Movies. Brought To You.</p>
+    <p class="pitch">An independent film distributor &mdash; our own library
+      runs from the 1930s to today, streaming straight to AVOD and TVOD
+      platforms. We also present select catalogs on behalf of Blue Finch Film
+      Releasing and SC Films International.</p>
     <ul class="hero-split">
 %(split)s
     </ul>
@@ -556,13 +556,13 @@ def build_home(films):
         "licensed": licensed,
     }
     return page(
-        "Best B Movies \u2014 direct access to film licensing",
+        "Best B Movies \u2014 better movies, brought to you",
         body,
         "index.html",
         # Mirrors the hero rather than the site-wide default, which still
         # describes all %d titles as ours to license. Says nothing about the
         # rights position on the partner catalogs, because we don't hold one.
-        description="An independent distributor of genre and cult cinema. Our "
+        description="An independent film distributor. Our "
         "own library runs from the 1930s to today, streaming to AVOD and TVOD "
         "platforms, alongside select catalogs presented for Blue Finch Film "
         "Releasing and SC Films International.",

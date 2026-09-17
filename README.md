@@ -299,60 +299,44 @@ directly.
 
 ## Brand and palette
 
-A deep navy field with the logo's own red, gold and cream sitting on top of it.
-The field carries the "serious distributor" half of the brand; the accents carry
-the "grounded in the art form" half. The warmth comes from the accents, not the
-ground — the navy is deliberately not a cold techy blue, and never competes with
-the branding for attention.
+A deep charcoal ground, lit rather than flat, with the logo's red and gold used
+sparingly on top of it. The restraint is the point: one filled CTA, one thin
+rule, one accent moment per section.
 
 | Token | Value | Role |
 |---|---|---|
-| `--field` | `#0B1220` | **The field.** Header, hero, film banner, every section band, form controls |
-| `--surface` | `#1C2A41` | Raised: tiles, cards, the licensing form, table rows |
-| `--cream` | `#FAF0E6` | Primary text. 16.65:1 on the field |
-| `--text-soft` | `#C2BBB0` | Secondary text — warm light gray, 9.83:1 |
-| `--rule` | `#313D5C` | Dividers and card edges, 1.74:1 on the field |
-| `--red` | `#FA0A14` | Accent — button borders, the rule under the header, display numerals |
-| `--red-lt` | `#FF5A62` | Red as *text* on the field: links, badges, active nav. 6.14:1 |
-| `--yellow` | `#FAE60A` | Button fills. 14.61:1 on the field |
-| `--black` | `#000000` | Deeper than the field: footer band, table head, poster frames — and the text on gold buttons |
+| `--field` | `#0A0B0C` | The ground |
+| `--field-lift` | `#101113` | The vignette's lightest point — **do not raise** |
+| `--surface` | `#141518` | Functional containers only: filters panel, licensing form, table rows |
+| `--cream` | `#FAF0E6` | Primary text, 17.5:1 |
+| `--text-soft` | `#C2BBB0` | Secondary text, 10.3:1 |
+| `--rule` | `#2A2D33` | Hairlines — the only divider weight on the site |
+| `--red` | `#FA0A14` | The stat numerals and the single line under the masthead |
+| `--red-lt` | `#FF5A62` | Red as small text: links, badges, active nav |
+| `--yellow` | `#FAE60A` | The one filled CTA |
 
-Three things this arrangement gets right that the earlier grounds did not:
+**The vignette has a hard ceiling, and it is `--red`.** The background is a
+radial gradient from `--field-lift` behind the masthead down to `--field`. Red
+needs 4.5:1 to carry text and passes only to `#101113` — by `#121417` it is
+4.50 and by `#141619` it fails outright. So the gradient's brightest point is
+`#101113` and cannot be raised without demoting red to large-text-only. If the
+ground is ever lightened, that is the first thing that breaks.
 
-- **Red is usable as body text again.** `--red` is 4.56:1 on this navy. On the
-  old `#1A1A1A` it was 4.24:1 and failed AA; on the cream it was 3.65:1 and was
-  large-text-only. The navy is the first ground where the primary accent clears
-  4.5:1 outright.
-- **The gold fill now defines its own button.** Gold is 14.61:1 against the
-  field, so the button edge no longer depends on its red border the way it did
-  on cream (3.65:1). The border is back to being reinforcement rather than
-  structure.
-- **Three depth levels instead of two.** Field → surface → black. Form controls
-  take `--field` so they read as recessed wells inside a `--surface` panel;
-  on a dark ground a control the same colour as its container disappears.
-
-**Direction matters on a dark ground.** `--red-ink` (`#B8000A`), the darkened
-red that carried links on the light themes, is **2.71:1 here and unusable** —
-red text on the field must be `--red-lt`. The same inversion applies to every
-secondary tone: a colour tuned for dark-on-light is not merely suboptimal when
-the ground flips, it fails.
-
-**Errors cannot be a pale box here.** A light alert panel would be the
-brightest thing on a dark page. Errors are a deep red wash with light type, and
-the inline message carries the signal rather than the colour alone, since the
-accent is also red.
+**Colour is rationed.** One gold fill (the hero CTA — the nav's is outlined so
+it does not compete), one 1px red line under the masthead, and one red numeral
+per section block. The 3-4px keylines, the filled tiles and the panel borders
+of earlier passes are gone; a hairline does the same work without the weight.
 
 Every foreground/background pair on the home, browse, licensing and film pages
-meets WCAG AA at desktop and 375px, checked by compositing the actual rendered
-colours — translucent badge, notice and error fills included, with the invalid
-form states forced visible. Decorative glyphs are `aria-hidden` and exempt.
+meets WCAG AA, measured against `--field-lift` — the *worst* case for light
+text, not the base — with notices and invalid form states forced visible.
 
 ## Type
 
 | Token | Stack | Role |
 |---|---|---|
-| `--display` | `Anton`, Impact, Haettenschweiler, Arial Narrow Bold | Headings, labels, card and tile type, the header tagline |
-| `--sans` | system stack | Body copy, form controls, browse-table film titles |
+| `--display` | `Anton`, Impact, Haettenschweiler, Arial Narrow Bold | **`h1` and the stat numerals only** |
+| `--sans` | system stack | Everything else — section headings, nav, labels, body, the hero's second line |
 
 **Anton is self-hosted, not loaded from Google Fonts.** The site makes no
 external requests by design — see *Deploying* — so pulling it from a CDN would
