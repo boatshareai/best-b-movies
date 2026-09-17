@@ -2,8 +2,9 @@
    No autoplay — each track is a plain scroller, so touch swipe and keyboard
    both work even if this script never runs.
 
-   The home page carries one carousel per catalog, so every [data-carousel]
-   on the page is wired up independently. */
+   A page can carry more than one — the home page our own library, the
+   catalog page one per partner — so every [data-carousel] on the page is
+   wired up independently. */
 (function () {
   "use strict";
 

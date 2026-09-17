@@ -134,8 +134,12 @@ HIGHLIGHTS = [
 # time and the build fails loudly if one stops resolving.
 FEATURED = [
     (
+        # The header logo already reads "Best B Movies"; now that this is the
+        # only carousel on the home page, naming it after the brand again would
+        # just be an echo. "our library" also sets up the partner sections'
+        # "Presented for ..." on the catalog page.
         "best-b-movies",
-        "Best B Movies",
+        "From our own library",
         [
             "Bicycle Thieves",
             "Stagecoach",
@@ -385,10 +389,19 @@ def band_shade(i):
     return "section-cream" if i % 2 == 0 else "section-white"
 
 
-def build_featured(films):
+def build_featured(films, keys=None, start=0):
+    """Carousel sections, optionally limited to certain catalogs.
+
+    The home page carries our own library only; the partner catalogs live on
+    catalog.html, where the page is already about whose titles are whose.
+    `start` seeds the band alternation so a page that already opened with a
+    section does not repeat its shade.
+    """
     by_key = {(f["title"].strip().lower(), f["catalog"]): f for f in films}
     sections = []
     for cat_key, heading, titles in FEATURED:
+        if keys is not None and cat_key not in keys:
+            continue
         cards = []
         for want in titles:
             f = by_key.get((want.strip().lower(), cat_key))
@@ -420,9 +433,11 @@ def build_featured(films):
   </div>
 </section>"""
             % {
-                # starts on cream: the hero above is white, and two white
-                # bands running together would read as one section
-                "shade": band_shade(len(sections)),
+                # Band 0 is cream: on the home page the hero above is
+                # white, and two white bands running together would read
+                # as one section. `start` keeps that true on a page whose
+                # own sections came first.
+                "shade": band_shade(start + len(sections)),
                 "heading": e(heading),
                 "key": urllib.parse.quote(cat_key),
                 "n": n,
@@ -430,7 +445,14 @@ def build_featured(films):
                 "cards": "\n".join(cards),
             }
         )
-    return "\n".join(sections)
+    if not sections:
+        return ""
+    # The script ships with the markup rather than with the page, so a
+    # page that renders carousels cannot end up with live-looking arrows
+    # that do nothing -- which is what catalog.html shipped when these
+    # sections first moved off the home page. The links inside a card are
+    # root-relative, so carousels belong on top-level pages only.
+    return "\n".join(sections) + '\n<script src="assets/carousel.js"></script>'
 
 
 def build_home(films):
@@ -494,7 +516,7 @@ def build_home(films):
 %(featured)s
 <section class="section %(lib_shade)s">
   <div class="wrap">
-    <div class="rule-head"><h2>What&rsquo;s in the library</h2></div>
+    <div class="rule-head"><h2>Across all three catalogs</h2></div>
     <div class="tiles">
 %(tiles)s
     </div>
@@ -536,7 +558,6 @@ def build_home(films):
     </p>
   </div>
 </section>
-<script src="assets/carousel.js"></script>
 """ % {
         "total": total,
         "split": split,
@@ -545,11 +566,11 @@ def build_home(films):
         + len(in_catalog(films, "sc-films")),
         "bf": len(in_catalog(films, "blue-finch")),
         "sc": len(in_catalog(films, "sc-films")),
-        "featured": build_featured(films),
-        # The featured carousels consume the first len(FEATURED) bands; these
-        # two carry that same alternation on rather than restarting it.
-        "lib_shade": band_shade(len(FEATURED)),
-        "how_shade": band_shade(len(FEATURED) + 1),
+        "featured": build_featured(films, keys=["best-b-movies"]),
+        # The one carousel above takes band 0; these carry the same
+        # alternation on rather than restarting it.
+        "lib_shade": band_shade(1),
+        "how_shade": band_shade(2),
         "tiles": "\n".join(tiles),
         "chips": chips,
         "licensed": licensed,
@@ -613,9 +634,10 @@ def build_catalog(films):
 <section class="section section-cream">
   <div class="wrap">
     <div class="rule-head"><h1>Catalogs</h1></div>
-    <p class="lede">We represent %(total)d titles across three catalogs. Pick one
-      to browse it on its own, or search the whole library at once &mdash; the
-      same filters apply either way.</p>
+    <p class="lede">%(total)d titles across three catalogs &mdash; our own
+      library, plus two we present on behalf of their rights holders. Pick one
+      to browse it on its own, or search all three at once; the same filters
+      apply either way.</p>
 
     <div class="cat-cards">
 %(cards)s
@@ -626,7 +648,14 @@ def build_catalog(films):
     </p>
   </div>
 </section>
-""" % {"cards": "\n".join(cards), "total": len(films)}
+%(partners)s
+""" % {
+        "cards": "\n".join(cards),
+        "total": len(films),
+        # The partner carousels sit here rather than on the home page: this is
+        # the page that already explains whose titles are whose.
+        "partners": build_featured(films, keys=["blue-finch", "sc-films"], start=1),
+    }
 
     return page(
         "Catalogs \u2014 %s" % SITE_NAME,
