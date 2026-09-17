@@ -329,6 +329,12 @@ Constraints, measured rather than guessed:
   with dark text on it, never ink on the page.
 - **Red button fills take black text, not white.** White on `#FA0A14` is
   4.10:1 and fails; black is 5.12:1.
+- **Filled buttons carry a gold keyline**, echoing the logo's lettering — the
+  red face of the B sits inside a gold outline. 3px on `.btn-gold` /
+  `.btn-solid`, 2px on the nav-sized `.nav .cta`, with padding reduced by the
+  same amount so the outer size is unchanged. The keyline is decoration: the
+  button's boundary against the page is carried by the red fill (3.65:1 on
+  white), not by the gold, which is 1.03:1 there.
 
 Status badges are the same on every surface now. The film banner used to be
 black and carried light-on-dark `.film-head .badge-*` overrides; it is light,

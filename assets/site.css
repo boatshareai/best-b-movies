@@ -204,6 +204,9 @@ a:hover {
   color: var(--black);
   font-weight: 600;
   margin-left: 6px;
+  /* 2px rather than 3: this one is nav-sized, and 3px reads as a slab on it */
+  border: 2px solid var(--yellow);
+  padding: 6px 10px;
 }
 .nav .cta:hover {
   background: var(--red-lt);
@@ -262,7 +265,7 @@ a:hover {
 .btn-gold {
   background: var(--red);
   color: var(--black);
-  border-color: var(--red);
+  border-color: var(--yellow);
 }
 .btn-gold:hover {
   background: var(--red-lt);
@@ -280,11 +283,20 @@ a:hover {
 .btn-solid {
   background: var(--red);
   color: var(--black);
-  border-color: var(--red);
+  border-color: var(--yellow);
 }
 .btn-solid:hover {
   background: var(--red-lt);
   color: var(--black);
+}
+
+/* The logo's lettering is a red face inside a gold keyline. Reproduced here on
+   the filled buttons: 3px of gold, and the padding drops by the same 2px so the
+   button's outer size is unchanged. */
+.btn-gold,
+.btn-solid {
+  border-width: 3px;
+  padding: 12px 22px;
 }
 /* Leaves the site. The arrow is decorative — the accessible name already
    carries "(opens in a new tab)". */
