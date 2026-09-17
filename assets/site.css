@@ -263,7 +263,7 @@ a:hover {
   background: var(--field);
   color: var(--ink);
   border-bottom: 1px solid var(--rule);
-  padding: 132px 0 116px;
+  padding: 84px 0 68px;
   position: relative;
   overflow: hidden;
 }
@@ -328,7 +328,7 @@ a:hover {
   line-height: 1.65;
   color: var(--text-soft);
   max-width: 44em;
-  margin: 0 0 48px;
+  margin: 0 0 34px;
 }
 
 .hero-actions {
@@ -394,7 +394,7 @@ a:hover {
 /* ---------- sections ---------- */
 
 .section {
-  padding: 96px 0;
+  padding: 72px 0;
 }
 .section-cream {
   background: var(--field);
@@ -1409,13 +1409,13 @@ table.catalog .c-num {
 /* hero: combined total headlines, per-catalog counts stay visible under it */
 .hero-split {
   list-style: none;
-  margin: 0 0 42px;
+  margin: 0 0 30px;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 12px 40px;
   border-top: 1px solid var(--rule);
-  padding-top: 32px;
+  padding-top: 26px;
   max-width: 46em;
 }
 .hero-split a {
