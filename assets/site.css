@@ -73,7 +73,11 @@
     Arial, sans-serif;
 
   --wrap: 1140px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.45);
+  /* Tuned for the light field. The 0.4/0.45 black this used to carry was
+     built for the dark theme, where a shadow has to be near-opaque to show
+     at all; on a near-white ground the same values print as a grey smear
+     around every panel. Ink-tinted rather than black so it stays cool. */
+  --shadow: 0 1px 2px rgba(18, 24, 31, 0.04), 0 8px 24px rgba(18, 24, 31, 0.07);
 }
 
 *,
@@ -288,22 +292,12 @@ a:hover {
     transparent 78%
   );
 }
-/* The logo's banner quoted at a whisper: one row of sprockets on the hero's
-   bottom edge. */
-.hero::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 8px;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgba(0, 60, 100, 0.22) 0 8px,
-    transparent 8px 22px
-  );
-}
+/* No sprocket strip on the hero's bottom edge. It was drawn for the dark
+   theme, where pale dashes on black read as perforations punched through
+   film; on this near-white ground the same dashes read as a broken CSS
+   border. The motif survives where it works -- the clapperboard stripe
+   across the top of every poster placeholder. The hero's own
+   border-bottom hairline carries the edge. */
 .hero > .wrap {
   max-width: 900px;
   /* above the spotlight */
@@ -454,22 +448,29 @@ a:hover {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 34px;
 }
+/* A column of text under a hairline, not a card. It kept a box-shadow after
+   it stopped having a background or a border, which drew a hard rectangular
+   halo around nothing -- the "cut off box" effect. There is no surface here
+   to lift, so there is no shadow. */
 .tile {
   background: transparent;
   border: 0;
   border-top: 1px solid var(--rule);
   border-radius: 0;
-  padding: 26px 0 22px;
+  /* 4px would be enough under a single row, but these grids wrap to two
+     rows in the 700-1000px band, and the next row's hairline needs air. */
+  padding: 24px 0 14px;
   text-decoration: none;
   color: var(--ink);
   display: block;
-  box-shadow: var(--shadow);
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition: border-top-color 0.15s ease, color 0.15s ease;
 }
 .tile:hover {
-  transform: translateY(-2px);
   border-top-color: var(--blue);
   color: var(--ink);
+}
+.tile:hover .label {
+  color: var(--blue);
 }
 .tile .count {
   font-family: var(--display);
