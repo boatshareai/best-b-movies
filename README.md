@@ -78,11 +78,12 @@ python3 build.py
 | `decade` | e.g. `1940s`. Drives the decade filter — keep it consistent with `year`. |
 | `genres` | Semicolon-separated, e.g. `Western; Musical`. Each becomes a filter option. |
 | `language` | Original language. Blank shows as "Not specified". |
+| `country` | Production country. **Not** `territory` — see below. Blank hides the row on the film page. |
 | `runtime` | Minutes, digits only. Blank shows as "Not listed". |
 | `logline` | Full synopsis. Truncated to one line in the table; shown in full on the film page. |
 | `status` | `Available` or `Licensed` — controls the badge. |
 | `licence_note` | Sentence shown in the Licensing box on the film page. |
-| `territory` | Territory of an existing licence. Shown only when `status` is `Licensed`. |
+| `territory` | Territory of an existing **licence**. Shown only when `status` is `Licensed`. Unrelated to `country`: one is where the film was made, the other is where somebody already holds rights. Still unknown for every agency title. |
 | `credit` | Optional free-text note, e.g. `Directed by John Ford`. Predates the structured credit columns below and is only used by Classic Films Vault. |
 | `director` | Director(s), `; `-separated. Sourced from the agency's own title page. |
 | `writer` | Writer(s), `; `-separated. |
@@ -112,10 +113,21 @@ none of it is filled in by inference:
   `SOURCING_REPORT.md`, which also records three content defects found on the
   agencies' own sites — including one page that serves a different film
   entirely.
-- **No runtimes** for any of the 298. The runtime filter's "Not listed"
-  option finds them.
-- **No year** for 85 of the 89 SC Films titles. The decade filter has a
-  "Not listed" option, matching how runtime and language already behave.
+- **Runtime, language and country** were pulled from the agency pages in the
+  same Sept 2026 pass. Blue Finch is now near-complete (runtime 208/209,
+  language 202/209, country 206/209). **SC Films publishes neither runtime
+  nor language anywhere on its site**, so all 89 of those stay blank and the
+  "Not listed" filter option still finds them; country reached 74/89.
+- **Year for SC Films improved from 4/89 to 29/89.** Only a year printed as
+  "Completed &lt;year&gt;" was taken. The same field often carries a delivery
+  or theatrical-release date ("Delivery 2027", "Theatrical release 2018") and
+  some pages give only a festival premiere — none of those is the year the
+  film was made, so none was used. The remaining 60 are blank rather than
+  approximated, and the decade filter keeps its "Not listed" option.
+- **Two Blue Finch pages conflate country and language** (*Interstate* and
+  *Meanwhile on Earth* each print the same word in both slots). Where two
+  fields that must differ are identical, neither is evidence, so both were
+  left blank for those rows rather than guessing which slot was right.
 - **Genre labels are verbatim single strings** ("Live Action", "Crime
   Thriller", "Family Animation") rather than the `;`-separated multi-genre
   used by Classic Films Vault. They are *not* split on whitespace — "Live

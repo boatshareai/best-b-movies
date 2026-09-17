@@ -765,6 +765,11 @@ def build_film(f, films):
         if val:
             spec.append((label, val))
     spec.append(("Language", f["language"] or "Not specified"))
+    # Production country. NOT the same thing as `territory`, which is the
+    # territory of an existing licence and is still unknown for every agency
+    # title — don't let the two collapse into each other.
+    if (f.get("country") or "").strip():
+        spec.append(("Country", f["country"].strip()))
     spec.append(
         ("Runtime", "%d minutes" % f["runtime_n"] if f["runtime_n"] else "Not listed")
     )
