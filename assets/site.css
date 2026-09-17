@@ -1,6 +1,6 @@
 /* Best B Movies — licensing portfolio
-   Palette pulled straight off the logo: black field, pillar-box red,
-   starburst yellow, cream banner lettering. */
+   Palette pulled straight off the logo: cream field, pillar-box red,
+   starburst yellow, black as the filmstrip accent. */
 
 /* Anton, self-hosted. The site makes no external requests by design — see
    README — so the font ships from assets/ rather than a Google Fonts CDN.
@@ -39,18 +39,22 @@
                             including on the tinted --red-dim badge fill */
   --red-dim: rgba(250, 10, 20, 0.12);
 
-  /* Starburst yellow. 13.6:1 on black, but 1.03:1 on --light — it is a
+  /* Starburst yellow. 13.6:1 on black, but 1.16:1 on the cream — it is a
      black-surface colour only and must never carry text on a light one. */
   --yellow: #fae60a;
   --yellow-dk: #e8d509;  /* hover on a gold fill; black on it is still 13.9:1 */
 
-  --cream: #faf0e6;      /* banner lettering — light text on black */
-  --gray: #6b6862;       /* borders, dividers, muted text */
-  --light: #f4f1ec;      /* page background — warm off-white */
-  --light-2: #ffffff;    /* raised cards, hero, film banner */
-  --rule: #cfccc4;       /* dividers on light */
+  /* One cream, and it is every field on the site: header, hero, film banner,
+     every section band — and, on the black accents, the light text. There is
+     no second near-white competing with it. */
+  --cream: #faf0e6;
+  /* White is no longer a background. It is the raised surface that sits on the
+     cream: tiles, cards, filters, table rows. */
+  --surface: #ffffff;
+  --rule: #d6c8b4;       /* dividers, warmed to sit on the cream */
+  --gray: #6e6154;       /* borders — warm, same family as the ink */
   --ink: #1a1a1a;        /* body text, and the dark accent on light */
-  --ink-soft: #5d5a55;
+  --ink-soft: #5f5244;   /* warm gray-brown secondary, not a cold neutral */
 
   --display: "Anton", Impact, "Haettenschweiler", "Arial Narrow Bold",
     sans-serif;
@@ -73,7 +77,7 @@ html {
 
 body {
   margin: 0;
-  background: var(--light);
+  background: var(--cream);
   color: var(--ink);
   font: 16px/1.6 var(--sans);
 }
@@ -112,7 +116,7 @@ a:hover {
   left: 8px;
   top: 8px;
   z-index: 100;
-  background: var(--light-2);
+  background: var(--surface);
   padding: 10px 14px;
   border-radius: 4px;
 }
@@ -120,7 +124,7 @@ a:hover {
 /* ---------- header ---------- */
 
 .site-head {
-  background: var(--light-2);
+  background: var(--cream);
   color: var(--ink);
   /* the black band under the header is the logo's filmstrip, not a field */
   border-bottom: 4px solid var(--black);
@@ -169,7 +173,7 @@ a:hover {
   font-size: 12px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  /* On the light header this must be ink: yellow is 1.03:1 here. */
+  /* On the cream header this must be ink: yellow is 1.16:1 here. */
   color: var(--ink);
   line-height: 1.1;
 }
@@ -218,7 +222,7 @@ a:hover {
 /* ---------- hero ---------- */
 
 .hero {
-  background: var(--light-2);
+  background: var(--cream);
   color: var(--ink);
   border-bottom: 1px solid var(--rule);
   padding: 72px 0 64px;
@@ -319,12 +323,15 @@ a:hover {
   padding: 64px 0;
 }
 .section-cream {
-  background: var(--light);
+  background: var(--cream);
+}
+/* Every band is the same cream now, so the rhythm comes from a hairline
+   between them rather than from two alternating tones. */
+.section + .section {
+  border-top: 1px solid var(--rule);
 }
 .section-white {
-  background: var(--light-2);
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
+  background: var(--cream);
 }
 .section h2 {
   font-size: clamp(24px, 3.4vw, 34px);
@@ -367,7 +374,7 @@ a:hover {
   gap: 18px;
 }
 .tile {
-  background: var(--light-2);
+  background: var(--surface);
   border: 1px solid var(--rule);
   border-top: 3px solid var(--red);
   border-radius: 3px;
@@ -410,7 +417,7 @@ a:hover {
   margin-top: 26px;
 }
 .decade-chip {
-  background: var(--light-2);
+  background: var(--surface);
   border: 1px solid var(--rule);
   border-radius: 999px;
   padding: 8px 16px;
@@ -430,7 +437,7 @@ a:hover {
 /* ---------- catalog controls ---------- */
 
 .filters {
-  background: var(--light-2);
+  background: var(--surface);
   border: 1px solid var(--rule);
   border-radius: 4px;
   padding: 18px;
@@ -461,7 +468,7 @@ a:hover {
   padding: 10px 11px;
   border: 1px solid var(--rule);
   border-radius: 3px;
-  background: var(--light-2);
+  background: var(--surface);
   color: var(--ink);
   width: 100%;
 }
@@ -508,7 +515,7 @@ a:hover {
 
 .table-scroll {
   overflow-x: auto;
-  background: var(--light-2);
+  background: var(--surface);
   border: 1px solid var(--rule);
   border-radius: 4px;
   box-shadow: var(--shadow);
@@ -618,7 +625,7 @@ table.catalog .c-num {
 .muted {
   /* Was #86827b, which scored 3.07:1 on --light — a pre-existing miss,
      not something the repalette introduced. */
-  color: #67635c;
+  color: #6b5c4e;
 }
 
 /* ---------- status badge ---------- */
@@ -675,7 +682,7 @@ table.catalog .c-num {
 /* ---------- film detail ---------- */
 
 .film-head {
-  background: var(--light-2);
+  background: var(--cream);
   color: var(--ink);
   border-bottom: 1px solid var(--rule);
   padding: 48px 0 44px;
@@ -759,7 +766,7 @@ table.catalog .c-num {
 }
 
 .aside-card {
-  background: var(--light-2);
+  background: var(--surface);
   border: 1px solid var(--rule);
   border-top: 3px solid var(--red);
   border-radius: 3px;
@@ -815,7 +822,7 @@ table.catalog .c-num {
 }
 
 .form-card {
-  background: var(--light-2);
+  background: var(--surface);
   border: 1px solid var(--rule);
   border-radius: 4px;
   padding: 28px;
@@ -1020,7 +1027,7 @@ table.catalog .c-num {
     width: auto;
   }
   table.catalog tr {
-    background: var(--light-2);
+    background: var(--surface);
     border: 1px solid var(--rule);
     border-left: 3px solid var(--red);
     border-radius: 3px;
@@ -1194,7 +1201,7 @@ table.catalog .c-num {
   border-radius: 2px;
   background: rgba(0, 0, 0, 0.92);
   border: 1px solid rgba(241, 239, 232, 0.3);
-  color: var(--light);
+  color: var(--cream);
 }
 /* The pill sits on the dark poster, so it needs the dark-surface treatment
    rather than the light-background badge colours. */
@@ -1204,7 +1211,7 @@ table.catalog .c-num {
 }
 .poster .status-dot.badge-licensed {
   border-color: rgba(241, 239, 232, 0.34);
-  color: var(--light);
+  color: var(--cream);
 }
 .poster .status-dot.badge-represented {
   border: 1px dashed rgba(250, 10, 20, 0.7);
@@ -1272,7 +1279,7 @@ table.catalog .c-num {
   height: 40px;
   border-radius: 50%;
   border: 1px solid var(--rule);
-  background: var(--light-2);
+  background: var(--surface);
   color: var(--ink);
   cursor: pointer;
   display: grid;
@@ -1361,7 +1368,7 @@ table.catalog .c-num {
   gap: 20px;
 }
 .cat-card {
-  background: var(--light-2);
+  background: var(--surface);
   border: 1px solid var(--rule);
   border-top: 3px solid var(--red);
   border-radius: 3px;

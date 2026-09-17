@@ -478,7 +478,7 @@ def build_home(films):
 <section class="hero">
   <div class="wrap">
     <p class="eyebrow">Best B Movies</p>
-    <h1>Genre Films, Done Right.</h1>
+    <h1>Direct Access to Film Licensing.</h1>
     <p class="pitch">An independent distributor of genre and cult cinema &mdash;
       our own library runs from the 1930s to today, streaming straight to AVOD
       and TVOD platforms. We also present select catalogs on behalf of Blue
@@ -556,7 +556,7 @@ def build_home(films):
         "licensed": licensed,
     }
     return page(
-        "Best B Movies \u2014 genre films, done right",
+        "Best B Movies \u2014 direct access to film licensing",
         body,
         "index.html",
         # Mirrors the hero rather than the site-wide default, which still

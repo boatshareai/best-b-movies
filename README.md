@@ -305,15 +305,26 @@ the top of `assets/site.css`.
 
 | Token | Value | Role |
 |---|---|---|
-| `--light-2` | `#FFFFFF` | Hero, film banner, header, raised cards |
-| `--light` | `#F4F1EC` | Alternating section band, warm off-white |
-| `--ink` | `#1A1A1A` | Body text, and the dark accent on light |
+| `--cream` | `#FAF0E6` | **The field.** Header, hero, film banner, every section band — and the light text on the black accents |
+| `--surface` | `#FFFFFF` | Raised surfaces only: tiles, cards, filters, table rows |
+| `--ink` | `#1A1A1A` | Body text, and the dark accent on the cream |
+| `--ink-soft` | `#5F5244` | Secondary text — warm gray-brown, same family as the ink |
 | `--black` | `#000000` | Accent only: footer band, table head, poster frames, the rule under the header |
-| `--red` | `#FA0A14` | Primary accent — button fills, large display numerals |
-| `--red-ink` | `#B8000A` | Same hue darkened, for links and small text on light |
-| `--yellow` | `#FAE60A` | Secondary accent — **fills on black only** |
-| `--cream` | `#FAF0E6` | Light text, on the black accent surfaces |
-| `--rule` | `#CFCCC4` | Dividers |
+| `--red` | `#FA0A14` | Primary accent — button borders, large display numerals |
+| `--red-ink` | `#B8000A` | Same hue darkened, for links and small text on the cream |
+| `--yellow` | `#FAE60A` | Button fills, and fills on black. Never ink |
+| `--rule` | `#D6C8B4` | Dividers, warmed to sit on the cream |
+| `--gray` | `#6E6154` | Borders — warm, not a cold neutral |
+
+**There is one cream, and it is every field on the site.** White is no longer a
+background; it is the raised surface that sits *on* the cream. The two were
+previously near-identical whites doing different jobs under one token, which is
+what made them worth separating rather than merging.
+
+**Section bands no longer alternate in tone** — they are all the same cream, so
+the rhythm comes from a hairline (`.section + .section`) rather than from two
+shades. `.section-cream` and `.section-white` still exist because `build.py`
+alternates them, but they now render identically.
 
 Constraints, measured rather than guessed:
 
@@ -332,8 +343,8 @@ Constraints, measured rather than guessed:
   `.btn-gold` / `.btn-solid`, 2px on the nav-sized `.nav .cta`, with padding
   reduced by the same amount so the outer size is unchanged.
 - **On these buttons the border is structural, not decoration.** Gold is
-  1.28:1 against the white page, so the fill cannot define the button's edge;
-  the red border does, at 4.10:1, clearing the 3:1 that WCAG 1.4.11 asks of a
+  1.16:1 against the cream field, so the fill cannot define the button's edge;
+  the red border does, at 3.65:1, clearing the 3:1 that WCAG 1.4.11 asks of a
   UI boundary. This is also the one place gold earns its keep on a light
   theme — as a filled block with dark text on it, never as ink.
 - **Black text on gold is 16.39:1.** That is the strongest pairing on the
