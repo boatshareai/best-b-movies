@@ -246,6 +246,14 @@ a:hover {
   background: var(--brass-lt);
   color: var(--steel-dk);
 }
+/* Leaves the site. The arrow is decorative — the accessible name already
+   carries "(opens in a new tab)". */
+.btn-ext::after {
+  content: "\2197";
+  margin-left: 7px;
+  font-size: 0.95em;
+  line-height: 1;
+}
 
 /* ---------- sections ---------- */
 

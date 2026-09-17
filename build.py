@@ -757,6 +757,13 @@ def build_film(f, films):
     spec = [("Represented by", f["catalog_name"])]
     spec.append(("Year", f["year"] or "Not listed"))
     spec.append(("Genre", ", ".join(f["genre_list"]) or "Not listed"))
+    # Credits come from the agency's own title page. Rows without them (the
+    # Classic Films Vault titles, which have no source page) simply omit the
+    # line rather than printing "Not listed" three times over.
+    for label in ("Director", "Writer", "Cast"):
+        val = (f.get(label.lower()) or "").strip()
+        if val:
+            spec.append((label, val))
     spec.append(("Language", f["language"] or "Not specified"))
     spec.append(
         ("Runtime", "%d minutes" % f["runtime_n"] if f["runtime_n"] else "Not listed")
@@ -789,6 +796,30 @@ def build_film(f, films):
     )
 
     inquire = "../licensing.html?title=" + urllib.parse.quote(f["title"])
+
+    # Where the licensing button goes. Titles we represent ourselves keep our
+    # own form; titles carried by an agency hand off to that agency's own page
+    # for the title, because they field the enquiry and their page is the
+    # authoritative record of availability. An agency title with no known
+    # source page (Head Count) falls back to the form rather than dead-ending.
+    source_url = (f.get("source_url") or "").strip()
+    if f["catalog"] != "classic-films-vault" and source_url:
+        cta = (
+            "<p>Territory and term are negotiated per deal. %(name)s handles "
+            "enquiries for this title — their own page for it carries the "
+            "current details.</p>\n"
+            '      <a class="btn btn-solid btn-ext" href="%(url)s" '
+            'target="_blank" rel="noopener noreferrer">View on %(name)s'
+            '<span class="vh"> (opens in a new tab)</span></a>'
+            % {"name": e(f["catalog_name"]), "url": e(source_url)}
+        )
+    else:
+        cta = (
+            "<p>Territory and term are negotiated per deal. Send us this title "
+            "and we&rsquo;ll come back with availability and rates.</p>\n"
+            '      <a class="btn btn-solid" href="%s">Inquire about this '
+            "title</a>" % e(inquire)
+        )
 
     body = """
 <section class="film-head">
@@ -825,9 +856,7 @@ def build_film(f, films):
     <aside class="aside-card">
       <h2>Licensing</h2>
       <p>%(licence_note)s</p>
-      <p>Territory and term are negotiated per deal. Send us this title and
-        we&rsquo;ll come back with availability and rates.</p>
-      <a class="btn btn-solid" href="%(inquire)s">Inquire about this title</a>
+      %(cta)s
     </aside>
   </div>
 </div>
@@ -842,7 +871,7 @@ def build_film(f, films):
         "spec": spec_html,
         "tags": tags,
         "licence_note": e(f["licence_note"]),
-        "inquire": e(inquire),
+        "cta": cta,
     }
 
     year = " (%s)" % f["year"] if f["year"] else ""

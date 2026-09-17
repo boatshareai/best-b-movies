@@ -83,7 +83,11 @@ python3 build.py
 | `status` | `Available` or `Licensed` — controls the badge. |
 | `licence_note` | Sentence shown in the Licensing box on the film page. |
 | `territory` | Territory of an existing licence. Shown only when `status` is `Licensed`. |
-| `credit` | Optional note, e.g. `Directed by John Ford`. |
+| `credit` | Optional free-text note, e.g. `Directed by John Ford`. Predates the structured credit columns below and is only used by Classic Films Vault. |
+| `director` | Director(s), `; `-separated. Sourced from the agency's own title page. |
+| `writer` | Writer(s), `; `-separated. |
+| `cast` | Principal cast, `; `-separated. |
+| `source_url` | The title's page on the agency's own site. Drives the licensing button — see **Where the licensing button goes**. |
 | `poster` | Optional. Filename in `assets/posters/`, e.g. `bf-papillon-1973.jpg`. Used by the home-page carousel only; blank falls back to a typographic placeholder. |
 | `publish` | `yes` to include the title on the site, `no` to hold it back without deleting the row. Blank counts as `yes`. |
 | `cross_listed` | `yes` if the title appears in both agency catalogs. A neutral marker only — it is not rendered anywhere on the site. |
@@ -122,6 +126,25 @@ none of it is filled in by inference:
   `cross_listed=yes`, deliberately not merged or deduplicated. Several
   disagree on year between the two lists. Which agency holds current rights
   is a human call; see `PRELAUNCH.local.md` (gitignored).
+
+### Where the licensing button goes
+
+The button in the Licensing card on a film page routes by catalog:
+
+| Catalog | Button | Goes to |
+|---|---|---|
+| Classic Films Vault | Inquire about this title | `licensing.html?title=…` (our own form) |
+| Blue Finch / SC Films | View on *&lt;agency&gt;* | that title's `source_url`, new tab |
+
+The agency carries the title and fields the enquiry, so their own page is the
+authoritative record of availability — sending those leads through our form
+would just add a hop. Classic Films Vault is ours, so it keeps the form.
+
+An agency title with **no** `source_url` falls back to the form rather than
+dead-ending. *Head Count* is the only one today: it has no page anywhere on
+`bluefinchfilms.com`.
+
+Currently 297 titles route outbound and 166 to the form.
 
 ### Rights positions
 
