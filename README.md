@@ -1,10 +1,10 @@
 # Best B Movies — licensing site
 
-A static catalog-and-contact site for three represented catalogs — Classic
-Films Vault (165), Blue Finch Film Releasing (209), and SC Films
-International (89). 463 titles, one page per title, a shared
-searchable/filterable browse table, and a licensing inquiry form that sends
-two emails.
+A static catalog-and-contact site for three represented catalogs — Best B
+Movies (165), Blue Finch Film Releasing (209), and SC Films International
+(89). 463 catalogued titles, of which 461 publish — see `publish` below —
+one page per published title, a shared searchable/filterable browse table,
+and a licensing inquiry form that sends two emails.
 
 No backend, no database, no video hosting, no user accounts.
 
@@ -96,8 +96,11 @@ python3 build.py
 | `publish` | `yes` to include the title on the site, `no` to hold it back without deleting the row. Blank counts as `yes`. |
 | `cross_listed` | `yes` if the title appears in both agency catalogs. A neutral marker only — it is not rendered anywhere on the site. |
 
-Every current row is `publish=yes`; the column is there for when you need to
-pull a title off the site temporarily without losing its data.
+Two rows are currently `publish=no` — *1984* (`1984-1956`) and *Vixen!*
+(`vixen-1968`) — so 463 catalogued rows render 461 pages. Every count on the
+site is derived from the published rows at build time, so hiding a title
+updates the stat row, the catalog totals, the browse count and the meta
+descriptions together; nothing needs editing by hand.
 
 Adding a new genre, language, or decade needs no code change — the filter
 options are generated from whatever is in the CSV.
@@ -270,7 +273,7 @@ GitHub Pages, S3, or any web host.
 - **Publish directory:** `dist`
 
 The built site is about 30 MB, of which 26 MB is the 297 poster images; the
-HTML for all 463 film pages is a small fraction of the rest. There are no
+HTML for all 461 published film pages is a small fraction of the rest. There are no
 external requests — no CDN, no analytics, no trackers, and the one web font is
 self-hosted — so it loads fast and needs no cookie banner as shipped. Any
 single page pulls one 30 KB stylesheet, a 15 KB logo and a 12 KB font subset,
@@ -361,7 +364,7 @@ subsets live in `assets/fonts/` (latin 12 KB, latin-ext 21 KB) with
 `assets/fonts/OFL.txt` as the licence requires.
 
 The browse table deliberately keeps `--sans`: Anton is a condensed poster face
-and 463 rows of it would be a wall. It is bolded instead so titles still lead.
+and 461 rows of it would be a wall. It is bolded instead so titles still lead.
 
 ### Logo
 
@@ -425,9 +428,9 @@ must change it in the other.**
 
 Titles with no `poster` are not a special case anywhere: they get the same
 typographic placeholder (clapperboard stripe, the title's initial in brass),
-so a table of 463 rows mixes art and placeholder without any layout jump.
+so a table of 461 rows mixes art and placeholder without any layout jump.
 Table thumbnails and film-page heroes are both `loading="lazy"` with explicit
-`width`/`height`, so browsing all 463 rows fetches only what scrolls into
+`width`/`height`, so browsing all 461 rows fetches only what scrolls into
 view.
 
 The track is a native scroll-snap scroller, so touch swipe and keyboard
