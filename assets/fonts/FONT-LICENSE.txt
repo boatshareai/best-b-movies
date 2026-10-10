@@ -1,0 +1,3 @@
+Poppins is licensed under the SIL Open Font License 1.1, which allows free use, including commercial use,
+and bundling with websites and apps. Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins).
+Full license text: https://openfontlicense.org
