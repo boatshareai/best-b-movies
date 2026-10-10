@@ -141,9 +141,36 @@ body {
   line-height: 0;
 }
 
-.brand-logo {
-  height: 44px;
-  width: auto;
+.brand-icon {
+  height: 36px;
+  width: 36px;
+  flex-shrink: 0;
+}
+.brand-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1;
+}
+.brand-wordmark {
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--cream);
+  letter-spacing: -0.01em;
+}
+.brand-bar {
+  color: var(--velvet);
+  font-weight: 300;
+  margin: 0 1px;
+}
+.brand-films {
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .nav {

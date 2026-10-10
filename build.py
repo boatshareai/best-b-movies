@@ -377,8 +377,12 @@ def page(title, body, current, depth=0, description="",
 <header class="site-head">
   <div class="wrap">
     <a class="brand" href="%(up)sindex.html" aria-label="Velvet Octopus Films — home">
-      <img class="brand-logo" src="%(up)sassets/brand/logo-wordmark.svg"
-           alt="Velvet Octopus Films" width="220" height="40" decoding="async">
+      <img class="brand-icon" src="%(up)sassets/brand/logo-icon-simple.svg"
+           alt="" width="36" height="36" decoding="async">
+      <span class="brand-name">
+        <span class="brand-wordmark">ve<span class="brand-bar">|</span>vet<strong>octopus</strong></span>
+        <span class="brand-films">FILMS</span>
+      </span>
     </a>
     <nav class="nav" aria-label="Main">%(nav)s</nav>
   </div>
@@ -389,8 +393,8 @@ def page(title, body, current, depth=0, description="",
 <footer class="site-foot">
   <div class="wrap">
     <div class="foot-brand">
-      <img class="foot-logo" src="%(up)sassets/brand/logo-wordmark.svg"
-           alt="Velvet Octopus Films" width="160" height="29" decoding="async" loading="lazy">
+      <img class="foot-logo" src="%(up)sassets/brand/logo-icon-simple.svg"
+           alt="Velvet Octopus Films" width="32" height="32" decoding="async" loading="lazy">
       <p class="foot-tag">%(foot_tagline)s</p>
       <p class="foot-copy">&copy; %(year)d Velvet Octopus Films.
         Licensing inquiries only — this site does not stream or sell films.</p>
