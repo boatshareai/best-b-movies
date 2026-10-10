@@ -1,0 +1,3 @@
+old_path,new_path,note
+/catalog.html,/browse.html,Old Catalog URL now redirects to Browse (implemented as meta-refresh in catalog.html)
+/catalog,/browse.html,Bare path variant

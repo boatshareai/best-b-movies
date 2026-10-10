@@ -17,6 +17,7 @@
   var runtimeSel = document.getElementById("runtime");
   var statusSel = document.getElementById("status");
   var ytCb = document.getElementById("yt");
+  var intlCb = document.getElementById("intl");
   var sortSel = document.getElementById("sort");
   var resetBtn = document.getElementById("reset");
 
@@ -80,6 +81,7 @@
     var rt = runtimeSel.value;
     var status = statusSel.value;
     var ytOnly = ytCb && ytCb.checked;
+    var intlOnly = intlCb && intlCb.checked;
 
     return films.filter(function (f) {
       if (qv && f.t.toLowerCase().indexOf(qv) === -1 && (f.o || "").toLowerCase().indexOf(qv) === -1) return false;
@@ -93,6 +95,8 @@
         if (lang === "__none" && f.l) return false;
         if (lang !== "__none" && f.l !== lang) return false;
       }
+      /* intlOnly: show non-English only (language set, and not English) */
+      if (intlOnly && (!f.l || f.l.toLowerCase() === "english")) return false;
       if (!matchRuntime(f, rt)) return false;
       if (status && f.st !== status) return false;
       if (ytOnly && !f.yt) return false;
@@ -129,9 +133,10 @@
     if (params.get("genre")) genreSel.value = params.get("genre");
     if (params.get("decade")) decadeSel.value = params.get("decade");
     if (params.get("lang")) langSel.value = params.get("lang");
+    if (params.get("runtime")) runtimeSel.value = params.get("runtime");
     if (params.get("status")) statusSel.value = params.get("status");
-    if (params.get("intl") === "1") langSel.value = "__none";
     if (params.get("yt") === "1" && ytCb) ytCb.checked = true;
+    if (params.get("intl") === "1" && intlCb) intlCb.checked = true;
   }
 
   function pushUrl() {
@@ -144,6 +149,7 @@
     if (runtimeSel.value) p.set("runtime", runtimeSel.value);
     if (statusSel.value) p.set("status", statusSel.value);
     if (ytCb && ytCb.checked) p.set("yt", "1");
+    if (intlCb && intlCb.checked) p.set("intl", "1");
     var s = p.toString();
     history.replaceState(null, "", s ? "?" + s : location.pathname);
   }
@@ -154,6 +160,7 @@
     if (el) el.addEventListener("change", onChange);
   });
   if (ytCb) ytCb.addEventListener("change", onChange);
+  if (intlCb) intlCb.addEventListener("change", onChange);
   q.addEventListener("input", onChange);
 
   if (resetBtn) {
@@ -163,6 +170,7 @@
         if (el) el.value = "";
       });
       if (ytCb) ytCb.checked = false;
+      if (intlCb) intlCb.checked = false;
       if (sortSel) sortSel.value = "t";
       pushUrl();
       render();

@@ -1014,6 +1014,59 @@ a:hover { color: var(--velvet-lt); }
   clip: rect(0,0,0,0); white-space: nowrap; border: 0;
 }
 
+/* ─── Utility classes (replaces inline style= attributes) ──────── */
+.section-h2   { font-size: 24px; margin: 44px 0 18px; }
+.mt-action    { margin-top: 32px; }
+.mt-prose     { margin-top: 44px; }
+.mt-form-card { margin-top: 32px; }
+.browse-similar-head { margin-top: 34px; }
+
+/* ─── Why watch (curator note on film pages) ──────────────────── */
+.why-watch {
+  background: rgba(91,42,134,.06);
+  border-left: 3px solid var(--velvet);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 14px 16px;
+  margin-bottom: 28px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  font-weight: 400;
+}
+.why-watch .why-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--velvet);
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* ─── Catalog attribution strip (film pages) ──────────────────── */
+.catalog-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.catalog-id {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  background: rgba(205,180,230,.18);
+  color: var(--deep);
+  padding: 4px 9px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.section-deep .catalog-id { background: rgba(205,180,230,.2); color: var(--cream); }
+
+/* ─── JSON-LD is invisible; the class is only a hook ─────────── */
+script[type="application/ld+json"] { display: none; }
+
 /* ─── Hero catalog counts ─────────────────────────────────────── */
 .hero-split {
   list-style: none;
