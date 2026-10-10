@@ -42,7 +42,7 @@ OWN_CATALOG = "best-b-movies"
 CATALOGS = [
     {
         "key": "best-b-movies",
-        "name": "Best B Movies",
+        "name": "Velvet Octopus",
         "file": "catalog.csv",
         "prefix": "",
         "blurb": "Classic Hollywood and international cinema, 1930s to today"
@@ -298,6 +298,7 @@ NAV = [
     ("Home", "index.html"),
     ("Collections", "collections.html"),
     ("Browse", "browse.html"),
+    ("Watch", "watch.html"),
     ("Licensing", "licensing.html"),
     ("Submit a film", "submit.html"),
     ("About", "about.html"),
@@ -397,6 +398,7 @@ def page(title, body, current, depth=0, description="",
     <nav class="fnav" aria-label="Footer">
       <a href="%(up)sbrowse.html">Browse titles</a>
       <a href="%(up)scollections.html">Collections</a>
+      <a href="%(up)swatch.html">Watch</a>
       <a href="%(up)slicensing.html">Licensing</a>
       <a href="%(up)ssubmit.html">Submit a film</a>
       <a href="%(up)sabout.html">About</a>
@@ -583,7 +585,7 @@ def build_home(films):
     <div class="hero-stats">
       <div class="hero-stat">
         <span class="stat-n">%(cfv)d</span>
-        <span class="stat-label">Best B Movies</span>
+        <span class="stat-label">Velvet Octopus</span>
       </div>
       <div class="hero-stat">
         <span class="stat-n">%(bf)d</span>
@@ -1177,7 +1179,7 @@ def build_licensing(films):
           <div class="field full">
             <label for="titles">Titles of interest</label>
             <input type="text" id="titles" name="titles"
-              placeholder="e.g. Stagecoach (Best B Movies), or &lsquo;browsing the full catalog&rsquo;">
+              placeholder="e.g. Stagecoach, A Bittersweet Life, or &lsquo;browsing the full catalog&rsquo;">
             <p class="hint">Coming from a film page? We&rsquo;ll fill this in for you.</p>
           </div>
           <div class="field">
@@ -1385,7 +1387,7 @@ def build_about(films):
         it as SC Films International and Blue Finch Film Releasing. We&rsquo;re
         bringing the name back, with their blessing.</p>
 
-      <h2>The Best B Movies library</h2>
+      <h2>Our own library</h2>
       <p>%(cfv)d titles of classic Hollywood and international cinema. The core
         runs from the 1930s through the 1970s, with a smaller set reaching into
         the 2000s and 2010s. The American side goes deep on genre pictures:
@@ -1408,8 +1410,10 @@ def build_about(films):
         Every title page on this site says which company represents it.</p>
 
       <h2>How to watch</h2>
-      <p>Many titles from our own library are on YouTube. Visit a film&rsquo;s page to
-        find the Watch link when it exists. For the short-clip version, follow
+      <p>Many titles from our own library are on YouTube.
+        <a href="watch.html">Browse the watch list</a> to find them in one place,
+        or visit a film&rsquo;s page for the Watch button when it&rsquo;s available.
+        For short clips, follow
         <a href="%(tiktok)s" target="_blank" rel="noopener noreferrer">%(handle)s</a>
         on TikTok.</p>
 
@@ -1571,6 +1575,69 @@ def build_privacy():
 # --------------------------------------------------------------------------
 
 
+def build_watch(films):
+    watchable = [f for f in films if (f.get("youtube_id") or "").strip()]
+
+    if watchable:
+        cards = []
+        for f in watchable:
+            vid = e(f["youtube_id"].strip())
+            art = poster_art(f, w=240, h=360)
+            year = " (%s)" % f["year"] if f["year"] else ""
+            cards.append("""
+    <div class="film-card watch-card">
+      <a href="films/%(slug)s.html" class="poster">%(art)s</a>
+      <div class="card-info">
+        <a class="card-title" href="films/%(slug)s.html">%(title)s%(year)s</a>
+        <button class="btn btn-gold yt-trigger" type="button"
+                data-yt-id="%(vid)s" aria-label="Watch %(title)s on YouTube">
+          &#9654; Watch
+        </button>
+      </div>
+      <div class="yt-embed-slot"></div>
+    </div>""" % {
+                "slug": e(f["slug"]),
+                "art": art,
+                "title": e(f["title"]),
+                "year": e(year),
+                "vid": vid,
+            })
+        grid_html = '<div class="card-grid watch-grid">%s</div>' % "".join(cards)
+        count_note = '<p class="lede">%d titles available to watch now.</p>' % len(watchable)
+        script_tag = '\n<script src="assets/yt-embed.js"></script>'
+    else:
+        grid_html = """
+<div class="empty-watch">
+  <p>Watch links are being added to the catalog. Check back soon, or
+    <a href="about.html#how-to-watch">learn how to find films</a> on YouTube now.</p>
+  <a class="btn btn-gold" href="browse.html">Browse all titles</a>
+</div>"""
+        count_note = ""
+        script_tag = ""
+
+    body = """
+<section class="section section-cream">
+  <div class="wrap">
+    <div class="rule-head"><h1>Watch</h1></div>
+    %(count_note)s
+    %(grid_html)s
+  </div>
+</section>%(script_tag)s
+""" % {
+        "count_note": count_note,
+        "grid_html": grid_html,
+        "script_tag": script_tag,
+    }
+    return page(
+        "Watch — %s" % SITE_NAME,
+        body,
+        "watch.html",
+        canonical_path="watch.html",
+        description="Watch films from the Velvet Octopus catalog on YouTube — "
+        "click to play directly on the page.",
+    )
+
+
 def build_404():
     body = """
 <section class="section section-cream">
@@ -1653,6 +1720,7 @@ def main():
     write("browse.html", build_browse(films))
     write("licensing.html", build_licensing(films))
     write("submit.html", build_submit())
+    write("watch.html", build_watch(films))
     write("about.html", build_about(films))
     write("contact.html", build_contact())
     write("privacy.html", build_privacy())
