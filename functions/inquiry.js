@@ -1,22 +1,19 @@
 /**
- * Best B Movies — licensing inquiry handler.
+ * Velvet Octopus Films — licensing inquiry handler.
  *
- * Sends the two emails the site promises:
- *   1. an auto-reply to the person who submitted the form
- *   2. a notification to the Best B Movies inbox
+ * Sends two emails:
+ *   1. auto-reply to the inquirer
+ *   2. notification to the licensing inbox
  *
- * No database. Nothing is stored — the emails *are* the record.
+ * Runs on Cloudflare Workers / Cloudflare Pages Functions.
  *
- * Standard fetch handler, so it runs unmodified on Cloudflare Workers /
- * Cloudflare Pages Functions, and with a one-line shim on Netlify or Vercel
- * (see README.md).
- *
- * Required environment variables:
- *   RESEND_API_KEY  API key from your transactional email provider
- *   FROM_EMAIL      verified sender, e.g. "licensing@bestbmovies.com"
- *   NOTIFY_TO       inbox that should receive inquiry notifications
+ * Required env vars:
+ *   RESEND_API_KEY     API key from resend.com
+ *   FROM_EMAIL         verified sender, e.g. "licensing@velvetoctopusfilms.com"
+ *   NOTIFY_TO          inbox for inquiry notifications
  * Optional:
- *   ALLOW_ORIGIN    site origin for CORS (defaults to "*")
+ *   ALLOW_ORIGIN       exact origin of the deployed site, e.g. "https://velvetoctopusfilms.com"
+ *                      (defaults to "*" — tighten once the domain is live)
  */
 
 const USES = [
@@ -31,6 +28,23 @@ const VOLUMES = [
   "Small package (2–10)",
   "Full or near-full catalog",
 ];
+
+// Simple in-memory rate limiter: max 5 requests per IP per 60-second window.
+const RATE = new Map();
+const RATE_MAX = 5;
+const RATE_WINDOW_MS = 60_000;
+
+function rateCheck(ip) {
+  const now = Date.now();
+  const entry = RATE.get(ip) || { count: 0, reset: now + RATE_WINDOW_MS };
+  if (now > entry.reset) {
+    entry.count = 0;
+    entry.reset = now + RATE_WINDOW_MS;
+  }
+  entry.count++;
+  RATE.set(ip, entry);
+  return entry.count <= RATE_MAX;
+}
 
 function clean(v, max = 2000) {
   return typeof v === "string" ? v.trim().slice(0, max) : "";
@@ -55,7 +69,7 @@ async function sendEmail(env, { to, subject, text, html, replyTo }) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: `Best B Movies <${env.FROM_EMAIL}>`,
+      from: `Velvet Octopus Films <${env.FROM_EMAIL}>`,
       to: [to],
       subject,
       text,
@@ -70,9 +84,9 @@ async function sendEmail(env, { to, subject, text, html, replyTo }) {
 
 export default {
   async fetch(request, env) {
-    const origin = env.ALLOW_ORIGIN || "*";
+    const allowOrigin = env.ALLOW_ORIGIN || "*";
     const cors = {
-      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Origin": allowOrigin,
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     };
@@ -82,6 +96,23 @@ export default {
     }
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405, headers: cors });
+    }
+
+    // Origin check: reject if caller doesn't match the configured allowed origin.
+    if (allowOrigin !== "*") {
+      const reqOrigin = request.headers.get("Origin") || "";
+      if (reqOrigin !== allowOrigin) {
+        return new Response("Forbidden", { status: 403 });
+      }
+    }
+
+    // Rate limiting by IP
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    if (!rateCheck(ip)) {
+      return new Response(
+        JSON.stringify({ error: "Too many requests. Please wait a moment and try again." }),
+        { status: 429, headers: { ...cors, "Content-Type": "application/json" } }
+      );
     }
 
     const json = (body, status = 200) =>
@@ -97,12 +128,16 @@ export default {
       return json({ error: "Invalid JSON body." }, 400);
     }
 
+    // Honeypot: bots fill "website", humans leave it blank.
+    if (clean(body.website, 200)) {
+      return json({ ok: true }); // silent success to not tip off bots
+    }
+
     const name = clean(body.name, 200);
     const company = clean(body.company, 200);
     const email = clean(body.email, 200);
     const titles = clean(body.titles, 1000);
     const message = clean(body.message, 5000);
-    // Only accept the values the form actually offers.
     const use = USES.includes(clean(body.use)) ? clean(body.use) : "";
     const volume = VOLUMES.includes(clean(body.volume)) ? clean(body.volume) : "";
 
@@ -113,54 +148,45 @@ export default {
       );
     }
 
-    const notSpecified = "(not specified)";
     const about = titles || "the catalog";
+    const ns = "(not specified)";
 
-    /* ---- 1. auto-reply to the inquirer ------------------------------- */
     const replyText =
       `Hi ${name},\n\n` +
-      `Thanks for reaching out about ${about}. We'll review your request and ` +
-      `get back to you within a few business days with availability, territory, ` +
-      `and licensing terms.\n\n` +
+      `Thanks for reaching out about ${about}. We’ll review your request ` +
+      `and get back to you within a few business days with availability, ` +
+      `territory, and licensing terms.\n\n` +
       `If you need something sooner, feel free to reply directly to this email.\n\n` +
-      `— Best B Movies`;
+      `— Velvet Octopus Films`;
 
     const replyHtml =
       `<p>Hi ${esc(name)},</p>` +
-      `<p>Thanks for reaching out about ${esc(about)}. We'll review your request ` +
-      `and get back to you within a few business days with availability, ` +
+      `<p>Thanks for reaching out about ${esc(about)}. We’ll review your ` +
+      `request and get back to you within a few business days with availability, ` +
       `territory, and licensing terms.</p>` +
       `<p>If you need something sooner, feel free to reply directly to this email.</p>` +
-      `<p>&mdash; Best B Movies</p>`;
+      `<p style="color:#6B4D8A">— Velvet Octopus Films</p>`;
 
-    /* ---- 2. internal notification ------------------------------------ */
     const rows = [
       ["Name", name],
       ["Company", company],
       ["Email", email],
-      ["Titles of interest", titles || notSpecified],
-      ["Intended use", use || notSpecified],
-      ["Estimated volume", volume || notSpecified],
+      ["Titles of interest", titles || ns],
+      ["Intended use", use || ns],
+      ["Estimated volume", volume || ns],
       ["Message", message || "(none)"],
     ];
 
     const notifyText = rows.map(([k, v]) => `${k}: ${v}`).join("\n");
     const notifyHtml =
       `<table cellpadding="6" style="border-collapse:collapse;font-family:sans-serif;font-size:14px">` +
-      rows
-        .map(
-          ([k, v]) =>
-            `<tr><td style="border-bottom:1px solid #e5e5e5;color:#666;vertical-align:top"><strong>${esc(
-              k
-            )}</strong></td><td style="border-bottom:1px solid #e5e5e5;white-space:pre-wrap">${esc(
-              v
-            )}</td></tr>`
-        )
-        .join("") +
+      rows.map(([k, v]) =>
+        `<tr><td style="border-bottom:1px solid #e5e5e5;color:#666;vertical-align:top"><strong>${esc(k)}</strong></td>` +
+        `<td style="border-bottom:1px solid #e5e5e5;white-space:pre-wrap">${esc(v)}</td></tr>`
+      ).join("") +
       `</table>`;
 
     try {
-      // The notification matters most — send it first and let it fail loudly.
       await sendEmail(env, {
         to: env.NOTIFY_TO,
         subject: `New licensing inquiry — ${company}`,
@@ -169,13 +195,11 @@ export default {
         replyTo: email,
       });
 
-      // A failed auto-reply shouldn't lose us the lead, so don't fail the
-      // request over it — just report it.
       let autoReplySent = true;
       try {
         await sendEmail(env, {
           to: email,
-          subject: "We received your Best B Movies inquiry",
+          subject: "We received your Velvet Octopus Films inquiry",
           text: replyText,
           html: replyHtml,
         });
