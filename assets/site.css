@@ -160,7 +160,8 @@ body {
   letter-spacing: -0.01em;
 }
 .brand-bar {
-  color: var(--velvet);
+  color: var(--cream);
+  opacity: 0.35;
   font-weight: 300;
   margin: 0 1px;
 }

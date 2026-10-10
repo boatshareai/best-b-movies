@@ -1386,10 +1386,8 @@ def build_about(films):
         platforms. This site is the catalog and contact form. It does not stream
         or sell films directly.</p>
 
-      <!-- TODO confirm wording with former owners -->
-      <p>Velvet Octopus began as a film distributor. Its owners later rebranded
-        it as SC Films International and Blue Finch Film Releasing. We&rsquo;re
-        bringing the name back, with their blessing.</p>
+      <p>Velvet Octopus began as a film distributor in 2005, and is associated
+        through management with SC Films International and Blue Finch Films.</p>
 
       <h2>Our own library</h2>
       <p>%(cfv)d titles of classic Hollywood and international cinema. The core
@@ -1398,7 +1396,7 @@ def build_about(films):
         B-westerns and singing-cowboy series, studio film noir, the Rathbone-era
         Sherlock Holmes mysteries, gothic horror and drive-in science fiction.
         The international side gathers landmark work from Japan, Italy, France,
-        India, China, Russia, and Spain — films by Kurosawa, Ozu, Mizoguchi,
+        India, China, Russia, and Spain &mdash; films by Kurosawa, Ozu, Mizoguchi,
         Satyajit Ray, De Sica, Bu&ntilde;uel, and Tarkovsky among them, across
         %(nlang)d languages beyond English.</p>
       <p>These titles are offered for non-exclusive licensing across streaming,
@@ -1406,12 +1404,6 @@ def build_about(films):
         per deal. Many are also on the
         <a href="%(tiktok)s" target="_blank" rel="noopener noreferrer">%(handle)s TikTok</a>
         as short clips and on YouTube as full films.</p>
-
-      <h2>Partner collections</h2>
-      <p>%(bf)d titles from Blue Finch Film Releasing and %(sc)d from SC Films
-        International. We present them on their behalf — availability,
-        territory, and terms are confirmed direct with each company, per inquiry.
-        Every title page on this site says which company represents it.</p>
 
       <h2>How to watch</h2>
       <p>Many titles from our own library are on YouTube.
@@ -1434,8 +1426,6 @@ def build_about(films):
 """ % {
         "total": len(films),
         "cfv": len(cfv),
-        "bf": len(in_catalog(films, "blue-finch")),
-        "sc": len(in_catalog(films, "sc-films")),
         "nlang": len(langs),
         "tiktok": e(TIKTOK_URL),
         "handle": e(TIKTOK_HANDLE),
