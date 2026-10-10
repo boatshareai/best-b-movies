@@ -1,241 +1,174 @@
-/* Catalog browse: search, filter, sort. Data is inlined in the page, so
-   filtering is instant and there is no fetch to wait on. */
+/* Velvet Octopus Films — browse page: client-side card grid.
+   Reads JSON from #catalog-data, renders poster cards, handles filters. */
+
 (function () {
   "use strict";
 
-  var films = JSON.parse(document.getElementById("catalog-data").textContent);
-  var tbody = document.getElementById("rows");
+  var data = JSON.parse(document.getElementById("catalog-data").textContent);
+  var grid = document.getElementById("rows");
   var empty = document.getElementById("empty");
-  var count = document.getElementById("count");
+  var countEl = document.getElementById("count");
 
   var q = document.getElementById("q");
-  var genre = document.getElementById("genre");
-  var decade = document.getElementById("decade");
-  var lang = document.getElementById("lang");
-  var runtime = document.getElementById("runtime");
-  var status = document.getElementById("status");
-  var catalog = document.getElementById("catalog");
-
-  var sortKey = "t";
-  var sortDir = 1;
-
-  // Deep links from the home page and film pages: ?genre=Western, ?decade=1940s,
-  // ?intl=1, ?q=holmes
-  (function applyQuery() {
-    var p = new URLSearchParams(location.search);
-    if (p.get("q")) q.value = p.get("q");
-    if (p.get("genre")) genre.value = p.get("genre");
-    if (p.get("decade")) decade.value = p.get("decade");
-    if (p.get("status")) status.value = p.get("status");
-    // The Best B Movies catalog key was "classic-films-vault" before the
-    // rename, and that spelling is in published deep links and the README.
-    // Without this alias such a link would silently show all 463 titles
-    // instead of the 165 it asked for.
-    var CATALOG_ALIASES = { "classic-films-vault": "best-b-movies" };
-    if (p.get("catalog")) {
-      var want = p.get("catalog");
-      catalog.value = CATALOG_ALIASES[want] || want;
-    }
-    if (p.get("intl")) lang.dataset.intl = "1";
-  })();
-
-  function esc(s) {
-    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
-    });
-  }
-
-  function matches(f) {
-    var term = q.value.trim().toLowerCase();
-    if (term) {
-      var hay = (f.t + " " + f.o + " " + f.g.join(" ") + " " + f.y).toLowerCase();
-      // every whitespace-separated word must appear somewhere
-      var words = term.split(/\s+/);
-      for (var i = 0; i < words.length; i++) {
-        if (hay.indexOf(words[i]) === -1) return false;
-      }
-    }
-    if (catalog.value && f.c !== catalog.value) return false;
-    if (genre.value && f.g.indexOf(genre.value) === -1) return false;
-    if (decade.value === "__none") {
-      if (f.d) return false;
-    } else if (decade.value && f.d !== decade.value) {
-      return false;
-    }
-
-    if (lang.dataset.intl === "1") {
-      if (!f.l || f.l === "English") return false;
-    } else if (lang.value === "__none") {
-      if (f.l) return false;
-    } else if (lang.value && f.l !== lang.value) {
-      return false;
-    }
-
-    if (runtime.value === "__none") {
-      if (f.r) return false;
-    } else if (runtime.value) {
-      if (!f.r) return false;
-      var b = runtime.value.split("-");
-      if (f.r < +b[0] || f.r > +b[1]) return false;
-    }
-
-    if (status.value && f.st !== status.value) return false;
-    return true;
-  }
-
-  function compare(a, b) {
-    var x = a[sortKey];
-    var y = b[sortKey];
-    // Titles sort as text; year and runtime as numbers, with blanks last.
-    if (sortKey === "t") {
-      return x.toLowerCase().localeCompare(y.toLowerCase()) * sortDir;
-    }
-    var nx = x === null || x === "" ? null : +x;
-    var ny = y === null || y === "" ? null : +y;
-    if (nx === null && ny === null) return a.t.localeCompare(b.t);
-    if (nx === null) return 1;
-    if (ny === null) return -1;
-    if (nx === ny) return a.t.localeCompare(b.t);
-    return (nx - ny) * sortDir;
-  }
-
-  // Some source synopses run a full paragraph. The table wants one scannable
-  // line; the full text still shows on the film's own page.
-  function oneLine(s) {
-    // Two of the three catalogs ship no loglines at all; say so rather than
-    // leaving an unexplained empty cell.
-    if (!s) return '<span class="muted">Not listed</span>';
-    if (s.length <= 150) return esc(s);
-    var cut = s.slice(0, 150);
-    var sp = cut.lastIndexOf(" ");
-    if (sp > 100) cut = cut.slice(0, sp);
-    return esc(cut.replace(/[\s.,;:—-]+$/, "")) + "&hellip;";
-  }
+  var catSel = document.getElementById("catalog");
+  var genreSel = document.getElementById("genre");
+  var decadeSel = document.getElementById("decade");
+  var langSel = document.getElementById("lang");
+  var runtimeSel = document.getElementById("runtime");
+  var statusSel = document.getElementById("status");
+  var ytCb = document.getElementById("yt");
+  var sortSel = document.getElementById("sort");
+  var resetBtn = document.getElementById("reset");
 
   var BADGE = {
     Available: "badge-available",
     Licensed: "badge-licensed",
-    Represented: "badge-represented"
+    Represented: "badge-represented",
   };
 
-  // Mirrors monogram()/poster_art() in build.py. Kept in step by hand because
-  // these rows are rendered client side; if you change the fallback in one
-  // place, change it in the other.
-  function monogram(t) {
-    var s = String(t || "").replace(/^(the|a|an)\s+/i, "").trim();
-    return (s.charAt(0) || "?").toUpperCase();
+  function monogram(title) {
+    return (title.replace(/^(the|a|an)\s+/i, "").trim()[0] || "?").toUpperCase();
   }
 
-  function art(f) {
+  function posterHTML(f) {
     if (f.p) {
-      return (
-        '<span class="thumb"><img src="assets/posters/' +
-        encodeURIComponent(f.p) +
-        '" alt="" loading="lazy" decoding="async" width="44" height="66"></span>'
-      );
+      return '<img src="assets/posters/' + esc(f.p) + '" alt="" loading="lazy" decoding="async" width="300" height="450">';
     }
+    return '<span class="mono" aria-hidden="true">' + esc(monogram(f.t)) + "</span>";
+  }
+
+  function esc(s) {
+    return (s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function card(f) {
+    var bcls = BADGE[f.st] || "badge-available";
+    var btxt = f.st || "Available";
+    var ytDot = f.yt ? '<span class="status-dot badge-yt">YouTube</span>' : "";
     return (
-      '<span class="thumb thumb-empty" aria-hidden="true">' +
-      esc(monogram(f.t)) +
-      "</span>"
+      '<a class="film-card" href="films/' + esc(f.s) + '.html" title="' + esc(f.t) + '">' +
+        '<span class="poster">' +
+          posterHTML(f) +
+          '<span class="status-dot ' + bcls + '">' + esc(btxt) + "</span>" +
+          ytDot +
+        "</span>" +
+        '<span class="cap">' +
+          "<b>" + esc(f.t) + "</b>" +
+          '<span class="cap-sub">' + esc(f.y || "Year not listed") + "</span>" +
+        "</span>" +
+      "</a>"
     );
   }
 
-  function row(f) {
-    var badge =
-      '<span class="badge ' +
-      (BADGE[f.st] || "badge-available") +
-      '">' +
-      esc(f.st || "Available") +
-      "</span>";
-    return (
-      "<tr>" +
-      '<td class="c-art">' +
-      art(f) +
-      "</td>" +
-      '<td class="c-title"><a href="films/' +
-      encodeURIComponent(f.s) +
-      '.html">' +
-      esc(f.t) +
-      "</a></td>" +
-      '<td class="c-num" data-k="Year">' +
-      (f.y ? esc(f.y) : '<span class="muted">&mdash;</span>') +
-      "</td>" +
-      '<td data-k="Genre">' +
-      (f.g.length ? esc(f.g.join(", ")) : '<span class="muted">&mdash;</span>') +
-      "</td>" +
-      '<td class="c-num" data-k="Runtime">' +
-      (f.r ? f.r + " min" : '<span class="muted">Not listed</span>') +
-      "</td>" +
-      '<td class="c-logline">' +
-      oneLine(f.o) +
-      "</td>" +
-      '<td class="c-rep" data-k="Represented by">' +
-      esc(f.cn) +
-      "</td>" +
-      '<td class="c-status">' +
-      badge +
-      "</td>" +
-      "</tr>"
-    );
+  function matchRuntime(f, val) {
+    if (!val) return true;
+    if (val === "__none") return f.r === null || f.r === undefined;
+    var parts = val.split("-").map(Number);
+    return f.r !== null && f.r !== undefined && f.r >= parts[0] && f.r <= parts[1];
+  }
+
+  function filter(films) {
+    var qv = (q.value || "").trim().toLowerCase();
+    var cat = catSel.value;
+    var genre = genreSel.value;
+    var decade = decadeSel.value;
+    var lang = langSel.value;
+    var rt = runtimeSel.value;
+    var status = statusSel.value;
+    var ytOnly = ytCb && ytCb.checked;
+
+    return films.filter(function (f) {
+      if (qv && f.t.toLowerCase().indexOf(qv) === -1 && (f.o || "").toLowerCase().indexOf(qv) === -1) return false;
+      if (cat && f.c !== cat) return false;
+      if (genre && f.g.indexOf(genre) === -1) return false;
+      if (decade) {
+        if (decade === "__none" && f.d) return false;
+        if (decade !== "__none" && f.d !== decade) return false;
+      }
+      if (lang) {
+        if (lang === "__none" && f.l) return false;
+        if (lang !== "__none" && f.l !== lang) return false;
+      }
+      if (!matchRuntime(f, rt)) return false;
+      if (status && f.st !== status) return false;
+      if (ytOnly && !f.yt) return false;
+      return true;
+    });
+  }
+
+  function sort(films) {
+    var s = sortSel ? sortSel.value : "t";
+    var copy = films.slice();
+    if (s === "y_desc") {
+      copy.sort(function (a, b) { return (parseInt(b.y) || 0) - (parseInt(a.y) || 0); });
+    } else if (s === "y_asc") {
+      copy.sort(function (a, b) { return (parseInt(a.y) || 0) - (parseInt(b.y) || 0); });
+    } else {
+      copy.sort(function (a, b) { return a.t.toLowerCase() < b.t.toLowerCase() ? -1 : 1; });
+    }
+    return copy;
   }
 
   function render() {
-    var out = films.filter(matches).sort(compare);
-    tbody.innerHTML = out.map(row).join("");
-    empty.hidden = out.length > 0;
-    var n = out.length;
-    count.innerHTML =
-      n === films.length
-        ? "<b>" + n + "</b> titles"
-        : "<b>" + n + "</b> of " + films.length + " titles";
+    var results = sort(filter(data));
+    grid.innerHTML = results.map(card).join("");
+    empty.hidden = results.length > 0;
+    if (countEl) {
+      countEl.innerHTML = "<b>" + results.length + "</b> of " + data.length + " titles";
+    }
   }
 
-  [q, catalog, genre, decade, lang, runtime, status].forEach(function (el) {
-    el.addEventListener("input", function () {
-      // Any explicit language choice overrides the ?intl= deep link.
-      if (el === lang) delete lang.dataset.intl;
+  function readUrl() {
+    var params = new URLSearchParams(location.search);
+    if (params.get("q")) q.value = params.get("q");
+    if (params.get("catalog")) catSel.value = params.get("catalog");
+    if (params.get("genre")) genreSel.value = params.get("genre");
+    if (params.get("decade")) decadeSel.value = params.get("decade");
+    if (params.get("lang")) langSel.value = params.get("lang");
+    if (params.get("status")) statusSel.value = params.get("status");
+    if (params.get("intl") === "1") langSel.value = "__none";
+    if (params.get("yt") === "1" && ytCb) ytCb.checked = true;
+  }
+
+  function pushUrl() {
+    var p = new URLSearchParams();
+    if (q.value) p.set("q", q.value);
+    if (catSel.value) p.set("catalog", catSel.value);
+    if (genreSel.value) p.set("genre", genreSel.value);
+    if (decadeSel.value) p.set("decade", decadeSel.value);
+    if (langSel.value) p.set("lang", langSel.value);
+    if (runtimeSel.value) p.set("runtime", runtimeSel.value);
+    if (statusSel.value) p.set("status", statusSel.value);
+    if (ytCb && ytCb.checked) p.set("yt", "1");
+    var s = p.toString();
+    history.replaceState(null, "", s ? "?" + s : location.pathname);
+  }
+
+  function onChange() { pushUrl(); render(); }
+
+  [catSel, genreSel, decadeSel, langSel, runtimeSel, statusSel, sortSel].forEach(function (el) {
+    if (el) el.addEventListener("change", onChange);
+  });
+  if (ytCb) ytCb.addEventListener("change", onChange);
+  q.addEventListener("input", onChange);
+
+  if (resetBtn) {
+    resetBtn.addEventListener("click", function () {
+      q.value = "";
+      [catSel, genreSel, decadeSel, langSel, runtimeSel, statusSel].forEach(function (el) {
+        if (el) el.value = "";
+      });
+      if (ytCb) ytCb.checked = false;
+      if (sortSel) sortSel.value = "t";
+      pushUrl();
       render();
     });
-  });
+  }
 
-  document.getElementById("reset").addEventListener("click", function () {
-    [q, catalog, genre, decade, lang, runtime, status].forEach(function (el) {
-      el.value = "";
-    });
-    delete lang.dataset.intl;
-    sortKey = "t";
-    sortDir = 1;
-    render();
-  });
-
-  Array.prototype.forEach.call(
-    document.querySelectorAll("th button[data-sort]"),
-    function (btn) {
-      btn.addEventListener("click", function () {
-        var k = btn.dataset.sort;
-        sortDir = sortKey === k ? -sortDir : 1;
-        sortKey = k;
-        Array.prototype.forEach.call(
-          document.querySelectorAll("th button[data-sort]"),
-          function (b) {
-            b.parentNode.removeAttribute("aria-sort");
-            b.textContent = b.textContent.replace(/\s*[↑↓]$/, "");
-          }
-        );
-        btn.parentNode.setAttribute(
-          "aria-sort",
-          sortDir === 1 ? "ascending" : "descending"
-        );
-        btn.textContent += sortDir === 1 ? " ↑" : " ↓";
-        render();
-      });
-    }
-  );
-
-  document.getElementById("filters").addEventListener("submit", function (ev) {
-    ev.preventDefault();
-  });
-
+  readUrl();
   render();
 })();
