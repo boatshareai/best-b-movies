@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Best B Movies — static site generator.
+Velvet Octopus Films — static site generator.
 
-Reads data/catalog.csv and writes a complete static site to dist/.
+Reads data/*.csv and writes a complete static site to dist/.
 Stdlib only; no pip install, no node_modules, no build toolchain.
 
     python3 build.py
 
-To update the catalog, edit data/catalog.csv and re-run. Nothing else needs
-to change.
+To update the catalog, edit a data CSV and re-run. Nothing else needs to change.
 """
 
 import csv
@@ -20,88 +19,75 @@ import shutil
 import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DATA = os.path.join(HERE, "data", "catalog.csv")
 ASSETS = os.path.join(HERE, "assets")
 DIST = os.path.join(HERE, "dist")
 
-# Absolute origin (+ subpath) the site is served from. Sitemaps must contain
-# absolute URLs, and GitHub Pages project sites live under /<repo>/, so this
-# can't be assumed to be "/". Set SITE_BASE in the deploy workflow.
+# Absolute origin the site is served from. Set SITE_BASE in the deploy workflow.
 SITE_BASE = os.environ.get("SITE_BASE", "").rstrip("/")
 
-SITE_NAME = "Best B Movies"
-# Our own catalog, as opposed to the two we present for someone else.
+SITE_NAME = "Velvet Octopus Films"
+SITE_TAGLINE = "Films worth a second look."
+SITE_FOOT_TAGLINE = "Eight arms. One big library."
+TIKTOK_URL = "https://www.tiktok.com/@thelostfilmfiles"
+TIKTOK_HANDLE = "@thelostfilmfiles"
+
 OWN_CATALOG = "best-b-movies"
 
-# The three represented catalogs. Each is its own CSV so they stay
-# independently editable and one agency's data can never disturb another's --
-# data/catalog.csv in particular is the original Best B Movies file and
-# is not rewritten by the represented-catalog import.
-#
-# `prefix` namespaces the slugs. Best B Movies keeps an empty prefix so
-# its already-published URLs do not move; the newer catalogs are prefixed so
-# the 18 titles carried by both agencies get distinct pages.
 CATALOGS = [
     {
         "key": "best-b-movies",
         "name": "Best B Movies",
+        "display_name": "Best B Movies",
         "file": "catalog.csv",
         "prefix": "",
-        "blurb": "Classic Hollywood and international cinema, 1930s to today "
-                 "\u2014 westerns, noir, Rathbone-era mystery, gothic horror, "
-                 "and art-house landmarks.",
+        "blurb": "Classic Hollywood and international cinema, 1930s to today"
+                 " — westerns, noir, Rathbone-era mystery, gothic horror,"
+                 " and art-house landmarks.",
     },
     {
         "key": "blue-finch",
         "name": "Blue Finch Film Releasing",
+        "display_name": "Blue Finch Film Releasing",
         "file": "blue-finch.csv",
         "prefix": "bf",
-        "blurb": "Contemporary independent features, weighted to the 2010s "
-                 "and 2020s \u2014 led by horror, drama, and thriller.",
+        "blurb": "Contemporary independent features, weighted to the 2010s"
+                 " and 2020s — led by horror, drama, and thriller.",
     },
     {
         "key": "sc-films",
         "name": "SC Films International",
+        "display_name": "SC Films International",
         "file": "sc-films.csv",
         "prefix": "sc",
-        "blurb": "Live action and family animation, plus documentary and "
-                 "genre titles. Year and runtime data is largely absent.",
+        "blurb": "Live action and family animation, plus documentary and"
+                 " genre titles. Year and runtime data is largely absent.",
     },
 ]
 CATALOG_BY_KEY = {c["key"]: c for c in CATALOGS}
 
-# Populated by main() once the catalogs are loaded. Copy that quotes a count
-# reads it from here rather than hardcoding a number that goes stale the next
-# time a catalog changes size.
 COUNTS = {"total": 0, "best-b-movies": 0, "blue-finch": 0, "sc-films": 0}
 
 
-def catalog_names(sep=", ", last=", and "):
-    names = [c["name"] for c in CATALOGS]
-    return sep.join(names[:-1]) + last + names[-1]
-TAGLINE = "B-movie licensing"
-
-# The licensing copy is contractual language and is reproduced verbatim.
-# The opening sentence was widened to match the actual catalog range (20 titles
-# post-date 1979), rather than trimming real inventory to fit a marketing line.
-# %(cfv)d is the live Best B Movies count. The paragraph describes that
-# library specifically -- the represented catalogs are covered by the separate
-# paragraph after it on the licensing page.
 LICENSING_TERMS = (
-    "Best B Movies represents a library of %(cfv)d films spanning classic "
+    "Velvet Octopus Films represents a library of %(cfv)d films spanning classic "
     "Hollywood, international cinema, and contemporary art-house titles from "
     "the 1930s to today. Titles are available for non-exclusive licensing across "
     "streaming, broadcast, and digital platforms, with territory and term "
     "negotiated per deal. Some titles currently carry a non-exclusive license "
-    "with another platform — this doesn't prevent additional licensing, and "
+    "with another platform — this doesn’t prevent additional licensing, and "
     "any existing arrangement will be disclosed during the inquiry process. "
-    "Reach out with the titles or volume you're interested in, and we'll follow "
+    "Reach out with the titles or volume you’re interested in, and we’ll follow "
     "up with availability, territory, and rate details."
 )
 
 CONFIRMATION = (
-    "Thanks — we've got your inquiry and will follow up within a few "
-    "business days with availability and terms."
+    "Thanks — we’ve got your inquiry and will follow up within a few "
+    "business days with availability and terms. — Velvet Octopus Films"
+)
+
+SUBMISSION_CONFIRMATION = (
+    "Thanks — we’ve received your submission and will be in touch "
+    "if it’s a good fit. — Velvet Octopus Films"
 )
 
 USE_OPTIONS = [
@@ -117,29 +103,34 @@ VOLUME_OPTIONS = [
     "Full or near-full catalog",
 ]
 
-# Genre groupings for the home-page anchors. Each maps to a catalog filter.
+GENRE_OPTIONS = [
+    "Drama",
+    "Comedy",
+    "Horror",
+    "Thriller",
+    "Action",
+    "Animation",
+    "Documentary",
+    "Other",
+]
+
+DISTRIBUTION_STATUS_OPTIONS = [
+    "No distribution",
+    "Self-distributed",
+    "Festival circuit only",
+    "Previously distributed",
+    "Currently distributed",
+]
+
 HIGHLIGHTS = [
     ("Westerns", ["Western"], "Singing cowboys, cavalry pictures, and late-cycle revisionist entries."),
     ("Mystery & noir", ["Mystery", "Film-Noir", "Crime"], "Rathbone-era Holmes, Fritz Lang thrillers, and hard-boiled studio noir."),
-    # Now majority Blue Finch, so the description can no longer name only the
-    # Best B Movies titles.
     ("Horror & sci-fi", ["Horror", "Sci-Fi"], "Corman-Poe gothics and drive-in creature features through to contemporary independent horror."),
-    ("International", None, "Kurosawa, Ozu, Mizoguchi, Ray, Buñuel, Tarkovsky, and De Sica."),
+    ("International", None, "Kurosawa, Ozu, Mizoguchi, Ray, Bu\xf1uel, Tarkovsky, and De Sica."),
 ]
 
-
-# Marquee titles for the home-page carousels, in display order.
-# One carousel per catalog, never mixed. The rights position differs between
-# our own library and the partner catalogs, so a single shuffled row would
-# imply a uniformity that doesn't exist. Each entry is
-# (catalog key, heading, [titles]); titles resolve against the CSVs at build
-# time and the build fails loudly if one stops resolving.
 FEATURED = [
     (
-        # The header logo already reads "Best B Movies"; now that this is the
-        # only carousel on the home page, naming it after the brand again would
-        # just be an echo. "our library" also sets up the partner sections'
-        # "Presented for ..." on the catalog page.
         "best-b-movies",
         "From our own library",
         [
@@ -157,7 +148,7 @@ FEATURED = [
         [
             "A Bronx Tale",
             "Papillon",
-            "Dead Man's Shoes",
+            "Dead Man’s Shoes",
             "Frances Ha",
             "The Player",
             "A Bittersweet Life",
@@ -183,23 +174,13 @@ def e(s):
 
 
 def monogram(title):
-    """Initial used as placeholder art — 'The Outlaw' reads better as O."""
     t = re.sub(r"^(the|a|an)\s+", "", title.strip(), flags=re.I)
     return (t[:1] or "?").upper()
 
 
 def poster_art(f, prefix="", w=300, h=450):
-    """Real key art when the row has a `poster`, the typographic placeholder
-    when it doesn't.
-
-    Shared by the carousel and the film page so the two can't drift apart;
-    `catalog.js` mirrors it for the browse table, which is rendered client
-    side. `prefix` is the hop back to the site root ("../" from films/).
-
-    alt="" on purpose: every place a poster appears, the title is already
-    adjacent as real text, so naming the film again would just make screen
-    readers say it twice.
-    """
+    """Real key art when the row has a `poster`; monogram placeholder otherwise.
+    alt="" is intentional: the title is always adjacent as real text."""
     name = (f.get("poster") or "").strip()
     if name:
         return (
@@ -210,8 +191,6 @@ def poster_art(f, prefix="", w=300, h=450):
 
 
 def load():
-    """Every published title across all three catalogs, each tagged with its
-    source catalog."""
     films = []
     skipped = 0
     seen_slugs = {}
@@ -223,16 +202,15 @@ def load():
             rows = list(csv.DictReader(fh))
         for r in rows:
             r = {k: (v or "").strip() for k, v in r.items() if k}
-            # publish=no holds a title out of the catalog without deleting it
             if r.get("publish", "yes").lower() in ("no", "false", "0"):
                 skipped += 1
                 continue
-            # Genres are "; "-separated in the Best B Movies file and a
-            # single verbatim label in the agency files. Both land as a list.
             r["genre_list"] = [g for g in r["genres"].split("; ") if g]
-            r["runtime_n"] = int(r["runtime"]) if r["runtime"].isdigit() else None
+            r["runtime_n"] = int(r["runtime"]) if r.get("runtime", "").isdigit() else None
             r["catalog"] = cat["key"]
             r["catalog_name"] = cat["name"]
+            # youtube_id: bare 11-char ID stored in the column
+            r["youtube_id"] = (r.get("youtube_id") or "").strip()
             if r["slug"] in seen_slugs:
                 raise SystemExit(
                     "duplicate slug %r in %s and %s"
@@ -256,31 +234,46 @@ def in_catalog(films, key):
 
 NAV = [
     ("Home", "index.html"),
-    ("Catalogs", "catalog.html"),
+    ("Collections", "collections.html"),
     ("Browse", "browse.html"),
     ("Licensing", "licensing.html"),
+    ("Submit a film", "submit.html"),
     ("About", "about.html"),
 ]
 
 
 def page(title, body, current, depth=0, description=""):
-    """depth=1 for pages inside films/, so asset paths resolve."""
     up = "../" * depth
     nav = []
     for label, href in NAV:
         cur = ' aria-current="page"' if href == current else ""
-        cls = ' class="nav-home"' if href == "index.html" else ""
+        cls_parts = []
+        if href == "index.html":
+            cls_parts.append("nav-home")
+        if cls_parts:
+            cls = ' class="%s"' % " ".join(cls_parts)
+        else:
+            cls = ""
         nav.append('<a href="%s%s"%s%s>%s</a>' % (up, href, cls, cur, label))
     nav.append(
         '<a class="cta" href="%slicensing.html">'
-        '<span class="cta-long">Contact us for licensing</span>'
-        '<span class="cta-short">Contact</span></a>' % up
+        '<span class="cta-long">Licensing inquiry</span>'
+        '<span class="cta-short">Inquire</span></a>' % up
     )
     desc = description or (
-        "%d films across three catalogs \u2014 %s \u2014 available for licensing "
-        "across streaming, broadcast, and digital platforms."
-        % (COUNTS["total"], catalog_names())
+        "%d films across three collections — classic Hollywood, international "
+        "cinema, and contemporary independent features — available for "
+        "licensing across streaming, broadcast, and digital platforms."
+        % COUNTS["total"]
     )
+    ogimg = ""
+    if SITE_BASE:
+        ogimg = (
+            '<meta property="og:image" content="%s/assets/og-image.png">\n'
+            '<meta property="og:image:width" content="1200">\n'
+            '<meta property="og:image:height" content="630">\n'
+            '<meta name="twitter:card" content="summary_large_image">\n' % SITE_BASE
+        )
     return """<!doctype html>
 <html lang="en">
 <head>
@@ -293,22 +286,19 @@ def page(title, body, current, depth=0, description=""):
 <meta property="og:description" content="%(desc)s">
 <meta property="og:site_name" content="%(site)s">
 <meta property="og:type" content="website">
-%(ogimg)s<link rel="icon" type="image/png" sizes="16x16" href="%(up)sassets/favicon-16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="%(up)sassets/favicon-32.png">
-<link rel="apple-touch-icon" href="%(up)sassets/favicon-180.png">
-<meta name="theme-color" content="%(site_bg)s">
+%(ogimg)s<link rel="icon" type="image/svg+xml" href="%(up)sassets/favicon.svg">
+<link rel="icon" type="image/x-icon" href="%(up)sassets/favicon.ico">
+<link rel="apple-touch-icon" href="%(up)sassets/apple-touch-icon.png">
+<meta name="theme-color" content="#5B2A86">
 <link rel="stylesheet" href="%(up)sassets/site.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-head">
   <div class="wrap">
-    <a class="brand" href="%(up)sindex.html">
-      <img class="brand-logo" src="%(up)sassets/logo-lockup.png" alt="Best B Movies"
-           width="440" height="323" decoding="async">
-      <span class="brand-text">
-        <span class="mark">Licensing &amp; distribution</span>
-      </span>
+    <a class="brand" href="%(up)sindex.html" aria-label="Velvet Octopus Films — home">
+      <img class="brand-logo" src="%(up)sassets/brand/logo-wordmark.svg"
+           alt="Velvet Octopus Films" width="220" height="40" decoding="async">
     </a>
     <nav class="nav" aria-label="Main">%(nav)s</nav>
   </div>
@@ -318,12 +308,22 @@ def page(title, body, current, depth=0, description=""):
 </main>
 <footer class="site-foot">
   <div class="wrap">
-    <div>&copy; %(year)s Best B Movies. Licensing inquiries only — this site does not stream or sell films.</div>
-    <div class="fnav">
-      <a href="%(up)sbrowse.html">Browse titles</a>
-      <a href="%(up)slicensing.html">Licensing &amp; contact</a>
-      <a href="%(up)sabout.html">About</a>
+    <div class="foot-brand">
+      <img class="foot-logo" src="%(up)sassets/brand/logo-wordmark.svg"
+           alt="Velvet Octopus Films" width="160" height="29" decoding="async" loading="lazy">
+      <p class="foot-tag">%(foot_tagline)s</p>
+      <p class="foot-copy">&copy; %(year)d Velvet Octopus Films.
+        Licensing inquiries only — this site does not stream or sell films.</p>
     </div>
+    <nav class="fnav" aria-label="Footer">
+      <a href="%(up)sbrowse.html">Browse titles</a>
+      <a href="%(up)scollections.html">Collections</a>
+      <a href="%(up)slicensing.html">Licensing</a>
+      <a href="%(up)ssubmit.html">Submit a film</a>
+      <a href="%(up)sabout.html">About</a>
+      <a href="%(up)scontact.html">Contact</a>
+      <a href="%(up)sprivacy.html">Privacy &amp; terms</a>
+    </nav>
   </div>
 </footer>
 </body>
@@ -335,19 +335,8 @@ def page(title, body, current, depth=0, description=""):
         "body": body,
         "up": up,
         "site": e(SITE_NAME),
-        # matches .site-head, which is what sits under the address bar
-        "site_bg": "#ffffff",
-        # og:image must be absolute — a relative path is silently ignored by
-        # every scraper. Without SITE_BASE we don't know the origin, so the
-        # tag is omitted rather than emitted broken. CI sets SITE_BASE.
-        "ogimg": (
-            '<meta property="og:image" content="%s/assets/og-image.jpg">\n'
-            '<meta property="og:image:width" content="1200">\n'
-            '<meta property="og:image:height" content="630">\n'
-            '<meta name="twitter:card" content="summary_large_image">\n' % SITE_BASE
-            if SITE_BASE
-            else ""
-        ),
+        "foot_tagline": e(SITE_FOOT_TAGLINE),
+        "ogimg": ogimg,
         "year": 2026,
     }
 
@@ -357,51 +346,39 @@ def page(title, body, current, depth=0, description=""):
 # --------------------------------------------------------------------------
 
 
-def featured_card(f):
-    art = poster_art(f)
-    # The full badge wording ("Licensed - non-exclusive") is too wide for a
-    # card pill; the bare status reads fine at this size.
+def featured_card(f, prefix=""):
+    art = poster_art(f, prefix=prefix)
     bcls = badge(f["status"])[0]
     btxt = f["status"] or "Available"
-    return """        <a class="film-card" href="films/%(slug)s.html" title="%(title)s">
+    yt_dot = ""
+    if f.get("youtube_id"):
+        yt_dot = '<span class="status-dot badge-yt">YouTube</span>'
+    return """        <a class="film-card" href="%(prefix)sfilms/%(slug)s.html" title="%(title)s">
           <span class="poster">
             %(art)s
-            <span class="status-dot %(bcls)s">%(btxt)s</span>
+            <span class="status-dot %(bcls)s">%(btxt)s</span>%(yt_dot)s
           </span>
           <span class="cap">
             <b>%(title)s</b>
-            <span class="cap-year">%(year)s</span>
+            <span class="cap-sub">%(year)s</span>
           </span>
         </a>""" % {
+        "prefix": prefix,
         "slug": e(f["slug"]),
         "art": art,
         "bcls": e(bcls),
         "btxt": e(btxt),
+        "yt_dot": ("\n            " + yt_dot) if yt_dot else "",
         "title": e(f["title"]),
-        # .muted fails contrast at this size; .cap-year's own colour passes
-        # and this is real information, not decoration.
         "year": e(f["year"]) or "Year not listed",
     }
 
 
 def band_shade(i):
-    """Alternating section background, as one sequence across the whole page."""
     return "section-cream" if i % 2 == 0 else "section-white"
 
 
 def build_featured(films, keys=None, start=0, as_index=False):
-    """Carousel sections, optionally limited to certain catalogs.
-
-    Two modes for the same row. The home page uses the plain one: a single
-    carousel of our own library under a heading of its own wording.
-    `as_index=True` is the catalogs page, where the row *is* the entry for
-    that catalog -- it carries the catalog's real name, whether we own it or
-    present it, and its size and character, so that a separate descriptive
-    card would only say all of it twice.
-
-    `start` seeds the band alternation so a page that already opened with a
-    section does not repeat its shade.
-    """
     by_key = {(f["title"].strip().lower(), f["catalog"]): f for f in films}
     sections = []
     for cat_key, heading, titles in FEATURED:
@@ -409,7 +386,13 @@ def build_featured(films, keys=None, start=0, as_index=False):
             continue
         cards = []
         for want in titles:
-            f = by_key.get((want.strip().lower(), cat_key))
+            # "Dead Man's Shoes" vs "Dead Man’s Shoes" — normalise apostrophes
+            want_norm = want.strip().lower().replace("’", "'").replace("‘", "'")
+            f = None
+            for (title_lower, ckey), film in by_key.items():
+                if ckey == cat_key and title_lower.replace("’", "'").replace("‘", "'") == want_norm:
+                    f = film
+                    break
             if f is None:
                 raise SystemExit(
                     "featured title %r is not in the %s catalog (renamed, "
@@ -421,23 +404,18 @@ def build_featured(films, keys=None, start=0, as_index=False):
         if as_index:
             cat = CATALOG_BY_KEY[cat_key]
             heading = cat["name"]
-            # The one thing a visitor has to be able to tell at a glance:
-            # which of these we control and which we only present.
             kicker = (
                 "Our own library"
                 if cat_key == OWN_CATALOG
                 else "Presented on behalf of the rights holder"
             )
             eyebrow = '    <p class="eyebrow">%s</p>\n' % e(kicker)
-            # The count lives here, so the link does not repeat it.
             line = '    <p class="cat-line">%d titles. %s</p>\n' % (n, e(cat["blurb"]))
-            link = "Browse this catalog &rsaquo;"
+            link = "Browse this collection &rsaquo;"
         else:
             eyebrow = ""
             line = ""
             link = "View all %d titles &rsaquo;" % n
-        # Each track needs its own accessible name; three rows all announcing
-        # "Featured titles" would be useless to a screen reader.
         sections.append(
             """
 <section class="section %(shade)s">
@@ -457,10 +435,6 @@ def build_featured(films, keys=None, start=0, as_index=False):
   </div>
 </section>"""
             % {
-                # Band 0 is cream: on the home page the hero above is
-                # white, and two white bands running together would read
-                # as one section. `start` keeps that true on a page whose
-                # own sections came first.
                 "shade": band_shade(start + len(sections)),
                 "heading": e(heading),
                 "eyebrow": eyebrow,
@@ -473,11 +447,6 @@ def build_featured(films, keys=None, start=0, as_index=False):
         )
     if not sections:
         return ""
-    # The script ships with the markup rather than with the page, so a
-    # page that renders carousels cannot end up with live-looking arrows
-    # that do nothing -- which is what catalog.html shipped when these
-    # sections first moved off the home page. The links inside a card are
-    # root-relative, so carousels belong on top-level pages only.
     return "\n".join(sections) + '\n<script src="assets/carousel.js"></script>'
 
 
@@ -514,8 +483,6 @@ def build_home(films):
 
     licensed = sum(1 for f in films if f["status"] == "Licensed")
 
-    # The combined number headlines, but each catalog's own count stays on the
-    # page: a buyer should never have to guess where a title comes from.
     split = "\n".join(
         '      <li><a href="browse.html?catalog=%s"><b>%d</b> %s</a></li>'
         % (urllib.parse.quote(c["key"]), len(in_catalog(films, c["key"])), e(c["name"]))
@@ -525,24 +492,25 @@ def build_home(films):
     body = """
 <section class="hero">
   <div class="wrap">
-    <h1>Better Movies. Brought To You.</h1>
-    <p class="pitch">An independent film distributor &mdash; our own library
-      runs from the 1930s to today, streaming straight to AVOD and TVOD
-      platforms. We also present select catalogs on behalf of Blue Finch Film
-      Releasing and SC Films International.</p>
+    <img class="hero-logo" src="assets/brand/logo-stacked.svg"
+         alt="Velvet Octopus Films" width="200" height="140" decoding="async">
+    <h1>Films worth a second look.</h1>
+    <p class="pitch">An independent film library available for licensing. Our own
+      collection runs from the 1930s to today. We also present select catalogs for
+      Blue Finch Film Releasing and SC Films International.</p>
     <ul class="hero-split">
 %(split)s
     </ul>
     <div class="hero-actions">
-      <a class="btn btn-gold" href="licensing.html">Contact us for licensing</a>
-      <a class="btn btn-ghost" href="catalog.html">Browse the catalogs</a>
+      <a class="btn btn-gold" href="browse.html">Browse all %(total)d titles</a>
+      <a class="btn btn-ghost" href="licensing.html">Licensing inquiry</a>
     </div>
   </div>
 </section>
 %(featured)s
 <section class="section %(lib_shade)s">
   <div class="wrap">
-    <div class="rule-head"><h2>Across all three catalogs</h2></div>
+    <div class="rule-head"><h2>Across all three collections</h2></div>
     <div class="tiles">
 %(tiles)s
     </div>
@@ -550,14 +518,23 @@ def build_home(films):
   </div>
 </section>
 
+<div class="tiktok-strip">
+  <div class="wrap">
+    <h2>Short clips on TikTok</h2>
+    <p>Rare footage, forgotten performances, scenes that hold up. Follow %(handle)s for a daily cut.</p>
+    <a class="btn btn-gold btn-ext" href="%(tiktok)s" target="_blank" rel="noopener noreferrer">
+      Follow on TikTok<span class="vh"> (opens in a new tab)</span></a>
+  </div>
+</div>
+
 <section class="section %(how_shade)s">
   <div class="wrap">
     <div class="rule-head"><h2>How licensing works</h2></div>
     <div class="tiles">
       <div class="tile">
-        <span class="label">Three catalogs, one inquiry</span>
+        <span class="label">Three collections, one inquiry</span>
         <span class="sub">%(cfv)d titles in the Best B Movies library, plus
-          %(bf)d represented for Blue Finch Film Releasing and %(sc)d for SC Films
+          %(bf)d for Blue Finch Film Releasing and %(sc)d for SC Films
           International. Every title page says which.</span>
       </div>
       <div class="tile">
@@ -575,7 +552,7 @@ def build_home(films):
       <div class="tile">
         <span class="label">Single titles to full catalog</span>
         <span class="sub">Package one title, a themed bundle, or explore any of our
-          three catalogs. Tell us the volume and we&rsquo;ll confirm terms per
+          three collections. Tell us the volume and we&rsquo;ll confirm terms per
           title.</span>
       </div>
     </div>
@@ -588,51 +565,38 @@ def build_home(films):
         "total": total,
         "split": split,
         "cfv": len(in_catalog(films, "best-b-movies")),
-        "rep": len(in_catalog(films, "blue-finch"))
-        + len(in_catalog(films, "sc-films")),
         "bf": len(in_catalog(films, "blue-finch")),
         "sc": len(in_catalog(films, "sc-films")),
         "featured": build_featured(films, keys=["best-b-movies"]),
-        # The one carousel above takes band 0; these carry the same
-        # alternation on rather than restarting it.
         "lib_shade": band_shade(1),
         "how_shade": band_shade(2),
         "tiles": "\n".join(tiles),
         "chips": chips,
         "licensed": licensed,
+        "tiktok": e(TIKTOK_URL),
+        "handle": e(TIKTOK_HANDLE),
     }
     return page(
-        "Best B Movies \u2014 better movies, brought to you",
+        "Velvet Octopus Films — films worth a second look",
         body,
         "index.html",
-        # Mirrors the hero rather than the site-wide default, which still
-        # describes all %d titles as ours to license. Says nothing about the
-        # rights position on the partner catalogs, because we don't hold one.
-        description="An independent film distributor. Our "
-        "own library runs from the 1930s to today, streaming to AVOD and TVOD "
-        "platforms, alongside select catalogs presented for Blue Finch Film "
-        "Releasing and SC Films International.",
+        description="An independent film library for licensing. %d titles across "
+        "classic Hollywood, international cinema, and contemporary "
+        "independent features." % total,
     )
 
 
 # --------------------------------------------------------------------------
-# catalog
+# collections  (was: catalog)
 # --------------------------------------------------------------------------
 
 
-def build_catalog(films):
-    """Index of the three catalogs: one art-led row each.
-
-    This page used to carry a descriptive card per catalog *and* a carousel
-    per catalog, which said the name, the size and the character of each one
-    twice over -- and gave our own library a card but no art. Now the row is
-    the entry: see build_featured(as_index=True).
-    """
+def build_collections(films):
     body = """
 <section class="section section-cream">
   <div class="wrap">
-    <div class="rule-head"><h1>Catalogs</h1></div>
-    <p class="lede">%(total)d titles in three catalogs &mdash; our own library,
+    <div class="rule-head"><h1>Collections</h1></div>
+    <p class="lede">%(total)d titles across three collections &mdash; our own library,
       plus two we present on behalf of their rights holders. Take them one at a
       time below, or <a href="browse.html">search all three at once</a>.</p>
   </div>
@@ -640,21 +604,25 @@ def build_catalog(films):
 %(rows)s
 """ % {
         "total": len(films),
-        # start=1: the intro above is band 0.
         "rows": build_featured(films, as_index=True, start=1),
     }
 
     return page(
-        "Catalogs \u2014 %s" % SITE_NAME,
+        "Collections — %s" % SITE_NAME,
         body,
-        "catalog.html",
-        description="Three represented catalogs totalling %d titles: %s."
-        % (len(films), ", ".join(c["name"] for c in CATALOGS)),
+        "collections.html",
+        description="Three collections totalling %d titles: Best B Movies, "
+        "Blue Finch Film Releasing, and SC Films International."
+        % len(films),
     )
 
 
+# --------------------------------------------------------------------------
+# browse
+# --------------------------------------------------------------------------
+
+
 def build_browse(films):
-    """The single browse UI, shared by every catalog."""
     genres = sorted({g for f in films for g in f["genre_list"]})
     decades = sorted({f["decade"] for f in films if f["decade"]})
     langs = sorted({f["language"] for f in films if f["language"]})
@@ -683,6 +651,7 @@ def build_browse(films):
             "st": f["status"],
             "c": f["catalog"],
             "cn": f["catalog_name"],
+            "yt": f.get("youtube_id", ""),
         }
         for f in films
     ]
@@ -691,9 +660,9 @@ def build_browse(films):
 <section class="section section-cream">
   <div class="wrap">
     <div class="rule-head"><h1>Browse titles</h1></div>
-    <p class="lede">%(total)d titles across all three catalogs.
-      <a href="catalog.html">Browse by catalog</a> instead, or filter below.
-      Every row shows which catalog represents the title.</p>
+    <p class="lede">%(total)d titles across all three collections.
+      <a href="collections.html">Browse by collection</a> instead, or filter below.
+      Every card shows which collection represents the title.</p>
 
     <form class="filters" id="filters" role="search" aria-label="Filter titles">
       <div class="filter-grid">
@@ -702,8 +671,8 @@ def build_browse(films):
           <input type="search" id="q" name="q" placeholder="e.g. Stagecoach, A Bronx Tale, Dragonkeeper" autocomplete="off">
         </div>
         <div class="field">
-          <label for="catalog">Catalog</label>
-          <select id="catalog"><option value="">All catalogs</option>%(cats)s</select>
+          <label for="catalog">Collection</label>
+          <select id="catalog"><option value="">All collections</option>%(cats)s</select>
         </div>
         <div class="field">
           <label for="genre">Genre</label>
@@ -738,6 +707,20 @@ def build_browse(films):
           <label for="status">Licensing status</label>
           <select id="status"><option value="">Any status</option>%(statuses)s</select>
         </div>
+        <div class="field">
+          <label for="yt">
+            <input type="checkbox" id="yt" name="yt" value="1">
+            Watch on YouTube only
+          </label>
+        </div>
+        <div class="field">
+          <label for="sort">Sort by</label>
+          <select id="sort">
+            <option value="t">Title A&ndash;Z</option>
+            <option value="y_desc">Year (newest first)</option>
+            <option value="y_asc">Year (oldest first)</option>
+          </select>
+        </div>
       </div>
       <div class="filter-foot">
         <p class="result-count" id="count" role="status" aria-live="polite"></p>
@@ -745,26 +728,10 @@ def build_browse(films):
       </div>
     </form>
 
-    <div class="table-scroll">
-      <table class="catalog">
-        <thead>
-          <tr>
-            <th scope="col" class="c-art-h"><span class="vh">Poster</span></th>
-            <th scope="col"><button type="button" data-sort="t">Title</button></th>
-            <th scope="col"><button type="button" data-sort="y">Year</button></th>
-            <th scope="col">Genre</th>
-            <th scope="col"><button type="button" data-sort="r">Runtime</button></th>
-            <th scope="col">Logline</th>
-            <th scope="col">Represented by</th>
-            <th scope="col">Status</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
-      <div class="empty" id="empty" hidden>
-        <p><strong>No titles match those filters.</strong></p>
-        <p>Try clearing a filter, or <a href="licensing.html">ask us about the full catalog</a>.</p>
-      </div>
+    <div class="card-grid" id="rows" aria-live="polite" aria-label="Search results"></div>
+    <div class="empty" id="empty" hidden>
+      <p><strong>No titles match those filters.</strong></p>
+      <p>Try clearing a filter, or <a href="licensing.html">ask us about the full catalog</a>.</p>
     </div>
   </div>
 </section>
@@ -777,15 +744,14 @@ def build_browse(films):
         "decades": opts(decades),
         "langs": opts(langs),
         "statuses": opts(statuses),
-        # </script> can't appear inside an inline JSON block.
         "json": json.dumps(payload, separators=(",", ":")).replace("<", "\\u003c"),
     }
     return page(
-        "Browse titles \u2014 %s" % SITE_NAME,
+        "Browse titles — %s" % SITE_NAME,
         body,
         "browse.html",
-        description="Search and filter all %d represented titles by catalog, "
-        "genre, decade, language, and runtime." % len(films),
+        description="Search and filter all %d titles by collection, "
+        "genre, decade, language, and licensing status." % len(films),
     )
 
 
@@ -794,12 +760,9 @@ def build_browse(films):
 # --------------------------------------------------------------------------
 
 
-# Three rights positions, and they are not interchangeable. "Represented"
-# means exactly that: the agency carries the title. It is not a claim that the
-# title is unencumbered, which is what "Available" asserts.
 BADGES = {
     "Available": ("badge-available", "Available"),
-    "Licensed": ("badge-licensed", "Licensed \u2014 non-exclusive"),
+    "Licensed": ("badge-licensed", "Licensed — non-exclusive"),
     "Represented": ("badge-represented", "Represented"),
 }
 
@@ -809,9 +772,6 @@ def badge(status):
 
 
 def meta_logline(logline):
-    """Logline trimmed for a meta description: cut on a word boundary and
-    close with an ellipsis, so it never runs mid-word into the sentence that
-    follows it."""
     if not logline:
         return ""
     if len(logline) <= 150:
@@ -821,6 +781,18 @@ def meta_logline(logline):
     if sp > 100:
         cut = cut[:sp]
     return cut.rstrip(" .,;:—-") + "… "
+
+
+def youtube_embed(youtube_id):
+    """Click-to-play YouTube embed using youtube-nocookie.com."""
+    vid = e(youtube_id)
+    return """    <div class="yt-wrap">
+      <button class="yt-trigger" type="button" data-yt-id="%(vid)s" aria-label="Watch %(vid)s on YouTube (opens player)">
+        <span class="yt-play-icon" aria-hidden="true">&#9654;</span>
+        <span>Watch on YouTube</span>
+      </button>
+    </div>
+    <script src="../../assets/yt-embed.js"></script>""" % {"vid": vid}
 
 
 def build_film(f, films):
@@ -835,8 +807,6 @@ def build_film(f, films):
         meta.append("%d min" % f["runtime_n"])
     if f["language"]:
         meta.append(e(f["language"]))
-    # decorative divider: screen readers should not announce "slash" between
-    # year, genre and runtime
     meta_html = '<span class="sep" aria-hidden="true">/</span>'.join(
         "<span>%s</span>" % m for m in meta
     )
@@ -850,17 +820,11 @@ def build_film(f, films):
     spec = [("Represented by", f["catalog_name"])]
     spec.append(("Year", f["year"] or "Not listed"))
     spec.append(("Genre", ", ".join(f["genre_list"]) or "Not listed"))
-    # Credits come from the agency's own title page. Rows without them (the
-    # Best B Movies titles, which have no source page) simply omit the
-    # line rather than printing "Not listed" three times over.
     for label in ("Director", "Writer", "Cast"):
         val = (f.get(label.lower()) or "").strip()
         if val:
             spec.append((label, val))
     spec.append(("Language", f["language"] or "Not specified"))
-    # Production country. NOT the same thing as `territory`, which is the
-    # territory of an existing licence and is still unknown for every agency
-    # title — don't let the two collapse into each other.
     if (f.get("country") or "").strip():
         spec.append(("Country", f["country"].strip()))
     spec.append(
@@ -883,7 +847,7 @@ def build_film(f, films):
     if f["decade"]:
         tags += '<a class="tag" href="../browse.html?decade=%s">%s</a>' % (
             f["decade"],
-            f["decade"],
+            e(f["decade"]),
         )
 
     synopsis = (
@@ -893,13 +857,14 @@ def build_film(f, films):
         'We can supply one on request.</p>'
     )
 
-    inquire = "../licensing.html?title=" + urllib.parse.quote(f["title"])
+    # YouTube embed OR "License this film" CTA
+    yt_id = f.get("youtube_id", "")
+    if yt_id:
+        watch_block = youtube_embed(yt_id)
+    else:
+        watch_block = ""
 
-    # Where the licensing button goes. Titles we represent ourselves keep our
-    # own form; titles carried by an agency hand off to that agency's own page
-    # for the title, because they field the enquiry and their page is the
-    # authoritative record of availability. An agency title with no known
-    # source page (Head Count) falls back to the form rather than dead-ending.
+    inquire = "../licensing.html?title=" + urllib.parse.quote(f["title"])
     source_url = (f.get("source_url") or "").strip()
     if f["catalog"] != "best-b-movies" and source_url:
         cta = (
@@ -914,10 +879,30 @@ def build_film(f, films):
     else:
         cta = (
             "<p>Territory and term are negotiated per deal. Send us this title "
-            "and we&rsquo;ll come back with availability and rates.</p>\n"
-            '      <a class="btn btn-solid" href="%s">Inquire about this '
-            "title</a>" % e(inquire)
+            "and we’ll come back with availability and rates.</p>\n"
+            '      <a class="btn btn-gold" href="%s">License this film</a>' % e(inquire)
         )
+
+    # Related films: same genre, same catalog, different title, up to 5
+    related_genre = f["genre_list"][:1]
+    related = [
+        r for r in films
+        if r["slug"] != f["slug"]
+        and r["catalog"] == f["catalog"]
+        and any(g in r["genre_list"] for g in related_genre)
+    ][:5]
+    related_html = ""
+    if related:
+        cards = "\n".join(featured_card(r, prefix="../") for r in related)
+        related_html = """
+<section class="section section-white">
+  <div class="wrap">
+    <div class="rule-head"><h2>More from this collection</h2></div>
+    <div class="related-grid">
+%s
+    </div>
+  </div>
+</section>""" % cards
 
     body = """
 <section class="film-head">
@@ -939,6 +924,7 @@ def build_film(f, films):
 <div class="wrap">
   <div class="film-body">
     <div>
+      %(watch_block)s
       <h2>Synopsis</h2>
       %(synopsis)s
 
@@ -958,6 +944,7 @@ def build_film(f, films):
     </aside>
   </div>
 </div>
+%(related)s
 """ % {
         "title": e(f["title"]),
         "meta": meta_html,
@@ -970,15 +957,17 @@ def build_film(f, films):
         "tags": tags,
         "licence_note": e(f["licence_note"]),
         "cta": cta,
+        "watch_block": watch_block,
+        "related": related_html,
     }
 
     year = " (%s)" % f["year"] if f["year"] else ""
     return page(
-        "%s%s — licensing — %s" % (f["title"], year, SITE_NAME),
+        "%s%s — %s" % (f["title"], year, SITE_NAME),
         body,
         "",
         depth=1,
-        description="%s%s \u2014 %sRepresented by %s. Contact us to confirm "
+        description="%s%s — %sRepresented by %s. Contact us to confirm "
         "licensing availability."
         % (f["title"], year, meta_logline(f["logline"]), f["catalog_name"]),
     )
@@ -1002,22 +991,21 @@ def build_licensing(films):
       <p>%(terms)s</p>
       <p>Alongside that library we represent %(bf)d titles for Blue Finch Film
         Releasing and %(sc)d for SC Films International &mdash; %(total)d titles
-        in all. The paragraph above sets out the terms for the Classic Films
-        Vault library specifically; for agency-represented titles we hold no
+        in all. The paragraph above sets out the terms for the Best B Movies
+        library specifically; for agency-represented titles we hold no
         assumed rights position, and availability, territory, and terms are
-        confirmed per inquiry. Every title page states which catalog the film
+        confirmed per inquiry. Every title page states which collection the film
         comes from.</p>
     </div>
 
-    <h3 style="font-size:24px;margin:44px 0 18px">Send an inquiry</h3>
+    <h2 style="font-size:24px;margin:44px 0 18px">Send an inquiry</h2>
 
     <div class="form-card">
       <div class="notice notice-ok" id="ok" hidden role="status">%(confirm)s</div>
       <div class="notice notice-err" id="err" hidden role="alert"></div>
       <div class="notice notice-warn" id="unconfigured" hidden>
-        <strong>This form isn&rsquo;t connected yet.</strong> Add your form endpoint in
-        <code>assets/config.js</code> to start receiving inquiries. See
-        <code>README.md</code> for the two-minute setup.
+        <strong>Form not connected.</strong>
+        Email us at <a href="mailto:%(contact_email_attr)s">%(contact_email)s</a> to discuss licensing.
       </div>
 
       <form id="inquiry" novalidate>
@@ -1040,7 +1028,7 @@ def build_licensing(films):
           <div class="field full">
             <label for="titles">Titles of interest</label>
             <input type="text" id="titles" name="titles"
-              placeholder="e.g. Stagecoach, M, or 'browsing the full catalog'">
+              placeholder="e.g. Stagecoach, M, or &lsquo;browsing the full catalog&rsquo;">
             <p class="hint">Coming from a film page? We&rsquo;ll fill this in for you.</p>
           </div>
           <div class="field">
@@ -1059,6 +1047,11 @@ def build_licensing(films):
             <label for="message">Message</label>
             <textarea id="message" name="message" placeholder="Anything else we should know?"></textarea>
           </div>
+          <!-- honeypot: bots fill this, humans don't -->
+          <div class="field field-hp" aria-hidden="true">
+            <label for="website">Website</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
         </div>
         <div class="form-foot">
           <button type="submit" class="btn btn-solid" id="submit">Send inquiry</button>
@@ -1072,8 +1065,7 @@ def build_licensing(films):
       <p>We review every inquiry and reply within a few business days with
         availability, territory options, and rates. You&rsquo;ll get an
         acknowledgement by email as soon as you submit. Inquiries are handled by
-        email only &mdash; there&rsquo;s no live chat or booking calendar to
-        navigate.</p>
+        email only &mdash; there&rsquo;s no live chat or booking calendar.</p>
     </div>
   </div>
 </section>
@@ -1087,14 +1079,136 @@ def build_licensing(films):
         "confirm": e(CONFIRMATION),
         "uses": opts(USE_OPTIONS),
         "vols": opts(VOLUME_OPTIONS),
+        "contact_email": "licensing@velvetoctopusfilms.com",
+        "contact_email_attr": "licensing@velvetoctopusfilms.com",
     }
     return page(
         "Licensing & contact — %s" % SITE_NAME,
         body,
         "licensing.html",
         description="Licensing terms and inquiry form for %d titles across the "
-        "Best B Movies, Blue Finch, and SC Films International catalogs."
+        "Best B Movies, Blue Finch, and SC Films International collections."
         % len(films),
+    )
+
+
+# --------------------------------------------------------------------------
+# submit a film
+# --------------------------------------------------------------------------
+
+
+def build_submit():
+    def opts(values):
+        return "".join('<option value="%s">%s</option>' % (e(v), e(v)) for v in values)
+
+    body = """
+<section class="section section-cream">
+  <div class="wrap">
+    <div class="rule-head"><h1>Submit a film</h1></div>
+    <div class="prose">
+      <p>We&rsquo;re interested in independent features, documentaries, and
+        genre films with a clear audience and clean rights. We consider
+        finished films only &mdash; no development, no treatments.</p>
+      <p>Fill in the form below. We&rsquo;ll read every submission and reply
+        if it&rsquo;s a good fit. We can&rsquo;t guarantee a response to every
+        inquiry, but we do look at all of them.</p>
+    </div>
+
+    <div class="form-card" style="margin-top:32px">
+      <div class="notice notice-ok" id="ok" hidden role="status">%(confirm)s</div>
+      <div class="notice notice-err" id="err" hidden role="alert"></div>
+      <div class="notice notice-warn" id="unconfigured" hidden>
+        <strong>Form not connected.</strong>
+        Email your submission to <a href="mailto:%(submit_email_attr)s">%(submit_email)s</a>.
+      </div>
+
+      <form id="submission" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="name">Your name <span class="req">*</span></label>
+            <input type="text" id="name" name="name" required autocomplete="name">
+            <p class="err-text" data-err="name" hidden>Please enter your name.</p>
+          </div>
+          <div class="field">
+            <label for="email">Email <span class="req">*</span></label>
+            <input type="email" id="email" name="email" required autocomplete="email">
+            <p class="err-text" data-err="email" hidden>Please enter a valid email address.</p>
+          </div>
+          <div class="field">
+            <label for="film_title">Film title <span class="req">*</span></label>
+            <input type="text" id="film_title" name="film_title" required>
+            <p class="err-text" data-err="film_title" hidden>Please enter the film title.</p>
+          </div>
+          <div class="field">
+            <label for="year">Year completed <span class="req">*</span></label>
+            <input type="text" id="year" name="year" required placeholder="e.g. 2023" inputmode="numeric">
+            <p class="err-text" data-err="year" hidden>Please enter the year.</p>
+          </div>
+          <div class="field">
+            <label for="genre">Genre</label>
+            <select id="genre" name="genre">
+              <option value="">Select&hellip;</option>%(genres)s
+            </select>
+          </div>
+          <div class="field">
+            <label for="runtime">Runtime (minutes)</label>
+            <input type="text" id="runtime" name="runtime" placeholder="e.g. 92" inputmode="numeric">
+          </div>
+          <div class="field full">
+            <label for="synopsis">Synopsis <span class="req">*</span></label>
+            <textarea id="synopsis" name="synopsis" required
+              placeholder="One or two paragraphs is fine."></textarea>
+            <p class="err-text" data-err="synopsis" hidden>Please add a synopsis.</p>
+          </div>
+          <div class="field full">
+            <label for="screener_link">Link to your screener</label>
+            <input type="url" id="screener_link" name="screener_link"
+              placeholder="Vimeo, YouTube, Google Drive&hellip;">
+            <p class="hint">A password-protected Vimeo link is fine. No file uploads.</p>
+          </div>
+          <div class="field full">
+            <label for="distribution_status">Current distribution status</label>
+            <select id="distribution_status" name="distribution_status">
+              <option value="">Select&hellip;</option>%(dist_statuses)s
+            </select>
+          </div>
+          <div class="field full">
+            <label>
+              <input type="checkbox" id="rights_confirmation" name="rights_confirmation" required>
+              I confirm that I own or control the rights to submit this film
+              <span class="req">*</span>
+            </label>
+            <p class="err-text" data-err="rights_confirmation" hidden>Please confirm rights.</p>
+          </div>
+          <!-- honeypot -->
+          <div class="field field-hp" aria-hidden="true">
+            <label for="website">Website</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-foot">
+          <button type="submit" class="btn btn-solid" id="submit">Submit your film</button>
+          <span class="hint" id="status-line"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+<script src="assets/config.js"></script>
+<script src="assets/submit.js"></script>
+""" % {
+        "confirm": e(SUBMISSION_CONFIRMATION),
+        "genres": opts(GENRE_OPTIONS),
+        "dist_statuses": opts(DISTRIBUTION_STATUS_OPTIONS),
+        "submit_email": "submit@velvetoctopusfilms.com",
+        "submit_email_attr": "submit@velvetoctopusfilms.com",
+    }
+    return page(
+        "Submit a film — %s" % SITE_NAME,
+        body,
+        "submit.html",
+        description="Submit your independent film to Velvet Octopus Films for "
+        "distribution consideration. Finished films only.",
     )
 
 
@@ -1111,46 +1225,40 @@ def build_about(films):
     body = """
 <section class="section section-cream">
   <div class="wrap">
-    <div class="rule-head"><h1>About the collection</h1></div>
+    <div class="rule-head"><h1>About</h1></div>
     <div class="prose">
-      <p>Best B Movies is an independent distribution outfit running alongside
-        Blue Finch Film Releasing and SC Films International. We put select
-        titles from their catalogs in front of buyers, and we build and stream
-        our own library &mdash; genre pictures, cult favorites, the stuff that
-        never needed a red carpet &mdash; across YouTube and AVOD platforms.</p>
+      <div class="todo-flag">
+        <strong>TODO:</strong> Replace this placeholder with Velvet Octopus Films history and background.
+      </div>
 
-      <p>Every title page states which catalog it comes from.</p>
+      <p>Velvet Octopus Films is an independent film library and distribution
+        operation. We look after a collection of classic and contemporary films,
+        put them in front of buyers, and stream them on YouTube and AVOD platforms.</p>
+
+      <p>Every title page states which collection it comes from.</p>
 
       <h2>Best B Movies</h2>
       <p>%(cfv)d titles of classic Hollywood and international cinema, with the
-        core concentrated in the 1930s through the 1970s and a smaller set of
-        titles reaching into the 2000s and 2010s. The American side runs deep
-        on genre pictures: B-westerns and singing-cowboy series, studio film noir,
-        the Rathbone-era Sherlock Holmes mysteries, and the gothic horror and
-        drive-in science fiction that followed them. The international side
-        gathers landmark work from Japan, Italy, France, India, China, Russia,
-        and Spain &mdash; films by Kurosawa, Ozu, Mizoguchi, Satyajit Ray,
-        De Sica, Bu&ntilde;uel, and Tarkovsky among them, across %(nlang)d
-        languages beyond English. These titles are offered for non-exclusive
-        licensing across streaming, broadcast, and digital platforms, with
-        territory and term negotiated per deal.</p>
+        core concentrated in the 1930s through the 1970s. The American side runs
+        deep on genre pictures: B-westerns and singing-cowboy series, studio film
+        noir, the Rathbone-era Sherlock Holmes mysteries, and gothic horror and
+        drive-in science fiction. The international side gathers landmark work
+        from Japan, Italy, France, India, China, Russia, and Spain &mdash; films
+        by Kurosawa, Ozu, Mizoguchi, Satyajit Ray, De Sica, Bu&ntilde;uel, and
+        Tarkovsky among them, across %(nlang)d languages beyond English. These titles
+        are offered for non-exclusive licensing across streaming, broadcast, and
+        digital platforms.</p>
 
-      <h2>Partner Catalogs</h2>
-      <p>%(bf)d titles from Blue Finch Film Releasing, %(sc)d from SC Films
+      <h2>Partner Collections</h2>
+      <p>%(bf)d titles from Blue Finch Film Releasing and %(sc)d from SC Films
         International. Independent features, horror, thriller, family titles.
-        We present them, they call the shots &mdash; availability, territory,
-        and terms confirmed direct with each company, per inquiry.</p>
-
-      <p>%(bf)d titles for Blue Finch Film Releasing &mdash; contemporary
-        independent features, weighted to the 2010s and 2020s, led by horror,
-        drama, and thriller. %(sc)d titles for SC Films International &mdash;
-        live action and family animation, with documentary and genre titles
-        alongside.</p>
+        We present them on their behalf &mdash; availability, territory, and terms
+        confirmed direct with each company, per inquiry.</p>
 
       <p>We are a licensing and distribution operation only &mdash; this site is
         a catalog and a contact form, not a streaming service.</p>
 
-      <p><a class="btn btn-solid" href="catalog.html">Browse the catalogs</a></p>
+      <p><a class="btn btn-solid" href="collections.html">Browse the collections</a></p>
     </div>
   </div>
 </section>
@@ -1161,9 +1269,152 @@ def build_about(films):
         "sc": len(in_catalog(films, "sc-films")),
         "nlang": len(langs),
     }
-    return page("About \u2014 %s" % SITE_NAME, body, "about.html")
+    return page(
+        "About — %s" % SITE_NAME,
+        body,
+        "about.html",
+    )
 
 
+# --------------------------------------------------------------------------
+# contact
+# --------------------------------------------------------------------------
+
+
+def build_contact():
+    body = """
+<section class="section section-cream">
+  <div class="wrap">
+    <div class="rule-head"><h1>Contact</h1></div>
+    <div class="prose">
+      <p>We handle all inquiries by email. There&rsquo;s no live chat or
+        booking calendar.</p>
+
+      <h2>Licensing inquiries</h2>
+      <p>To discuss a specific title or a package of titles, use the
+        <a href="licensing.html">licensing inquiry form</a> &mdash; it asks the
+        right questions up front and speeds up our reply.</p>
+
+      <h2>Film submissions</h2>
+      <p>If you have a film you&rsquo;d like us to consider, use the
+        <a href="submit.html">film submission form</a>.</p>
+
+      <h2>Everything else</h2>
+      <p>Email us at
+        <a href="mailto:hello@velvetoctopusfilms.com">hello@velvetoctopusfilms.com</a>.
+        We read every message and reply when we can.</p>
+
+      <h2>On TikTok</h2>
+      <p>Short clips, rare footage, and scenes that hold up: follow
+        <a href="%(tiktok)s" target="_blank" rel="noopener noreferrer">%(handle)s</a>.</p>
+    </div>
+  </div>
+</section>
+""" % {
+        "tiktok": e(TIKTOK_URL),
+        "handle": e(TIKTOK_HANDLE),
+    }
+    return page(
+        "Contact — %s" % SITE_NAME,
+        body,
+        "contact.html",
+        description="Contact Velvet Octopus Films for licensing inquiries, "
+        "film submissions, or general questions.",
+    )
+
+
+# --------------------------------------------------------------------------
+# privacy & terms
+# --------------------------------------------------------------------------
+
+
+def build_privacy():
+    body = """
+<section class="section section-cream">
+  <div class="wrap">
+    <div class="rule-head"><h1>Privacy &amp; terms</h1></div>
+    <div class="prose">
+      <div class="todo-flag">
+        <strong>TODO:</strong> Add your full privacy policy and terms of service here.
+        The placeholder below covers the basics.
+      </div>
+
+      <h2>What we collect</h2>
+      <p>When you submit a licensing inquiry or film submission, we collect
+        the information you enter in the form (name, email, company, and the
+        content of your message). We use it to reply to you and for nothing else.</p>
+
+      <h2>Analytics</h2>
+      <p>This site does not use analytics tracking. No cookies are set by this site.
+        No third-party scripts load on any page.</p>
+
+      <h2>Email</h2>
+      <p>We use <a href="https://resend.com" target="_blank" rel="noopener noreferrer">Resend</a>
+        to send transactional email (form acknowledgements). Resend receives the
+        email address you provide when submitting a form. See
+        <a href="https://resend.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Resend&rsquo;s
+        privacy policy</a> for how they handle that data.</p>
+
+      <h2>Contact</h2>
+      <p>Questions about this policy: <a href="mailto:hello@velvetoctopusfilms.com">hello@velvetoctopusfilms.com</a>.</p>
+    </div>
+  </div>
+</section>
+"""
+    return page(
+        "Privacy & terms — %s" % SITE_NAME,
+        body,
+        "privacy.html",
+        description="Privacy policy and terms of service for Velvet Octopus Films.",
+    )
+
+
+# --------------------------------------------------------------------------
+# 404
+# --------------------------------------------------------------------------
+
+
+def build_404():
+    body = """
+<section class="section section-cream">
+  <div class="wrap not-found">
+    <h1>404</h1>
+    <p>That page doesn&rsquo;t exist &mdash; or it moved.</p>
+    <a class="btn btn-solid" href="index.html">Back to the home page</a>
+  </div>
+</section>
+"""
+    return page(
+        "Page not found — %s" % SITE_NAME,
+        body,
+        "",
+        description="The page you were looking for doesn't exist.",
+    )
+
+
+# --------------------------------------------------------------------------
+# catalog.html redirect (old URL → collections.html)
+# --------------------------------------------------------------------------
+
+
+def build_catalog_redirect():
+    return """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0;url=collections.html">
+<link rel="canonical" href="collections.html">
+<title>Redirecting…</title>
+</head>
+<body>
+<p><a href="collections.html">Collections</a></p>
+</body>
+</html>
+"""
+
+
+# --------------------------------------------------------------------------
+# main
 # --------------------------------------------------------------------------
 
 
@@ -1172,35 +1423,42 @@ def main():
     COUNTS["total"] = len(films)
     for c in CATALOGS:
         COUNTS[c["key"]] = len(in_catalog(films, c["key"]))
+
     if os.path.isdir(DIST):
         shutil.rmtree(DIST)
     os.makedirs(os.path.join(DIST, "films"))
     shutil.copytree(ASSETS, os.path.join(DIST, "assets"))
-    # A custom domain is one file: put the bare hostname in ./CNAME and it
-    # rides along into the published artifact. GitHub Pages needs it inside
-    # the deployed output, not just in the repo, because this deploys from a
-    # workflow rather than from a branch. No file, no custom domain -- the
-    # project URL keeps working.
+
     cname = os.path.join(HERE, "CNAME")
     if os.path.isfile(cname):
         shutil.copy2(cname, os.path.join(DIST, "CNAME"))
 
     def write(rel, content):
         path = os.path.join(DIST, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as fh:
             fh.write(content)
 
     write("index.html", build_home(films))
-    write("catalog.html", build_catalog(films))
+    write("collections.html", build_collections(films))
+    write("catalog.html", build_catalog_redirect())  # old URL redirect
     write("browse.html", build_browse(films))
     write("licensing.html", build_licensing(films))
+    write("submit.html", build_submit())
     write("about.html", build_about(films))
+    write("contact.html", build_contact())
+    write("privacy.html", build_privacy())
+    write("404.html", build_404())
+
     for f in films:
         write(os.path.join("films", f["slug"] + ".html"), build_film(f, films))
 
-    # sitemap + robots help buyers' procurement teams find titles by search
-    urls = ["index.html", "catalog.html", "browse.html", "licensing.html", "about.html"]
+    urls = [
+        "index.html", "collections.html", "browse.html", "licensing.html",
+        "submit.html", "about.html", "contact.html", "privacy.html",
+    ]
     urls += ["films/%s.html" % f["slug"] for f in films]
+
     if SITE_BASE:
         write(
             "sitemap.xml",
@@ -1216,12 +1474,10 @@ def main():
             "User-agent: *\nAllow: /\nSitemap: %s/sitemap.xml\n" % SITE_BASE,
         )
     else:
-        # Without a known origin a sitemap would carry wrong URLs, which is
-        # worse than shipping none.
         write("robots.txt", "User-agent: *\nAllow: /\n")
-        urls = urls[:0] or urls
 
-    print("built %d pages into dist/" % (len(urls) + (2 if SITE_BASE else 1)))
+    total_pages = len(urls) + (2 if SITE_BASE else 1)
+    print("built %d pages into dist/" % total_pages)
     if not SITE_BASE:
         print("  no SITE_BASE set — sitemap.xml skipped")
     print("  %d film pages" % len(films))
