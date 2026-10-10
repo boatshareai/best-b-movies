@@ -1052,12 +1052,12 @@ body {
   align-items: start;
 }
 
-.foot-logo {
-  height: 18px;
-  width: auto;
-  opacity: 0.4;
+.foot-brand-link {
+  text-decoration: none;
   margin-bottom: 14px;
+  opacity: 0.65;
 }
+.foot-brand-link:hover { opacity: 1; }
 
 .foot-tag {
   font-size: 13px;

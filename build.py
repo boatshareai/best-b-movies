@@ -393,8 +393,14 @@ def page(title, body, current, depth=0, description="",
 <footer class="site-foot">
   <div class="wrap">
     <div class="foot-brand">
-      <img class="foot-logo" src="%(up)sassets/brand/logo-icon-simple.svg"
-           alt="Velvet Octopus Films" width="32" height="32" decoding="async" loading="lazy">
+      <a class="brand foot-brand-link" href="%(up)sindex.html" aria-label="Velvet Octopus Films — home">
+        <img class="brand-icon" src="%(up)sassets/brand/logo-icon-simple.svg"
+             alt="" width="32" height="32" decoding="async" loading="lazy">
+        <span class="brand-name">
+          <span class="brand-wordmark">ve<span class="brand-bar">|</span>vet<strong>octopus</strong></span>
+          <span class="brand-films">FILMS</span>
+        </span>
+      </a>
       <p class="foot-tag">%(foot_tagline)s</p>
       <p class="foot-copy">&copy; %(year)d Velvet Octopus Films.
         Licensing inquiries only — this site does not stream or sell films.</p>
@@ -631,19 +637,19 @@ def build_home(films):
     <div class="tiles">
       <div class="tile">
         <span class="label">Three collections, one inquiry</span>
-        <span class="sub">%(cfv)d titles in the Best B Movies library, plus
+        <span class="sub">%(cfv)d titles in the Velvet Octopus library, plus
           %(bf)d for Blue Finch Film Releasing and %(sc)d for SC Films
           International. Every title page says which.</span>
       </div>
       <div class="tile">
         <span class="label">Terms stated, not implied</span>
-        <span class="sub">Best B Movies titles are offered non-exclusively,
+        <span class="sub">Velvet Octopus titles are offered non-exclusively,
           territory and term per deal. Agency-represented titles carry no assumed
           position &mdash; availability is confirmed per inquiry.</span>
       </div>
       <div class="tile">
         <span class="label">Nothing hidden</span>
-        <span class="sub">%(licensed)d Best B Movies titles currently carry a
+        <span class="sub">%(licensed)d Velvet Octopus titles currently carry a
           non-exclusive licence with another platform. They are flagged in the
           catalog and remain available to license.</span>
       </div>
@@ -711,7 +717,7 @@ def build_collections(films):
         body,
         "collections.html",
         canonical_path="collections.html",
-        description="Three collections totalling %d titles: Best B Movies, "
+        description="Three collections totalling %d titles: Velvet Octopus, "
         "Blue Finch Film Releasing, and SC Films International."
         % len(films),
     )
@@ -1146,7 +1152,7 @@ def build_licensing(films):
       <p>%(terms)s</p>
       <p>Alongside that library we represent %(bf)d titles for Blue Finch Film
         Releasing and %(sc)d for SC Films International — %(total)d titles
-        in all. The paragraph above sets out the terms for the Best B Movies
+        in all. The paragraph above sets out the terms for the Velvet Octopus
         library specifically; for agency-represented titles we hold no
         assumed rights position, and availability, territory, and terms are
         confirmed per inquiry. Every title page states which collection the film
@@ -1241,7 +1247,7 @@ def build_licensing(films):
         "licensing.html",
         canonical_path="licensing.html",
         description="Licensing terms and inquiry form for %d titles across the "
-        "Best B Movies, Blue Finch, and SC Films International collections."
+        "Velvet Octopus, Blue Finch, and SC Films International collections."
         % len(films),
     )
 
