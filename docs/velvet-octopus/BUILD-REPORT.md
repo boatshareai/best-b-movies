@@ -216,6 +216,31 @@ The site shipped without analytics and remains that way. Confirmed by CSP: `conn
 
 ---
 
+---
+
+## Design pass — PASS / FIXED table
+
+Branch: `velvet-octopus`  
+Date: 2026-10-10
+
+| # | Item | Status | Evidence |
+|---|---|---|---|
+| 1 | Cinema dark color tokens | **DONE** | `assets/site.css` rewritten. Tokens: `--ground #0E0915`, `--surface #181022`, `--line #2C2139`, `--cream #F4EBDD`, `--muted #B8A9CC`, `--velvet #5B2A86` (accent only), `--gold #F2B84B` (one primary action per page). |
+| 2 | Slim 64px header | **DONE** | `site-head` is `height: 64px; background: var(--ground); border-bottom: 1px solid var(--line)`. No purple band. |
+| 3 | Left-aligned hero, no flat purple | **DONE** | `build_home()` hero: two-line h1 at `clamp(48px,7vw,88px)` weight 300, sub, stats, one gold CTA. `hero-logo`, `hero-split`, `pitch` all hidden. |
+| 4 | Poster-first cards (2:3, 4px, no shadows) | **DONE** | `.film-card .poster { aspect-ratio: 2/3; border-radius: 4px; outline: 1px solid transparent; }` — hover lifts 4px and adds `outline-color: var(--velvet)`. |
+| 5 | Browse: sticky filter bar with pill selects | **DONE** | `build_browse()` rewritten: `.filter-row` with `.filter-search`, `.filter-pill` selects, `.filter-check` checkbox labels. Same element IDs. `catalog.js` adds `data-active="1"` for velvet highlight. |
+| 6 | Browse: 6-column poster grid | **DONE** | `card-grid` uses `grid-template-columns: repeat(6,1fr)` down to 2 columns at 480px. |
+| 7 | Film page: blurred poster backdrop | **DONE** | `build_film()` emits `<div class="film-backdrop"><img class="backdrop-img" …></div>` when poster exists. CSS: `filter: blur(80px) brightness(0.10) saturate(1.6); transform: scale(1.15)`. CSP-safe: `img-src 'self'`. |
+| 8 | Film page: Watch + License CTAs side by side | **DONE** | `build_film()` emits `.film-ctas` div with `yt-trigger` button (when youtube_id set) + gold license button in film-head. |
+| 9 | Gold used once per page only | **DONE** | `--gold` used only on `.btn-gold` (one per page). All other buttons are cream outline. No `--gold` fills on backgrounds, sections, or borders. |
+| 10 | Removed heavy fills and drop shadows | **DONE** | `box-shadow` removed from all cards, `.section-cream` and `.section-white` both map to `background: var(--ground)`. No flat purple sections. |
+| 11 | WCAG AA contrast check | **PASS** | `python3 scripts/check_contrast.py` — 15/15 pairs pass. Lowest: `--muted` on `--surface` at 8.44:1 (need 4.5:1). Worst case (gold button): `--ground` on `--gold` at 10.98:1. |
+| 12 | Screenshots | **DONE** | 6 images in `docs/velvet-octopus/screenshots/`: home-375/1280, browse-375/1280, film-375/1280. Film shown: *A Bittersweet Life* (2005). |
+| 13 | Link check after rebuild | **PASS** | `python3 scripts/check_links.py` — 16,413 links across 471 pages, 0 broken. |
+
+---
+
 ## Open TODOs
 
 | Item | File | Notes |

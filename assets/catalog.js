@@ -154,7 +154,19 @@
     history.replaceState(null, "", s ? "?" + s : location.pathname);
   }
 
-  function onChange() { pushUrl(); render(); }
+  function syncPillState() {
+    [catSel, genreSel, decadeSel, langSel, runtimeSel, statusSel, sortSel].forEach(function (el) {
+      if (!el) return;
+      if (el.value && el.value !== el.options[0].value) {
+        el.dataset.active = "1";
+      } else {
+        delete el.dataset.active;
+      }
+    });
+    if (q) q.dataset.active = q.value ? "1" : "";
+  }
+
+  function onChange() { pushUrl(); syncPillState(); render(); }
 
   [catSel, genreSel, decadeSel, langSel, runtimeSel, statusSel, sortSel].forEach(function (el) {
     if (el) el.addEventListener("change", onChange);
@@ -173,10 +185,12 @@
       if (intlCb) intlCb.checked = false;
       if (sortSel) sortSel.value = "t";
       pushUrl();
+      syncPillState();
       render();
     });
   }
 
   readUrl();
+  syncPillState();
   render();
 })();

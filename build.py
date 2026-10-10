@@ -31,7 +31,7 @@ NOINDEX = bool(os.environ.get("NOINDEX", ""))
 
 SITE_NAME = "Velvet Octopus Films"
 SITE_TAGLINE = "Films worth a second look."
-SITE_FOOT_TAGLINE = "Eight arms. One big library."
+SITE_FOOT_TAGLINE = "Films worth a second look."
 TIKTOK_URL = "https://www.tiktok.com/@thelostfilmfiles"
 TIKTOK_HANDLE = "@thelostfilmfiles"
 SITE_CONTACT_EMAIL = "hello@velvetoctopusfilms.com"
@@ -81,20 +81,20 @@ LICENSING_TERMS = (
     "the 1930s to today. Titles are available for non-exclusive licensing across "
     "streaming, broadcast, and digital platforms, with territory and term "
     "negotiated per deal. Some titles currently carry a non-exclusive license "
-    "with another platform — this doesn’t prevent additional licensing, and "
+    "with another platform — this doesn't prevent additional licensing, and "
     "any existing arrangement will be disclosed during the inquiry process. "
-    "Reach out with the titles or volume you’re interested in, and we’ll follow "
+    "Reach out with the titles or volume you're interested in, and we'll follow "
     "up with availability, territory, and rate details."
 )
 
 CONFIRMATION = (
-    "Thanks — we’ve got your inquiry and will follow up within a few "
+    "Thanks — we've got your inquiry and will follow up within a few "
     "business days with availability and terms. — Velvet Octopus Films"
 )
 
 SUBMISSION_CONFIRMATION = (
-    "Thanks — we’ve received your submission and will be in touch "
-    "if it’s a good fit. — Velvet Octopus Films"
+    "Thanks — we've received your submission and will be in touch "
+    "if it's a good fit. — Velvet Octopus Films"
 )
 
 USE_OPTIONS = [
@@ -147,7 +147,7 @@ FEATURED = [
         [
             "A Bronx Tale",
             "Papillon",
-            "Dead Man’s Shoes",
+            "Dead Man's Shoes",
             "Frances Ha",
             "The Player",
             "A Bittersweet Life",
@@ -469,10 +469,10 @@ def build_featured(films, keys=None, start=0, as_index=False):
             continue
         cards = []
         for want in titles:
-            want_norm = want.strip().lower().replace("’", "'").replace("‘", "'")
+            want_norm = want.strip().lower().replace("'", "'").replace("'", "'")
             f = None
             for (title_lower, ckey), film in by_key.items():
-                if ckey == cat_key and title_lower.replace("’", "'").replace("‘", "'") == want_norm:
+                if ckey == cat_key and title_lower.replace("'", "'").replace("'", "'") == want_norm:
                     f = film
                     break
             if f is None:
@@ -577,18 +577,25 @@ def build_home(films):
     body = """
 <section class="hero">
   <div class="wrap">
-    <img class="hero-logo" src="assets/brand/logo-stacked.svg"
-         alt="Velvet Octopus Films" width="200" height="140" decoding="async">
-    <h1>Films worth a second look.</h1>
-    <p class="pitch">An independent film library available for licensing. Our own
-      collection runs from the 1930s to today. We also present select catalogs for
-      Blue Finch Film Releasing and SC Films International.</p>
-    <ul class="hero-split">
-%(split)s
-    </ul>
+    <h1>Films worth<br>a second look.</h1>
+    <p class="hero-sub">An independent film library for licensing &mdash;
+      classic Hollywood, international cinema, and contemporary independent features.</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="stat-n">%(cfv)d</span>
+        <span class="stat-label">Best B Movies</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-n">%(bf)d</span>
+        <span class="stat-label">Blue Finch</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-n">%(sc)d</span>
+        <span class="stat-label">SC Films</span>
+      </div>
+    </div>
     <div class="hero-actions">
       <a class="btn btn-gold" href="browse.html">Browse all %(total)d titles</a>
-      <a class="btn btn-ghost" href="licensing.html">Licensing inquiry</a>
     </div>
   </div>
 </section>
@@ -748,82 +755,74 @@ def build_browse(films):
   <div class="wrap">
     <div class="rule-head"><h1>Browse titles</h1></div>
     <p class="lede">%(total)d titles across all three collections.
-      <a href="collections.html">Browse by collection</a> instead, or filter below.
-      Every card shows which collection represents the title.</p>
+      <a href="collections.html">Browse by collection</a> instead, or filter below.</p>
+  </div>
+</section>
 
-    <form class="filters" id="filters" role="search" aria-label="Filter titles">
-      <div class="filter-grid">
-        <div class="field search-field">
-          <label for="q">Search title or logline</label>
-          <input type="search" id="q" name="q" placeholder="e.g. Stagecoach, A Bronx Tale, Dragonkeeper" autocomplete="off">
-        </div>
-        <div class="field">
-          <label for="catalog">Collection</label>
-          <select id="catalog"><option value="">All collections</option>%(cats)s</select>
-        </div>
-        <div class="field">
-          <label for="genre">Genre</label>
-          <select id="genre"><option value="">All genres</option>%(genres)s</select>
-        </div>
-        <div class="field">
-          <label for="decade">Decade</label>
-          <select id="decade">
-            <option value="">All decades</option>%(decades)s
-            <option value="__none">Not listed</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="lang">Language</label>
-          <select id="lang">
-            <option value="">All languages</option>%(langs)s
-            <option value="__none">Not specified</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="runtime">Runtime</label>
-          <select id="runtime">
-            <option value="">Any runtime</option>
-            <option value="0-79">Under 80 min</option>
-            <option value="80-99">80&ndash;99 min</option>
-            <option value="100-119">100&ndash;119 min</option>
-            <option value="120-999">120 min and over</option>
-            <option value="__none">Not listed</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="status">Licensing status</label>
-          <select id="status"><option value="">Any status</option>%(statuses)s</select>
-        </div>
-        <div class="field">
-          <label for="yt">
-            <input type="checkbox" id="yt" name="yt" value="1">
-            Watch on YouTube only
-          </label>
-        </div>
-        <div class="field">
-          <label for="intl">
-            <input type="checkbox" id="intl" name="intl" value="1">
-            Non-English only
-          </label>
-        </div>
-        <div class="field">
-          <label for="sort">Sort by</label>
-          <select id="sort">
-            <option value="t">Title A&ndash;Z</option>
-            <option value="y_desc">Year (newest first)</option>
-            <option value="y_asc">Year (oldest first)</option>
-          </select>
-        </div>
-      </div>
-      <div class="filter-foot">
-        <p class="result-count" id="count" role="status" aria-live="polite"></p>
-        <button type="button" class="link-btn" id="reset">Clear all filters</button>
-      </div>
-    </form>
+<form class="filters" id="filters" role="search" aria-label="Filter titles">
+  <div class="wrap">
+    <div class="filter-row">
+      <label class="vh" for="q">Search</label>
+      <input type="search" id="q" name="q" class="filter-search"
+             placeholder="Search titles and loglines&hellip;" autocomplete="off">
+      <label class="vh" for="catalog">Collection</label>
+      <select id="catalog" class="filter-pill">
+        <option value="">All collections</option>%(cats)s
+      </select>
+      <label class="vh" for="genre">Genre</label>
+      <select id="genre" class="filter-pill">
+        <option value="">All genres</option>%(genres)s
+      </select>
+      <label class="vh" for="decade">Decade</label>
+      <select id="decade" class="filter-pill">
+        <option value="">All decades</option>%(decades)s
+        <option value="__none">Not listed</option>
+      </select>
+      <label class="vh" for="lang">Language</label>
+      <select id="lang" class="filter-pill">
+        <option value="">All languages</option>%(langs)s
+        <option value="__none">Not specified</option>
+      </select>
+      <label class="vh" for="runtime">Runtime</label>
+      <select id="runtime" class="filter-pill">
+        <option value="">Any runtime</option>
+        <option value="0-79">Under 80 min</option>
+        <option value="80-99">80&ndash;99 min</option>
+        <option value="100-119">100&ndash;119 min</option>
+        <option value="120-999">120 min+</option>
+        <option value="__none">Not listed</option>
+      </select>
+      <label class="vh" for="status">Status</label>
+      <select id="status" class="filter-pill">
+        <option value="">Any status</option>%(statuses)s
+      </select>
+      <label class="filter-check">
+        <input type="checkbox" id="yt" name="yt" value="1">
+        YouTube
+      </label>
+      <label class="filter-check">
+        <input type="checkbox" id="intl" name="intl" value="1">
+        Non-English
+      </label>
+      <label class="vh" for="sort">Sort</label>
+      <select id="sort" class="filter-pill">
+        <option value="t">A &ndash; Z</option>
+        <option value="y_desc">Newest first</option>
+        <option value="y_asc">Oldest first</option>
+      </select>
+    </div>
+    <div class="filter-foot">
+      <span class="result-count" id="count" role="status" aria-live="polite"></span>
+      <button type="button" class="link-btn" id="reset">Clear</button>
+    </div>
+  </div>
+</form>
 
+<section class="section">
+  <div class="wrap">
     <div class="card-grid" id="rows" aria-live="polite" aria-label="Search results"></div>
     <div class="empty" id="empty" hidden>
-      <p><strong>No titles match those filters.</strong></p>
+      <strong>No titles match those filters.</strong>
       <p>Try clearing a filter, or <a href="licensing.html">ask us about the full catalog</a>.</p>
     </div>
   </div>
@@ -961,22 +960,45 @@ def build_film(f, films):
         %s
       </div>""" % e(f["why_watch"])
 
-    # Watch section (Kino Lorber pattern: Watch ≠ License)
-    yt_id = f.get("youtube_id", "")
-    if yt_id:
-        watch_block = youtube_embed(yt_id) + '\n    <script src="../assets/yt-embed.js"></script>'
+    # Blurred backdrop (CSS-only, CSP-safe: img-src 'self')
+    poster_name = (f.get("poster") or "").strip()
+    if poster_name:
+        backdrop_html = (
+            '<div class="film-backdrop">'
+            '<img class="backdrop-img" src="../assets/posters/%s" alt="" aria-hidden="true">'
+            '</div>' % e(poster_name)
+        )
     else:
-        watch_block = ""
+        backdrop_html = ""
 
-    # License section: own catalog uses inquiry form with catalog+title prefilled;
-    # agency catalog links out to agency page when source_url exists
+    # CTAs: Watch (yt-trigger) + License side by side in film-head
+    yt_id = f.get("youtube_id", "")
     inquire_qs = urllib.parse.urlencode({
         "title": f["title"],
         "catalog": f["catalog_name"],
     })
     inquire = "../licensing.html?" + inquire_qs
     source_url = (f.get("source_url") or "").strip()
+
+    if yt_id:
+        watch_btn = (
+            '<button class="btn btn-outline yt-trigger" type="button" '
+            'data-yt-id="%(vid)s" aria-label="Watch on YouTube — opens player">'
+            '<span class="yt-play-icon" aria-hidden="true">&#9654;</span> Watch'
+            '</button>' % {"vid": e(yt_id)}
+        )
+        watch_script = '\n<script src="../assets/yt-embed.js"></script>'
+    else:
+        watch_btn = ""
+        watch_script = ""
+
     if f["catalog"] != "best-b-movies" and source_url:
+        license_btn = (
+            '<a class="btn btn-gold btn-ext" href="%(url)s" '
+            'target="_blank" rel="noopener noreferrer">License via %(name)s'
+            '<span class="vh"> (opens in a new tab)</span></a>'
+            % {"name": e(f["catalog_name"]), "url": e(source_url)}
+        )
         cta = (
             "<p>Territory and term are negotiated per deal. %(name)s handles "
             "enquiries for this title — their page carries the current details.</p>\n"
@@ -986,11 +1008,16 @@ def build_film(f, films):
             % {"name": e(f["catalog_name"]), "url": e(source_url)}
         )
     else:
+        license_btn = '<a class="btn btn-gold" href="%s">License this film</a>' % e(inquire)
         cta = (
             "<p>Territory and term are negotiated per deal. "
-            "Send us this title and we’ll come back with availability and rates.</p>\n"
+            "Send us this title and we'll come back with availability and rates.</p>\n"
             '      <a class="btn btn-gold" href="%s">License this film</a>' % e(inquire)
         )
+
+    ctas_html = ""
+    if watch_btn or license_btn:
+        ctas_html = '<div class="film-ctas">%s%s</div>' % (watch_btn, license_btn)
 
     # Related films: same genre, same catalog, up to 5
     related_genres = f["genre_list"][:1]
@@ -1014,6 +1041,7 @@ def build_film(f, films):
 </section>""" % rcards
 
     body = """
+%(backdrop)s
 <section class="film-head">
   <div class="wrap">
     <p class="crumbs"><a href="../index.html">Home</a> &rsaquo;
@@ -1026,6 +1054,7 @@ def build_film(f, films):
         <div class="film-meta">%(meta)s</div>
         <span class="badge %(bcls)s badge-lg">%(btxt)s</span>
         %(rep)s
+        %(ctas)s
       </div>
     </div>
   </div>
@@ -1034,7 +1063,6 @@ def build_film(f, films):
 <div class="wrap">
   <div class="film-body">
     <div>
-      %(watch_block)s
       %(why_block)s
       <h2>Synopsis</h2>
       %(synopsis)s
@@ -1055,7 +1083,7 @@ def build_film(f, films):
     </aside>
   </div>
 </div>
-%(related)s
+%(related)s%(watch_script)s
 """ % {
         "title": e(f["title"]),
         "meta": meta_html,
@@ -1069,9 +1097,11 @@ def build_film(f, films):
         "tags": tags,
         "licence_note": e(f["licence_note"]),
         "cta": cta,
-        "watch_block": watch_block,
+        "ctas": ctas_html,
+        "backdrop": backdrop_html,
         "why_block": why_block,
         "related": related_html,
+        "watch_script": watch_script,
     }
 
     year = " (%s)" % f["year"] if f["year"] else ""
@@ -1555,7 +1585,7 @@ def build_404():
         "Page not found — %s" % SITE_NAME,
         body,
         "",
-        description="The page you were looking for doesn’t exist.",
+        description="The page you were looking for doesn't exist.",
     )
 
 
