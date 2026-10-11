@@ -20,6 +20,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -178,7 +179,7 @@ def monogram(title):
 
 
 def poster_art(f, prefix="", w=300, h=450):
-    """Real key art when the row has a poster; monogram placeholder otherwise.
+    """Real key art when the row has a poster; title-text placeholder otherwise.
     alt="" is intentional: the title is always adjacent as real text."""
     name = (f.get("poster") or "").strip()
     if name:
@@ -186,7 +187,7 @@ def poster_art(f, prefix="", w=300, h=450):
             '<img src="%sassets/posters/%s" alt="" loading="lazy" '
             'decoding="async" width="%d" height="%d">' % (prefix, e(name), w, h)
         )
-    return '<span class="mono" aria-hidden="true">%s</span>' % e(monogram(f["title"]))
+    return '<span class="card-typo-title" aria-hidden="true">%s</span>' % e(f["title"])
 
 
 def poster_url(f, prefix=""):
@@ -440,6 +441,44 @@ def still_exists(slug):
     return os.path.isfile(os.path.join(ASSETS, "stills", slug + ".webp"))
 
 
+def still_width(slug):
+    """Return pixel width of assets/stills/<slug>.webp using sips, or 0 on error."""
+    path = os.path.join(ASSETS, "stills", slug + ".webp")
+    if not os.path.isfile(path):
+        return 0
+    try:
+        result = subprocess.run(
+            ["sips", "-g", "pixelWidth", path],
+            capture_output=True, text=True, check=True,
+        )
+        for line in result.stdout.splitlines():
+            line = line.strip()
+            if line.startswith("pixelWidth:"):
+                return int(line.split(":")[1].strip())
+    except Exception:
+        pass
+    return 0
+
+
+def load_posters_csv():
+    """Return dict keyed by slug from data/posters.csv, or {} if file absent."""
+    path = os.path.join(HERE, "data", "posters.csv")
+    if not os.path.exists(path):
+        return {}
+    result = {}
+    with open(path, newline="", encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            slug = (row.get("slug") or "").strip()
+            if slug:
+                result[slug] = {k: v.strip() for k, v in row.items()}
+    return result
+
+
+def poster_file_exists(slug):
+    """Return True if assets/posters/<slug>.jpg was imported (exists on disk)."""
+    return os.path.isfile(os.path.join(ASSETS, "posters", slug + ".jpg"))
+
+
 def shelf_card_html(f, up=""):
     """16:9 still card or typographic fallback for a shelf (mock card pattern)."""
     slug = f["slug"]
@@ -618,12 +657,12 @@ def build_featured(films, keys=None, start=0, as_index=False):
             kicker = (
                 "Our own library"
                 if cat_key == OWN_CATALOG
-                else "Presented on behalf of the rights holder"
+                else "Represented collection"
             )
-            eyebrow = '    <p class="eyebrow">%s</p>\n' % e(kicker)
+            eyebrow = '    <p class="cat-eyebrow">%s</p>\n' % e(kicker)
             # blurb = full description; reason = one-line curation note
-            line = '    <p class="cat-line">%d titles. %s</p>\n    <p class="cat-reason muted">%s</p>\n' % (
-                n, e(cat["blurb"]), e(cat["reason"])
+            line = '    <p class="cat-line">%d titles. %s</p>\n' % (
+                n, e(cat["blurb"])
             )
             link = "Browse this collection &rsaquo;"
         else:
@@ -669,40 +708,101 @@ def build_home(films):
     total = len(films)
     cfv = in_catalog(films, "best-b-movies")
 
-    # Featured film: first with 'featured' flag, else first with still+youtube_id, else first with still
-    featured_film = None
-    for f in cfv:
-        if f.get("featured", "").strip().lower() in ("yes", "1", "true"):
-            if still_exists(f["slug"]):
-                featured_film = f
-                break
-    if not featured_film:
-        for f in cfv:
-            if still_exists(f["slug"]) and f.get("youtube_id", "").strip():
-                featured_film = f
-                break
-    if not featured_film:
-        for f in cfv:
-            if still_exists(f["slug"]):
-                featured_film = f
-                break
+    # --- Check for hero.json override ---
+    hero_json_path = os.path.join(ASSETS, "hero", "hero.json")
+    hero_webp_path = os.path.join(ASSETS, "hero", "hero.webp")
+    use_hero_json = os.path.isfile(hero_json_path) and os.path.isfile(hero_webp_path)
 
-    # Hero HTML
-    if featured_film:
-        slug = featured_film["slug"]
-        hero_title = featured_film["title"]
-        hero_year = featured_film["year"]
-        yt_id = featured_film.get("youtube_id", "").strip()
+    if use_hero_json:
+        with open(hero_json_path, encoding="utf-8") as fh:
+            hj = json.load(fh)
+        hero_title = (hj.get("title") or "").strip()
+        hero_year = str(hj.get("year") or "").strip()
+        hero_slug = (hj.get("slug") or "").strip()
+        focus_x = int(hj.get("focus_x", 50))
+        focus_y = int(hj.get("focus_y", 50))
+        yt_id = (hj.get("youtube_id") or "").strip()
         yt_link = (
             '<a href="https://www.youtube.com/watch?v=%s"> Watch on YouTube →</a>' % e(yt_id)
             if yt_id else ""
         )
+        if hero_slug:
+            film_link_open = '<a href="films/%s.html">' % e(hero_slug)
+            film_link_close = '</a>'
+        else:
+            film_link_open = film_link_close = ""
         featured_credit = (
             '<p class="featured"><span class="tag">Featured</span> '
-            '<b>%(hero_title)s (%(hero_year)s)</b>%(yt_link)s</p>'
-        ) % {"hero_title": e(hero_title), "hero_year": e(hero_year), "yt_link": yt_link}
+            '%(link_open)s<b>%(hero_title)s%(year_part)s</b>%(link_close)s%(yt_link)s</p>'
+        ) % {
+            "hero_title": e(hero_title),
+            "year_part": (" (%s)" % e(hero_year)) if hero_year else "",
+            "yt_link": yt_link,
+            "link_open": film_link_open,
+            "link_close": film_link_close,
+        }
 
         hero_section = """<section class="hero">
+  <img class="hero-img" src="assets/hero/hero.webp"
+       srcset="assets/hero/hero-1280.webp 1280w, assets/hero/hero.webp 1920w"
+       sizes="100vw" width="1920" height="1080"
+       style="object-position: %(focus_x)d%% %(focus_y)d%%"
+       alt="%(alt)s" fetchpriority="high" decoding="async">
+  <div class="hero-inner">
+    <p class="eyebrow">Velvet Octopus Films</p>
+    <h1>A library of<br>classic films.</h1>
+    <p class="sub">%(total)d films, from 1930s Hollywood noir and B-westerns to landmark world cinema. Watch on YouTube, or license a film for your platform.</p>
+    <div class="actions">
+      <a class="btn btn-gold" href="browse.html">Browse the films</a>
+      <a class="btn btn-line" href="licensing.html">License a film</a>
+    </div>
+    %(featured_credit)s
+  </div>
+</section>""" % {
+            "focus_x": focus_x,
+            "focus_y": focus_y,
+            "alt": e("%s%s" % (hero_title, (" (%s)" % hero_year) if hero_year else "")),
+            "total": total,
+            "featured_credit": featured_credit,
+        }
+
+    else:
+        # Featured film: first with 'featured' flag, else first with still+youtube_id, else first
+        # with still. Skip stills narrower than 1280px.
+        featured_film = None
+        for f in cfv:
+            if f.get("featured", "").strip().lower() in ("yes", "1", "true"):
+                if still_exists(f["slug"]) and still_width(f["slug"]) >= 1280:
+                    featured_film = f
+                    break
+        if not featured_film:
+            for f in cfv:
+                if still_exists(f["slug"]) and f.get("youtube_id", "").strip():
+                    if still_width(f["slug"]) >= 1280:
+                        featured_film = f
+                        break
+        if not featured_film:
+            for f in cfv:
+                if still_exists(f["slug"]) and still_width(f["slug"]) >= 1280:
+                    featured_film = f
+                    break
+
+        # Hero HTML
+        if featured_film:
+            slug = featured_film["slug"]
+            hero_title = featured_film["title"]
+            hero_year = featured_film["year"]
+            yt_id = featured_film.get("youtube_id", "").strip()
+            yt_link = (
+                '<a href="https://www.youtube.com/watch?v=%s"> Watch on YouTube →</a>' % e(yt_id)
+                if yt_id else ""
+            )
+            featured_credit = (
+                '<p class="featured"><span class="tag">Featured</span> '
+                '<b>%(hero_title)s (%(hero_year)s)</b>%(yt_link)s</p>'
+            ) % {"hero_title": e(hero_title), "hero_year": e(hero_year), "yt_link": yt_link}
+
+            hero_section = """<section class="hero">
   <img class="hero-img" src="assets/stills/%(slug)s.webp"
        srcset="assets/stills/%(slug)s-480.webp 480w, assets/stills/%(slug)s.webp 1280w"
        sizes="100vw" width="1280" height="720"
@@ -718,15 +818,15 @@ def build_home(films):
     %(featured_credit)s
   </div>
 </section>""" % {
-            "slug": e(slug),
-            "hero_title_e": e(hero_title),
-            "hero_year_e": e(hero_year),
-            "total": total,
-            "featured_credit": featured_credit,
-        }
-    else:
-        # Fallback: no still available
-        hero_section = """<section class="hero hero-no-still">
+                "slug": e(slug),
+                "hero_title_e": e(hero_title),
+                "hero_year_e": e(hero_year),
+                "total": total,
+                "featured_credit": featured_credit,
+            }
+        else:
+            # Fallback: no still available (or none wide enough)
+            hero_section = """<section class="hero hero-no-still">
   <div class="hero-inner">
     <img class="hero-logo-bg" src="assets/brand/logo-icon-simple.svg" alt="" aria-hidden="true" width="320" height="320">
     <p class="eyebrow">Velvet Octopus Films</p>
@@ -1018,7 +1118,7 @@ def youtube_embed(youtube_id):
     </div>""" % {"vid": vid}
 
 
-def build_film(f, films):
+def build_film(f, films, posters_dict=None):
     badge_cls, badge_txt = badge(f["status"])
 
     meta = []
@@ -1088,6 +1188,39 @@ def build_film(f, films):
         <span class="why-label">Why watch</span>
         %s
       </div>""" % e(f["why_watch"])
+
+    # Poster beside facts (imported via import_posters.py / find_posters.py)
+    slug = f["slug"]
+    if posters_dict is None:
+        posters_dict = {}
+    facts_poster_html = ""
+    if poster_file_exists(slug):
+        poster_row = posters_dict.get(slug, {})
+        poster_credit = ""
+        author = (poster_row.get("author") or "").strip()
+        license_txt = (poster_row.get("license") or "").strip()
+        if author or license_txt:
+            parts = [p for p in [author, license_txt] if p]
+            poster_credit = " / ".join(parts)
+        poster_credit_html = (
+            '<p class="poster-credit">%s</p>' % e(poster_credit)
+            if poster_credit else ""
+        )
+        facts_poster_html = (
+            '<div class="film-facts-poster">'
+            '<img src="../assets/posters/%(slug)s.jpg"'
+            ' srcset="../assets/posters/%(slug)s-480.jpg 480w,'
+            ' ../assets/posters/%(slug)s.jpg 1000w"'
+            ' sizes="(max-width:767px) 140px, 180px"'
+            ' width="180" height="270" loading="lazy" decoding="async"'
+            ' alt="Poster for %(title)s">'
+            '%(credit)s'
+            '</div>'
+        ) % {
+            "slug": e(slug),
+            "title": e(f["title"]),
+            "credit": poster_credit_html,
+        }
 
     # Blurred backdrop (CSS-only, CSP-safe: img-src 'self')
     poster_name = (f.get("poster") or "").strip()
@@ -1218,9 +1351,12 @@ def build_film(f, films):
       %(synopsis)s
 
       <h2>Details</h2>
-      <dl class="spec">
+      <div class="film-facts-row">
+        <dl class="spec">
     %(spec)s
-      </dl>
+        </dl>
+        %(facts_poster)s
+      </div>
 
       <h2 class="browse-similar-head">Browse similar</h2>
       <div class="tag-row">%(tags)s</div>
@@ -1253,6 +1389,7 @@ def build_film(f, films):
         "why_block": why_block,
         "related": related_html,
         "watch_script": watch_script,
+        "facts_poster": facts_poster_html,
     }
 
     year = " (%s)" % f["year"] if f["year"] else ""
@@ -1876,8 +2013,9 @@ def main():
     write("privacy.html", build_privacy())
     write("404.html", build_404())
 
+    posters_dict = load_posters_csv()
     for f in films:
-        write(os.path.join("films", f["slug"] + ".html"), build_film(f, films))
+        write(os.path.join("films", f["slug"] + ".html"), build_film(f, films, posters_dict))
 
     urls = [
         "index.html", "collections.html", "browse.html", "licensing.html",
