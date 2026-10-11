@@ -812,14 +812,33 @@ def build_home(films):
 # --------------------------------------------------------------------------
 
 
+COLLECTION_DESCRIPTIONS = {
+    "best-b-movies": "Classic Hollywood westerns, noir, mystery and horror alongside landmark international cinema from Japan, Italy, France, India and beyond.",
+    "blue-finch": "Contemporary independent features from the 2010s and 2020s, led by horror, drama and thriller.",
+    "sc-films": "Live action, family animation, documentary and genre titles from an international rights catalog.",
+}
+
+
 def build_collections(films):
+    # Build collection summary rows
+    collection_rows = []
+    for cat in CATALOGS:
+        n = len(in_catalog(films, cat["key"]))
+        desc = COLLECTION_DESCRIPTIONS.get(cat["key"], cat["blurb"])
+        collection_rows.append(
+            '<div class="collection-row"><h3>%s</h3><p class="label-caps">%d titles</p>'
+            '<p class="lede">%s</p>'
+            '<a class="btn btn-outline" href="browse.html?catalog=%s">Browse</a></div>'
+            % (e(cat["name"]), n, e(desc), urllib.parse.quote(cat["key"]))
+        )
+
     body = """
 <section class="section section-cream">
   <div class="wrap">
     <div class="rule-head"><h1>Collections</h1></div>
-    <p class="lede">%(total)d titles across three collections &mdash; our own library,
-      plus two we present on behalf of their rights holders. Take them one at a
-      time below, or <a href="browse.html">search all three at once</a>.</p>
+    <p class="lede">%(total)d titles across three collections. Our own library,
+      plus two we present on behalf of their rights holders.
+      <a href="browse.html">Search all three at once</a>.</p>
   </div>
 </section>
 %(rows)s
@@ -1099,6 +1118,27 @@ def build_film(f, films):
     else:
         backdrop_html = ""
 
+    # Full-width still hero (above main content)
+    slug = f["slug"]
+    if still_exists(slug):
+        film_hero_html = (
+            '<div class="film-hero">'
+            '<img src="../assets/stills/%(slug)s.webp" '
+            'srcset="../assets/stills/%(slug)s-480.webp 480w, ../assets/stills/%(slug)s.webp 960w" '
+            'sizes="100vw" width="960" height="540" '
+            'alt="Still from %(title)s (%(year)s)" '
+            'loading="eager" decoding="async">'
+            '<div class="film-hero-fade"></div>'
+            '</div>' % {
+                "slug": e(slug),
+                "title": e(f["title"]),
+                "year": e(f["year"]),
+            }
+        )
+        # Use still as og:image if no poster
+    else:
+        film_hero_html = ""
+
     # CTAs: Watch (yt-trigger) + License side by side in film-head
     yt_id = f.get("youtube_id", "")
     inquire_qs = urllib.parse.urlencode({
@@ -1169,7 +1209,7 @@ def build_film(f, films):
 </section>""" % rcards
 
     body = """
-%(backdrop)s
+%(backdrop)s%(film_hero)s
 <section class="film-head">
   <div class="wrap">
     <p class="crumbs"><a href="../index.html">Home</a> &rsaquo;
@@ -1227,6 +1267,7 @@ def build_film(f, films):
         "cta": cta,
         "ctas": ctas_html,
         "backdrop": backdrop_html,
+        "film_hero": film_hero_html,
         "why_block": why_block,
         "related": related_html,
         "watch_script": watch_script,
@@ -1234,8 +1275,12 @@ def build_film(f, films):
 
     year = " (%s)" % f["year"] if f["year"] else ""
     slug_path = "films/%s.html" % f["slug"]
-    # og:image: use poster when available, else site og-image
-    og_img = poster_url(f)
+    # og:image: prefer still, then poster, then site default
+    og_img = ""
+    if still_exists(f["slug"]) and SITE_BASE:
+        og_img = "%s/assets/stills/%s.webp" % (SITE_BASE, urllib.parse.quote(f["slug"]))
+    if not og_img:
+        og_img = poster_url(f)
     return page(
         "%s%s — %s" % (f["title"], year, SITE_NAME),
         body,
@@ -1265,14 +1310,14 @@ def build_licensing(films):
     <div class="rule-head"><h1>Licensing &amp; contact</h1></div>
 
     <div class="prose">
-      <p>%(terms)s</p>
-      <p>Alongside that library we represent %(bf)d titles for Blue Finch Film
-        Releasing and %(sc)d for SC Films International — %(total)d titles
-        in all. The paragraph above sets out the terms for the Velvet Octopus
-        library specifically; for agency-represented titles we hold no
-        assumed rights position, and availability, territory, and terms are
-        confirmed per inquiry. Every title page states which collection the film
-        comes from.</p>
+      <p>We offer non-exclusive licensing for individual titles, themed packages,
+        or full-catalog deals. Territory, term and platform are set per deal.
+        Use the form below to tell us what you&rsquo;re looking for.</p>
+      <p>Our own library has %(cfv)d titles. Alongside that we represent
+        %(bf)d titles for Blue Finch Film Releasing and %(sc)d for
+        SC Films International — %(total)d in all. For agency-represented
+        titles, availability and terms are confirmed per inquiry. Every title page
+        states which collection it comes from.</p>
     </div>
 
     <h2 class="section-h2">Send an inquiry</h2>
@@ -1348,7 +1393,7 @@ def build_licensing(films):
 <script src="assets/config.js"></script>
 <script src="assets/inquiry.js"></script>
 """ % {
-        "terms": e(LICENSING_TERMS % {"cfv": len(in_catalog(films, "best-b-movies"))}),
+        "cfv": len(in_catalog(films, "best-b-movies")),
         "total": len(films),
         "bf": len(in_catalog(films, "blue-finch")),
         "sc": len(in_catalog(films, "sc-films")),
@@ -1510,14 +1555,13 @@ def build_about(films):
   <div class="wrap">
     <div class="rule-head"><h1>About Velvet Octopus Films</h1></div>
     <div class="prose">
-      <p>Velvet Octopus Films is an independent film library and distribution
-        operation. We look after a collection of classic and contemporary titles,
-        present them to buyers for licensing, and stream them on YouTube and AVOD
-        platforms. This site is the catalog and contact form. It does not stream
-        or sell films directly.</p>
+      <p>Velvet Octopus Films is an independent film library. We represent classic
+        and contemporary titles for licensing, and distribute them to YouTube and
+        AVOD platforms. This site is the catalog and the contact form. It does not
+        stream or sell films directly.</p>
 
-      <p>Velvet Octopus began as a film distributor in 2005, and is associated
-        through management with SC Films International and Blue Finch Films.</p>
+      <p>Velvet Octopus has been in film distribution since 2005.
+        <!-- lineage: associated through management with SC Films International and Blue Finch Films [TODO: confirm current relationship before publishing] --></p>
 
       <h2>Our own library</h2>
       <p>%(cfv)d titles of classic Hollywood and international cinema. The core
@@ -1545,7 +1589,7 @@ def build_about(films):
 
       <h2>How to license</h2>
       <p>Use the <a href="licensing.html">licensing inquiry form</a>. Tell us
-        which titles or what volume you&rsquo;re interested in and we&rsquo;ll
+        which titles or what volume you&rsquo;re after and we&rsquo;ll
         come back with availability, territory options, and rates within a few
         business days.</p>
 
@@ -1813,6 +1857,18 @@ def build_catalog_redirect():
 
 
 def main():
+    global THEME
+
+    parser = argparse.ArgumentParser(description="Velvet Octopus Films — static site builder")
+    parser.add_argument(
+        "--theme",
+        choices=["velvet", "ink"],
+        default="velvet",
+        help="Colour theme: velvet (default) or ink",
+    )
+    args = parser.parse_args()
+    THEME = args.theme
+
     films = load()
     COUNTS["total"] = len(films)
     for c in CATALOGS:
@@ -1877,12 +1933,19 @@ def main():
         write("robots.txt", "User-agent: *\nAllow: /\n")
 
     total_pages = len(urls) + (2 if SITE_BASE else 1)
-    print("built %d pages into dist/" % total_pages)
+    # Stills summary
+    own_films = in_catalog(films, "best-b-movies")
+    n_stills = sum(1 for f in films if still_exists(f["slug"]))
+    _, hidden_shelves = build_shelves_html(films)
+    print("built %d pages into dist/ (theme: %s)" % (total_pages, THEME))
     if not SITE_BASE:
         print("  no SITE_BASE set — sitemap.xml skipped; set SITE_BASE=https://velvetoctopusfilms.com for production")
     if NOINDEX:
         print("  NOINDEX=1 — all pages carry noindex,nofollow")
     print("  %d film pages" % len(films))
+    print("  stills: %d films have stills, %d use typographic fallback" % (n_stills, len(films) - n_stills))
+    if hidden_shelves:
+        print("  shelves hidden (< 6 films): %s" % ", ".join(hidden_shelves))
     print("  preview:  python3 -m http.server -d dist 8000")
 
 

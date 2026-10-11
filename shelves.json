@@ -1,0 +1,7 @@
+[
+  {"id": "second-look", "title": "Worth a second look", "reason": "Films with stills and a YouTube link", "filter": "has_still", "max": 12},
+  {"id": "noir", "title": "Noir and mystery", "reason": "Detective fiction, crime drama, expressionist shadows", "filter": "genre:Film-Noir,Mystery,Crime", "max": 12},
+  {"id": "westerns", "title": "Westerns", "reason": "B-westerns, singing cowboys, revisionist entries", "filter": "genre:Western", "max": 12},
+  {"id": "horror", "title": "Horror and sci-fi", "reason": "Corman-Poe gothics, drive-in creature features", "filter": "genre:Horror,Science Fiction", "max": 12},
+  {"id": "world", "title": "World cinema", "reason": "Kurosawa, Ozu, Buñuel and peers — non-English titles", "filter": "lang:non-english", "max": 12}
+]
