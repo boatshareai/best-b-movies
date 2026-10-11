@@ -225,6 +225,11 @@ def load():
                     % (r["slug"], seen_slugs[r["slug"]], cat["file"])
                 )
             seen_slugs[r["slug"]] = cat["file"]
+            # Auto-detect poster file if not set in CSV
+            if not r.get("poster"):
+                poster_path = os.path.join(ASSETS, "posters", r["slug"] + ".jpg")
+                if os.path.isfile(poster_path):
+                    r["poster"] = r["slug"] + ".jpg"
             films.append(r)
     films.sort(key=lambda f: f["title"].lower())
     if skipped:
@@ -507,6 +512,26 @@ def shelf_card_html(f, up=""):
             "year_e": e(year),
             "genre_part": e(genre_part),
         }
+    elif f.get("poster"):
+        return """<a class="card card-poster" href="%(film_url)s">
+  <div class="thumb">
+    <img src="%(up)sassets/posters/%(poster)s"
+         srcset="%(up)sassets/posters/%(poster_480)s 480w, %(up)sassets/posters/%(poster)s 960w"
+         sizes="(max-width:599px) 72vw, (max-width:899px) 42vw, 25vw"
+         loading="lazy" decoding="async"
+         alt="Poster for %(title_e)s (%(year_e)s)">
+  </div>
+  <h3>%(title_e)s</h3>
+  <p>%(year_e)s%(genre_part)s</p>
+</a>""" % {
+            "film_url": film_url,
+            "up": up,
+            "poster": e(f["poster"]),
+            "poster_480": e(f["poster"].replace(".jpg", "-480.jpg")),
+            "title_e": e(title),
+            "year_e": e(year),
+            "genre_part": e(genre_part),
+        }
     else:
         return """<a class="card card-typo" href="%(film_url)s">
   <div class="thumb thumb-typo">
@@ -547,7 +572,11 @@ def build_shelves_html(films):
     shelf_sections = []
 
     for cfg in shelf_configs:
-        filtered = filter_films_for_shelf(films, cfg["filter"])[:cfg["max"]]
+        raw = filter_films_for_shelf(films, cfg["filter"])
+        # Sort genre and lang shelves by year ascending so classic films appear first
+        if cfg["filter"] != "has_still":
+            raw = sorted(raw, key=lambda f: f.get("year") or "9999")
+        filtered = raw[:cfg["max"]]
         if len(filtered) < 6:
             hidden.append(cfg["id"])
             continue
