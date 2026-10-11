@@ -50,6 +50,9 @@
   --sans:  "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --wrap: 1280px;
+
+  /* Alias for form field borders */
+  --field-border: rgba(244,235,221,.35);
 }
 
 @media (min-width: 768px) {
@@ -66,9 +69,6 @@
     --header: 80px;
   }
 }
-
-/* Aliases so existing form/filter references still work */
---field-border: rgba(244,235,221,.35);
 
 /* 2 ── Reset ────────────────────────────────────────────────────────────── */
 
