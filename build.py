@@ -14,7 +14,6 @@ Env vars:
                (CI sets this for branch/preview deploys)
 """
 
-import argparse
 import csv
 import html
 import json
@@ -29,9 +28,6 @@ DIST = os.path.join(HERE, "dist")
 
 SITE_BASE = os.environ.get("SITE_BASE", "").rstrip("/")
 NOINDEX = bool(os.environ.get("NOINDEX", ""))
-
-# Parsed from CLI args in main(); default velvet
-THEME = "velvet"
 
 SITE_NAME = "Velvet Octopus Films"
 SITE_TAGLINE = "Films worth a second look."
@@ -306,22 +302,19 @@ NAV = [
     ("About", "about.html"),
 ]
 
+# No CTA button, no "Submit a film" in nav — only the links above.
+
 
 def page(title, body, current, depth=0, description="",
-         canonical_path="", ogimg_override="", extra_jsonld=""):
+         canonical_path="", ogimg_override="", extra_jsonld="",
+         is_home=False):
     up = "../" * depth
-    nav = []
+    nav_links = []
     for label, href in NAV:
         cur = ' aria-current="page"' if href == current else ""
-        nav.append('<a href="%s%s"%s>%s</a>' % (up, href, cur, label))
-    # Search icon (links to browse)
-    nav.append(
-        '<a class="nav-search" href="%sbrowse.html" aria-label="Search films">'
-        '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">'
-        '<circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.5"/>'
-        '<path d="M13 13l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'
-        '</svg></a>' % up
-    )
+        nav_links.append('<a href="%s%s"%s>%s</a>' % (up, href, cur, label))
+    nav_str = "\n    ".join(nav_links)
+
     desc = description or (
         "%d films across three collections — classic Hollywood, international "
         "cinema, and contemporary independent features — available for "
@@ -358,13 +351,14 @@ def page(title, body, current, depth=0, description="",
     if extra_jsonld:
         jsonld_blocks += '<script type="application/ld+json">%s</script>\n' % extra_jsonld
 
-    theme_attr = ' data-theme="ink"' if THEME == "ink" else ""
+    # Body class: page-home enables absolute header overlay on hero
+    body_class = ' class="page-home"' if is_home else ""
 
     return """<!doctype html>
-<html lang="en"%(theme_attr)s>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>%(title)s</title>
 <meta name="description" content="%(desc)s">
 <meta name="robots" content="%(robots)s">
@@ -376,69 +370,63 @@ def page(title, body, current, depth=0, description="",
 <link rel="icon" type="image/x-icon" href="%(up)sassets/favicon.ico">
 <link rel="apple-touch-icon" href="%(up)sassets/apple-touch-icon.png">
 <meta name="theme-color" content="#5B2A86">
+<link rel="preload" href="%(up)sassets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="%(up)sassets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="%(up)sassets/site.css">
 </head>
-<body>
+<body%(body_class)s>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-head">
-  <div class="wrap">
-    <a class="brand" href="%(up)sindex.html" aria-label="Velvet Octopus Films — home">
-      <img class="brand-icon" src="%(up)sassets/brand/logo-icon-simple.svg"
-           alt="" width="36" height="36" decoding="async">
-      <span class="brand-name">
-        <span class="brand-wordmark">velvet<strong>octopus</strong></span>
-        <span class="brand-films">FILMS</span>
-      </span>
+  <a class="logo" href="%(up)sindex.html" aria-label="Velvet Octopus Films, home">
+    <img src="%(up)sassets/brand/logo-wordmark-films.svg" alt="Velvet Octopus Films" width="160" height="44">
+  </a>
+  <nav class="nav" aria-label="Main">
+    %(nav)s
+    <a class="icon-btn" href="%(up)sbrowse.html" aria-label="Search films">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/></svg>
     </a>
-    <nav class="nav" aria-label="Main">%(nav)s</nav>
-  </div>
+  </nav>
+  <button class="nav-mobile-btn" aria-label="Menu" aria-expanded="false" aria-controls="mobile-nav">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 8h18M3 16h18"/></svg>
+  </button>
 </header>
 <main id="main">
 %(body)s
 </main>
-<footer class="site-foot">
-  <div class="wrap">
-    <div class="foot-brand">
-      <a class="brand foot-brand-link" href="%(up)sindex.html" aria-label="Velvet Octopus Films — home">
-        <img class="brand-icon" src="%(up)sassets/brand/logo-icon-simple.svg"
-             alt="" width="32" height="32" decoding="async" loading="lazy">
-        <span class="brand-name">
-          <span class="brand-wordmark">velvet<strong>octopus</strong></span>
-          <span class="brand-films">FILMS</span>
-        </span>
-      </a>
-      <p class="foot-tag">%(foot_tagline)s</p>
-      <p class="foot-copy">&copy; %(year)d Velvet Octopus Films.
-        Licensing inquiries only — this site does not stream or sell films.</p>
+<footer class="site-footer">
+  <div class="foot-top">
+    <div>
+      <img src="%(up)sassets/brand/logo-wordmark-films.svg" alt="Velvet Octopus Films" width="140" height="34" loading="lazy">
+      <p class="tagline">Films worth a second look.</p>
     </div>
-    <nav class="fnav" aria-label="Footer">
-      <a href="%(up)sbrowse.html">Browse titles</a>
+    <nav class="foot-links" aria-label="Footer">
+      <a href="%(up)sbrowse.html">Films</a>
       <a href="%(up)scollections.html">Collections</a>
       <a href="%(up)swatch.html">Watch</a>
-      <a href="%(up)slicensing.html">Licensing</a>
+      <a href="%(up)slicensing.html">License</a>
       <a href="%(up)ssubmit.html">Submit a film</a>
       <a href="%(up)sabout.html">About</a>
       <a href="%(up)scontact.html">Contact</a>
-      <a href="%(up)sprivacy.html">Privacy &amp; terms</a>
+      <a href="%(up)sprivacy.html">Privacy and terms</a>
     </nav>
   </div>
+  <p class="copy">&copy; %(year)d Velvet Octopus Films</p>
 </footer>
 </body>
 </html>
 """ % {
         "title": e(title),
         "desc": e(desc),
-        "nav": "\n      ".join(nav),
+        "nav": nav_str,
         "body": body,
         "up": up,
         "site": e(SITE_NAME),
-        "foot_tagline": e(SITE_FOOT_TAGLINE),
         "robots": robots,
         "canonical": canonical_tag,
         "ogimg": ogimg_tags,
         "jsonld": jsonld_blocks,
         "year": 2026,
-        "theme_attr": theme_attr,
+        "body_class": body_class,
     }
 
 
@@ -453,49 +441,46 @@ def still_exists(slug):
 
 
 def shelf_card_html(f, up=""):
-    """16:9 still card or typographic fallback for a shelf."""
+    """16:9 still card or typographic fallback for a shelf (mock card pattern)."""
     slug = f["slug"]
     title = f["title"]
     year = f.get("year", "")
-    runtime = ("%dm" % f["runtime_n"]) if f["runtime_n"] else ""
-    meta_parts = [p for p in [year, runtime] if p]
-    meta_str = " · ".join(meta_parts)
-    href = "%sfilms/%s.html" % (up, e(slug))
+    genres = f.get("genre_list", [])
+    genre_part = (" · " + genres[0]) if genres else ""
+    film_url = "%sfilms/%s.html" % (up, e(slug))
 
     if still_exists(slug):
-        return """<a class="shelf-card" href="%(href)s">
-  <div class="shelf-thumb">
+        return """<a class="card" href="%(film_url)s">
+  <div class="thumb">
     <img src="%(up)sassets/stills/%(slug)s.webp"
          srcset="%(up)sassets/stills/%(slug)s-480.webp 480w, %(up)sassets/stills/%(slug)s.webp 960w"
-         sizes="(max-width:767px) 72vw, 220px"
+         sizes="(max-width:599px) 72vw, (max-width:899px) 42vw, 25vw"
          width="960" height="540" loading="lazy" decoding="async"
          alt="Still from %(title_e)s (%(year_e)s)">
   </div>
-  <p class="shelf-title">%(title_e)s</p>
-  <p class="shelf-meta">%(meta_e)s</p>
+  <h3>%(title_e)s</h3>
+  <p>%(year_e)s%(genre_part)s</p>
 </a>""" % {
-            "href": href,
+            "film_url": film_url,
             "up": up,
             "slug": e(slug),
             "title_e": e(title),
             "year_e": e(year),
-            "meta_e": e(meta_str),
+            "genre_part": e(genre_part),
         }
     else:
-        return """<a class="shelf-card shelf-card-typo" href="%(href)s">
-  <div class="shelf-thumb shelf-thumb-typo">
-    <img class="shelf-typo-mark" src="%(up)sassets/brand/logo-icon-simple.svg" alt="" width="32" height="32" aria-hidden="true">
-    <p class="shelf-typo-title">%(title_e)s</p>
-    <p class="shelf-typo-year">%(year_e)s</p>
+        return """<a class="card card-typo" href="%(film_url)s">
+  <div class="thumb thumb-typo">
+    <span class="typo-title">%(title_e)s</span>
+    <span class="typo-year">%(year_e)s</span>
   </div>
-  <p class="shelf-title">%(title_e)s</p>
-  <p class="shelf-meta">%(meta_e)s</p>
+  <h3>%(title_e)s</h3>
+  <p>%(year_e)s%(genre_part)s</p>
 </a>""" % {
-            "href": href,
-            "up": up,
+            "film_url": film_url,
             "title_e": e(title),
             "year_e": e(year),
-            "meta_e": e(meta_str),
+            "genre_part": e(genre_part),
         }
 
 
@@ -542,25 +527,28 @@ def build_shelves_html(films):
         else:
             see_href = "browse.html"
 
-        shelf_sections.append("""<div class="shelf">
+        shelf_id = "shelf-%s" % cfg["id"]
+        reason_p = ('<p>%s</p>' % e(cfg["reason"])) if cfg.get("reason") else ""
+        shelf_sections.append("""<section class="shelf" aria-labelledby="%(shelf_id)s">
   <div class="shelf-head">
-    <h2>%(title)s</h2>
-    <a class="shelf-see-all" href="%(see_href)s">See all &rarr;</a>
+    <div>
+      <h2 id="%(shelf_id)s">%(title)s</h2>
+      %(reason_p)s
+    </div>
+    <a class="link-all" href="%(see_href)s">See all</a>
   </div>
-  <p class="label-caps">%(reason)s</p>
-  <div class="shelf-track">
-%(cards)s
-  </div>
-</div>""" % {
+  <div class="row">%(cards)s</div>
+</section>""" % {
+            "shelf_id": shelf_id,
             "title": e(cfg["title"]),
             "see_href": see_href,
-            "reason": e(cfg["reason"]),
+            "reason_p": reason_p,
             "cards": cards_html,
         })
 
     html_out = ""
     if shelf_sections:
-        html_out = '<div class="shelves-wrap"><div class="wrap">\n' + "\n".join(shelf_sections) + "\n</div></div>"
+        html_out = "\n".join(shelf_sections)
 
     return html_out, hidden
 
@@ -681,119 +669,112 @@ def build_home(films):
     total = len(films)
     cfv = in_catalog(films, "best-b-movies")
 
-    # Featured still: first own-catalog film that has a still
+    # Featured film: first with 'featured' flag, else first with still+youtube_id, else first with still
     featured_film = None
     for f in cfv:
-        if still_exists(f["slug"]):
-            featured_film = f
-            break
+        if f.get("featured", "").strip().lower() in ("yes", "1", "true"):
+            if still_exists(f["slug"]):
+                featured_film = f
+                break
+    if not featured_film:
+        for f in cfv:
+            if still_exists(f["slug"]) and f.get("youtube_id", "").strip():
+                featured_film = f
+                break
+    if not featured_film:
+        for f in cfv:
+            if still_exists(f["slug"]):
+                featured_film = f
+                break
 
-    # Hero still HTML
+    # Hero HTML
     if featured_film:
-        still_slug = featured_film["slug"]
-        hero_still_html = """<div class="hero-still">
-      <img src="assets/stills/%(slug)s.webp"
-           srcset="assets/stills/%(slug)s-480.webp 480w, assets/stills/%(slug)s.webp 960w"
-           sizes="(max-width:767px) 100vw, 50vw"
-           width="960" height="540" loading="eager" decoding="async"
-           alt="Still from %(title)s">
-      <span class="hero-still-label">%(title)s (%(year)s)</span>
-    </div>""" % {
-            "slug": e(still_slug),
-            "title": e(featured_film["title"]),
-            "year": e(featured_film["year"]),
+        slug = featured_film["slug"]
+        hero_title = featured_film["title"]
+        hero_year = featured_film["year"]
+        yt_id = featured_film.get("youtube_id", "").strip()
+        yt_link = (
+            '<a href="https://www.youtube.com/watch?v=%s"> Watch on YouTube →</a>' % e(yt_id)
+            if yt_id else ""
+        )
+        featured_credit = (
+            '<p class="featured"><span class="tag">Featured</span> '
+            '<b>%(hero_title)s (%(hero_year)s)</b>%(yt_link)s</p>'
+        ) % {"hero_title": e(hero_title), "hero_year": e(hero_year), "yt_link": yt_link}
+
+        hero_section = """<section class="hero">
+  <img class="hero-img" src="assets/stills/%(slug)s.webp"
+       srcset="assets/stills/%(slug)s-480.webp 480w, assets/stills/%(slug)s.webp 1280w"
+       sizes="100vw" width="1280" height="720"
+       alt="Still from %(hero_title_e)s (%(hero_year_e)s)" fetchpriority="high" decoding="async">
+  <div class="hero-inner">
+    <p class="eyebrow">Velvet Octopus Films</p>
+    <h1>A library of<br>classic films.</h1>
+    <p class="sub">%(total)d films, from 1930s Hollywood noir and B-westerns to landmark world cinema. Watch on YouTube, or license a film for your platform.</p>
+    <div class="actions">
+      <a class="btn btn-gold" href="browse.html">Browse the films</a>
+      <a class="btn btn-line" href="licensing.html">License a film</a>
+    </div>
+    %(featured_credit)s
+  </div>
+</section>""" % {
+            "slug": e(slug),
+            "hero_title_e": e(hero_title),
+            "hero_year_e": e(hero_year),
+            "total": total,
+            "featured_credit": featured_credit,
         }
     else:
-        hero_still_html = ""
-
-    # Browse-by strip: decades + hardcoded genre chips
-    decades = sorted({f["decade"] for f in films if f["decade"]})
-    decade_chips = "".join(
-        '<a class="bchip" href="browse.html?decade=%s">%s</a>' % (d, e(d))
-        for d in decades
-    )
-    # Genre chips: only show those with >= 5 films in the combined catalog
-    genre_chip_candidates = [
-        ("Film-Noir", "Noir"),
-        ("Western", "Westerns"),
-        ("Horror", "Horror"),
-        ("Mystery", "Mystery"),
-        ("Science Fiction", "Sci-fi"),
-    ]
-    genre_chips = ""
-    for genre_key, genre_label in genre_chip_candidates:
-        count = sum(1 for f in films if genre_key in f["genre_list"])
-        if count >= 5:
-            genre_chips += '<a class="bchip" href="browse.html?genre=%s">%s</a>' % (
-                urllib.parse.quote(genre_key), genre_label
-            )
-    genre_chips += '<a class="bchip" href="browse.html?intl=1">World cinema</a>'
+        # Fallback: no still available
+        hero_section = """<section class="hero hero-no-still">
+  <div class="hero-inner">
+    <img class="hero-logo-bg" src="assets/brand/logo-icon-simple.svg" alt="" aria-hidden="true" width="320" height="320">
+    <p class="eyebrow">Velvet Octopus Films</p>
+    <h1>A library of<br>classic films.</h1>
+    <p class="sub">%(total)d films, from 1930s Hollywood noir and B-westerns to landmark world cinema. Watch on YouTube, or license a film for your platform.</p>
+    <div class="actions">
+      <a class="btn btn-gold" href="browse.html">Browse the films</a>
+      <a class="btn btn-line" href="licensing.html">License a film</a>
+    </div>
+  </div>
+</section>""" % {"total": total}
 
     # Shelves
     shelves_html, hidden_shelves = build_shelves_html(films)
 
-    body = """
-<section class="hero">
-  <div class="wrap">
-    <div class="hero-inner">
-      <div class="hero-text">
-        <p class="label-caps">Velvet Octopus Films</p>
-        <h1>A library of<br>classic films.</h1>
-        <p class="hero-sub">%(total)d films, from 1930s Hollywood noir and B-westerns to landmark world cinema. Watch on YouTube, or license a film for your platform.</p>
-        <div class="hero-actions">
-          <a class="btn btn-gold" href="browse.html">Browse the films</a>
-          <a class="btn btn-outline" href="licensing.html">License a film</a>
-        </div>
-      </div>
-      %(hero_still)s
-    </div>
-  </div>
-</section>
+    # Browse by decade grid — only decades with >= 1 film
+    decades = sorted({f["decade"] for f in films if f["decade"]})
+    decade_links = "\n    ".join(
+        '<a href="browse.html?decade=%(d)s"><span>%(d)s</span><i aria-hidden="true">→</i></a>' % {"d": e(d)}
+        for d in decades
+    )
 
-<section class="section what-we-do">
-  <div class="wrap">
-    <div class="three-up">
-      <div class="three-card">
-        <h3>Watch</h3>
-        <p>Many of our films are free to watch on YouTube, and clips run on TikTok at %(handle)s.</p>
-      </div>
-      <div class="three-card">
-        <h3>Discover</h3>
-        <p>Browse by genre, decade, country and collection. Every film has its own page.</p>
-      </div>
-      <div class="three-card">
-        <h3>License</h3>
-        <p>Non-exclusive licensing for streaming, broadcast and digital platforms. Territory and term are set per deal.</p>
-      </div>
-    </div>
-  </div>
-</section>
+    body = """%(hero)s
 
 %(shelves)s
 
-<div class="browse-strip">
-  <div class="wrap">
-    <p class="label-caps">Browse by</p>
-    <div class="browse-chips">
-      %(decade_chips)s%(genre_chips)s
-    </div>
+<section class="shelf decades" aria-labelledby="decades-head">
+  <div class="shelf-head" style="padding-inline:0">
+    <h2 id="decades-head">Browse by decade</h2>
   </div>
-</div>
+  <div class="decade-grid">
+    %(decade_links)s
+  </div>
+</section>
 
-<section class="buyer-band">
-  <div class="wrap">
-    <h2>Looking to license?</h2>
-    <p>Tell us which titles, territories and terms you&rsquo;re after.</p>
-    <a class="btn btn-gold" href="licensing.html">Start an inquiry</a>
+<section class="band">
+  <div class="band-inner">
+    <div>
+      <h2>Looking to license?</h2>
+      <p>We license our library for streaming, broadcast and digital platforms. Territory and term are set per deal.</p>
+    </div>
+    <a class="btn btn-line" href="licensing.html">Start an inquiry</a>
   </div>
 </section>
 """ % {
-        "total": total,
-        "hero_still": hero_still_html,
-        "handle": e(TIKTOK_HANDLE),
+        "hero": hero_section,
         "shelves": shelves_html,
-        "decade_chips": decade_chips,
-        "genre_chips": genre_chips,
+        "decade_links": decade_links,
     }
 
     return page(
@@ -804,6 +785,7 @@ def build_home(films):
         description="An independent film library for licensing. %d titles across "
         "classic Hollywood, international cinema, and contemporary "
         "independent features." % total,
+        is_home=True,
     )
 
 
@@ -828,7 +810,7 @@ def build_collections(films):
         collection_rows.append(
             '<div class="collection-row"><h3>%s</h3><p class="label-caps">%d titles</p>'
             '<p class="lede">%s</p>'
-            '<a class="btn btn-outline" href="browse.html?catalog=%s">Browse</a></div>'
+            '<a class="btn btn-line" href="browse.html?catalog=%s">Browse</a></div>'
             % (e(cat["name"]), n, e(desc), urllib.parse.quote(cat["key"]))
         )
 
@@ -1150,7 +1132,7 @@ def build_film(f, films):
 
     if yt_id:
         watch_btn = (
-            '<button class="btn btn-outline yt-trigger" type="button" '
+            '<button class="btn btn-gold yt-trigger" type="button" '
             'data-yt-id="%(vid)s" aria-label="Watch on YouTube — opens player">'
             '<span class="yt-play-icon" aria-hidden="true">&#9654;</span> Watch'
             '</button>' % {"vid": e(yt_id)}
@@ -1162,7 +1144,7 @@ def build_film(f, films):
 
     if f["catalog"] != "best-b-movies" and source_url:
         license_btn = (
-            '<a class="btn btn-gold btn-ext" href="%(url)s" '
+            '<a class="btn btn-line btn-ext" href="%(url)s" '
             'target="_blank" rel="noopener noreferrer">License via %(name)s'
             '<span class="vh"> (opens in a new tab)</span></a>'
             % {"name": e(f["catalog_name"]), "url": e(source_url)}
@@ -1170,17 +1152,17 @@ def build_film(f, films):
         cta = (
             "<p>Territory and term are negotiated per deal. %(name)s handles "
             "enquiries for this title — their page carries the current details.</p>\n"
-            '      <a class="btn btn-solid btn-ext" href="%(url)s" '
+            '      <a class="btn btn-line btn-ext" href="%(url)s" '
             'target="_blank" rel="noopener noreferrer">View on %(name)s'
             '<span class="vh"> (opens in a new tab)</span></a>'
             % {"name": e(f["catalog_name"]), "url": e(source_url)}
         )
     else:
-        license_btn = '<a class="btn btn-gold" href="%s">License this film</a>' % e(inquire)
+        license_btn = '<a class="btn btn-line" href="%s">License this film</a>' % e(inquire)
         cta = (
             "<p>Territory and term are negotiated per deal. "
             "Send us this title and we'll come back with availability and rates.</p>\n"
-            '      <a class="btn btn-gold" href="%s">License this film</a>' % e(inquire)
+            '      <a class="btn btn-line" href="%s">License this film</a>' % e(inquire)
         )
 
     ctas_html = ""
@@ -1593,7 +1575,7 @@ def build_about(films):
         come back with availability, territory options, and rates within a few
         business days.</p>
 
-      <p><a class="btn btn-solid" href="collections.html">Browse the collections</a></p>
+      <p><a class="btn btn-line" href="collections.html">Browse the collections</a></p>
     </div>
   </div>
 </section>
@@ -1812,7 +1794,7 @@ def build_404():
   <div class="wrap not-found">
     <h1>404</h1>
     <p>That page doesn&rsquo;t exist &mdash; or it moved.</p>
-    <a class="btn btn-solid" href="index.html">Back to the home page</a>
+    <a class="btn btn-line" href="index.html">Back to the home page</a>
   </div>
 </section>
 """
@@ -1857,18 +1839,6 @@ def build_catalog_redirect():
 
 
 def main():
-    global THEME
-
-    parser = argparse.ArgumentParser(description="Velvet Octopus Films — static site builder")
-    parser.add_argument(
-        "--theme",
-        choices=["velvet", "ink"],
-        default="velvet",
-        help="Colour theme: velvet (default) or ink",
-    )
-    args = parser.parse_args()
-    THEME = args.theme
-
     films = load()
     COUNTS["total"] = len(films)
     for c in CATALOGS:
@@ -1937,7 +1907,7 @@ def main():
     own_films = in_catalog(films, "best-b-movies")
     n_stills = sum(1 for f in films if still_exists(f["slug"]))
     _, hidden_shelves = build_shelves_html(films)
-    print("built %d pages into dist/ (theme: %s)" % (total_pages, THEME))
+    print("built %d pages into dist/" % total_pages)
     if not SITE_BASE:
         print("  no SITE_BASE set — sitemap.xml skipped; set SITE_BASE=https://velvetoctopusfilms.com for production")
     if NOINDEX:
