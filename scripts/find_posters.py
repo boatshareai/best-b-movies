@@ -362,7 +362,7 @@ def update_review_html(medium_items):
 <title>Poster Review — Velvet Octopus Films</title>
 <style>
   body { font-family: system-ui, sans-serif; padding: 24px; }
-  table { border-collapse: collapse; width: 100%; }
+  table { border-collapse: collapse; width: 100%%; }
   th, td { border: 1px solid #ddd; padding: 8px 12px; vertical-align: top; }
   th { background: #f4f4f4; }
   img { display: block; }
