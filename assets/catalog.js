@@ -35,7 +35,7 @@
     if (f.p) {
       return '<img src="assets/posters/' + esc(f.p) + '" alt="" loading="lazy" decoding="async" width="300" height="450">';
     }
-    return '<span class="mono" aria-hidden="true">' + esc(monogram(f.t)) + "</span>";
+    return '<span class="card-typo-title" aria-hidden="true">' + esc(f.t) + "</span>";
   }
 
   function esc(s) {
