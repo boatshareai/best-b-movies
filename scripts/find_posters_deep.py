@@ -271,34 +271,58 @@ def file_info(filename):
 # Confidence
 # ---------------------------------------------------------------------------
 
+# Extensions that are never film posters
+_BAD_EXTS = {".pdf", ".webm", ".ogv", ".djvu", ".ogg", ".wav", ".mp3",
+             ".mp4", ".avi", ".mov", ".flac", ".djv", ".epub"}
+
+def _file_ext(filename):
+    return os.path.splitext(filename.lower())[1]
+
+def is_image_file(filename):
+    return _file_ext(filename) in {".jpg", ".jpeg", ".png", ".gif", ".webp", ".tif", ".tiff"}
+
 def _norm(s):
     return re.sub(r"[^a-z0-9 ]", " ", s.lower()).strip()
 
-def title_matches(title, filename, snippet):
+def title_in_filename(title, filename):
+    """All significant title words must appear in the filename itself."""
     tn = _norm(title)
     fn = _norm(filename.lower())
-    sn = _norm((snippet or "").lower())
     words = [w for w in tn.split() if len(w) > 2]
-    if not words:
-        return False
-    # All significant words present
-    return (all(w in fn for w in words) or all(w in sn for w in words)
-            or tn in fn or tn in sn)
+    return bool(words) and all(w in fn for w in words)
 
-def year_matches(year, filename, snippet):
+def year_in_filename(year, filename):
     if not year:
-        return True  # no year to check
-    return year in filename.lower() or year in (snippet or "").lower()
+        return False
+    return year in filename.lower()
+
+def poster_signal(filename):
+    """Filename contains 'poster', 'film', or 'movie'."""
+    fn = filename.lower()
+    return any(w in fn for w in ("poster", "film", "movie"))
 
 def confidence(title, year, filename, snippet, pre1970=False):
-    if not title_matches(title, filename, snippet):
+    # Hard reject: non-image formats are never posters
+    if not is_image_file(filename):
         return "low"
-    if year_matches(year, filename, snippet):
+
+    # Title must be in the filename itself (not just the search snippet)
+    if not title_in_filename(title, filename):
+        return "low"
+
+    # Year in filename + poster/film signal = high confidence
+    if year_in_filename(year, filename) and poster_signal(filename):
         return "high"
-    # For pre-1970 public domain films, accept title match alone
-    if pre1970:
+
+    # Year in filename alone = high (pre-1970 public domain files often skip "poster")
+    if year_in_filename(year, filename):
         return "high"
-    return "medium"
+
+    # Pre-1970 + title match + poster signal in filename = high
+    if pre1970 and poster_signal(filename):
+        return "high"
+
+    return "low"  # title-only match without year is too risky
 
 # ---------------------------------------------------------------------------
 # Download
@@ -375,14 +399,11 @@ def main():
                     best_hit = hit
                     best_conf = "high"
                     break
-                if conf == "medium" and best_conf != "high":
-                    best_hit = hit
-                    best_conf = "medium"
 
             if best_conf == "high":
                 break  # don't try more queries
 
-        if best_hit is None or best_conf == "low":
+        if best_hit is None or best_conf != "high":
             print("  SKIP  %s (%s)" % (title, year))
             stats["skipped"] += 1
             continue
