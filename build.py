@@ -378,7 +378,7 @@ def page(title, body, current, depth=0, description="",
 <meta name="theme-color" content="#5B2A86">
 <link rel="preload" href="%(up)sassets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="%(up)sassets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="%(up)sassets/site.css">
+<link rel="stylesheet" href="%(up)sassets/site.css?v=2">
 </head>
 <body%(body_class)s>
 <a class="skip" href="#main">Skip to content</a>
@@ -799,7 +799,6 @@ def build_home(films):
 
         hero_section = """<section class="hero">
 %(slides)s
-  <a class="hero-slide-overlay" href="films/%(first_slug)s.html" aria-label="View featured film" tabindex="-1"></a>
   <div class="hero-inner">
     <p class="eyebrow">Velvet Octopus Films</p>
     <h1>A library of<br>classic films.</h1>
@@ -808,13 +807,11 @@ def build_home(films):
       <a class="btn btn-gold" href="browse.html">Browse the films</a>
       <a class="btn btn-line" href="licensing.html">License a film</a>
     </div>
-    %(featured_credit)s
   </div>
-  <div class="hero-dots" aria-label="Hero navigation"></div>
+  %(featured_credit)s
   <script src="assets/hero-slide.js" defer></script>
 </section>""" % {
             "slides": slides_html,
-            "first_slug": e(slide_films[0]["slug"]),
             "total": total,
             "featured_credit": featured_credit,
         }
