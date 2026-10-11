@@ -485,7 +485,7 @@ def poster_file_exists(slug):
 
 
 def shelf_card_html(f, up=""):
-    """16:9 still card or typographic fallback for a shelf (mock card pattern)."""
+    """Poster card > still card > typographic fallback for a shelf."""
     slug = f["slug"]
     title = f["title"]
     year = f.get("year", "")
@@ -493,26 +493,7 @@ def shelf_card_html(f, up=""):
     genre_part = (" · " + genres[0]) if genres else ""
     film_url = "%sfilms/%s.html" % (up, e(slug))
 
-    if still_exists(slug):
-        return """<a class="card" href="%(film_url)s">
-  <div class="thumb">
-    <img src="%(up)sassets/stills/%(slug)s.webp"
-         srcset="%(up)sassets/stills/%(slug)s-480.webp 480w, %(up)sassets/stills/%(slug)s.webp 960w"
-         sizes="(max-width:599px) 72vw, (max-width:899px) 42vw, 25vw"
-         width="960" height="540" loading="lazy" decoding="async"
-         alt="Still from %(title_e)s (%(year_e)s)">
-  </div>
-  <h3>%(title_e)s</h3>
-  <p>%(year_e)s%(genre_part)s</p>
-</a>""" % {
-            "film_url": film_url,
-            "up": up,
-            "slug": e(slug),
-            "title_e": e(title),
-            "year_e": e(year),
-            "genre_part": e(genre_part),
-        }
-    elif f.get("poster"):
+    if f.get("poster"):
         return """<a class="card card-poster" href="%(film_url)s">
   <div class="thumb">
     <img src="%(up)sassets/posters/%(poster)s"
@@ -528,6 +509,25 @@ def shelf_card_html(f, up=""):
             "up": up,
             "poster": e(f["poster"]),
             "poster_480": e(f["poster"].replace(".jpg", "-480.jpg")),
+            "title_e": e(title),
+            "year_e": e(year),
+            "genre_part": e(genre_part),
+        }
+    elif still_exists(slug):
+        return """<a class="card" href="%(film_url)s">
+  <div class="thumb">
+    <img src="%(up)sassets/stills/%(slug)s.webp"
+         srcset="%(up)sassets/stills/%(slug)s-480.webp 480w, %(up)sassets/stills/%(slug)s.webp 960w"
+         sizes="(max-width:599px) 72vw, (max-width:899px) 42vw, 25vw"
+         width="960" height="540" loading="lazy" decoding="async"
+         alt="Still from %(title_e)s (%(year_e)s)">
+  </div>
+  <h3>%(title_e)s</h3>
+  <p>%(year_e)s%(genre_part)s</p>
+</a>""" % {
+            "film_url": film_url,
+            "up": up,
+            "slug": e(slug),
             "title_e": e(title),
             "year_e": e(year),
             "genre_part": e(genre_part),
@@ -742,41 +742,63 @@ def build_home(films):
     hero_webp_path = os.path.join(ASSETS, "hero", "hero.webp")
     use_hero_json = os.path.isfile(hero_json_path) and os.path.isfile(hero_webp_path)
 
+    # Collect all stills for the slideshow, putting hero.json film first
+    hero_slug_first = ""
     if use_hero_json:
         with open(hero_json_path, encoding="utf-8") as fh:
             hj = json.load(fh)
-        hero_title = (hj.get("title") or "").strip()
-        hero_year = str(hj.get("year") or "").strip()
-        hero_slug = (hj.get("slug") or "").strip()
-        focus_x = int(hj.get("focus_x", 50))
-        focus_y = int(hj.get("focus_y", 50))
-        yt_id = (hj.get("youtube_id") or "").strip()
-        yt_link = (
-            '<a href="https://www.youtube.com/watch?v=%s"> Watch on YouTube →</a>' % e(yt_id)
-            if yt_id else ""
-        )
-        if hero_slug:
-            film_link_open = '<a href="films/%s.html">' % e(hero_slug)
-            film_link_close = '</a>'
-        else:
-            film_link_open = film_link_close = ""
+        hero_slug_first = (hj.get("slug") or "").strip()
+
+    slide_films = []
+    # Pin hero.json film first if it has a still
+    if hero_slug_first:
+        for f in cfv:
+            if f["slug"] == hero_slug_first and still_exists(f["slug"]):
+                slide_films.append(f)
+                break
+    # Add remaining stills in catalog order
+    for f in cfv:
+        if still_exists(f["slug"]) and f not in slide_films:
+            slide_films.append(f)
+
+    if len(slide_films) >= 2:
+        # Build crossfading slideshow
+        slides_html_parts = []
+        for i, sf in enumerate(slide_films):
+            active_cls = " active" if i == 0 else ""
+            priority = 'fetchpriority="high"' if i == 0 else 'loading="lazy"'
+            # Use hero.webp (higher res) for the first/pinned slide when available
+            if i == 0 and use_hero_json and os.path.isfile(hero_webp_path):
+                src = "assets/hero/hero.webp"
+                srcset = "assets/hero/hero-1280.webp 1280w, assets/hero/hero.webp 1920w"
+            else:
+                src = "assets/stills/%s.webp" % sf["slug"]
+                srcset = "assets/stills/%(s)s-480.webp 480w, assets/stills/%(s)s.webp 1280w" % {"s": sf["slug"]}
+            slides_html_parts.append(
+                '  <img class="hero-img hero-slide%(active)s" %(priority)s decoding="async"\n'
+                '       src="%(src)s" srcset="%(srcset)s" sizes="100vw"\n'
+                '       data-title="%(title)s" data-year="%(year)s" data-slug="%(slug)s"\n'
+                '       alt="Still from %(title)s (%(year)s)">' % {
+                    "active": active_cls,
+                    "priority": priority,
+                    "src": src,
+                    "srcset": srcset,
+                    "title": e(sf["title"]),
+                    "year": e(sf.get("year", "")),
+                    "slug": e(sf["slug"]),
+                }
+            )
+        slides_html = "\n".join(slides_html_parts)
+
+        first = slide_films[0]
         featured_credit = (
             '<p class="featured"><span class="tag">Featured</span> '
-            '%(link_open)s<b>%(hero_title)s%(year_part)s</b>%(link_close)s%(yt_link)s</p>'
-        ) % {
-            "hero_title": e(hero_title),
-            "year_part": (" (%s)" % e(hero_year)) if hero_year else "",
-            "yt_link": yt_link,
-            "link_open": film_link_open,
-            "link_close": film_link_close,
-        }
+            '<a class="hero-film-link" href="films/%(slug)s.html">'
+            '<b class="hero-film-name">%(title)s (%(year)s)</b></a></p>'
+        ) % {"slug": e(first["slug"]), "title": e(first["title"]), "year": e(first.get("year", ""))}
 
         hero_section = """<section class="hero">
-  <img class="hero-img" src="assets/hero/hero.webp"
-       srcset="assets/hero/hero-1280.webp 1280w, assets/hero/hero.webp 1920w"
-       sizes="100vw" width="1920" height="1080"
-       style="object-position: %(focus_x)d%% %(focus_y)d%%"
-       alt="%(alt)s" fetchpriority="high" decoding="async">
+%(slides)s
   <div class="hero-inner">
     <p class="eyebrow">Velvet Octopus Films</p>
     <h1>A library of<br>classic films.</h1>
@@ -787,55 +809,40 @@ def build_home(films):
     </div>
     %(featured_credit)s
   </div>
+  <script>
+(function(){
+  var slides=Array.from(document.querySelectorAll('.hero .hero-slide'));
+  if(slides.length<2)return;
+  var cur=0,nameEl=document.querySelector('.hero-film-name'),linkEl=document.querySelector('.hero-film-link');
+  setInterval(function(){
+    slides[cur].classList.remove('active');
+    cur=(cur+1)%%slides.length;
+    var s=slides[cur];
+    s.classList.add('active');
+    if(nameEl)nameEl.textContent=s.dataset.title+' ('+s.dataset.year+')';
+    if(linkEl)linkEl.href='films/'+s.dataset.slug+'.html';
+  },6000);
+})();
+  </script>
 </section>""" % {
-            "focus_x": focus_x,
-            "focus_y": focus_y,
-            "alt": e("%s%s" % (hero_title, (" (%s)" % hero_year) if hero_year else "")),
+            "slides": slides_html,
             "total": total,
             "featured_credit": featured_credit,
         }
 
-    else:
-        # Featured film: first with 'featured' flag, else first with still+youtube_id, else first
-        # with still. Skip stills narrower than 1280px.
-        featured_film = None
-        for f in cfv:
-            if f.get("featured", "").strip().lower() in ("yes", "1", "true"):
-                if still_exists(f["slug"]) and still_width(f["slug"]) >= 1280:
-                    featured_film = f
-                    break
-        if not featured_film:
-            for f in cfv:
-                if still_exists(f["slug"]) and f.get("youtube_id", "").strip():
-                    if still_width(f["slug"]) >= 1280:
-                        featured_film = f
-                        break
-        if not featured_film:
-            for f in cfv:
-                if still_exists(f["slug"]) and still_width(f["slug"]) >= 1280:
-                    featured_film = f
-                    break
-
-        # Hero HTML
-        if featured_film:
-            slug = featured_film["slug"]
-            hero_title = featured_film["title"]
-            hero_year = featured_film["year"]
-            yt_id = featured_film.get("youtube_id", "").strip()
-            yt_link = (
-                '<a href="https://www.youtube.com/watch?v=%s"> Watch on YouTube →</a>' % e(yt_id)
-                if yt_id else ""
-            )
-            featured_credit = (
-                '<p class="featured"><span class="tag">Featured</span> '
-                '<b>%(hero_title)s (%(hero_year)s)</b>%(yt_link)s</p>'
-            ) % {"hero_title": e(hero_title), "hero_year": e(hero_year), "yt_link": yt_link}
-
-            hero_section = """<section class="hero">
-  <img class="hero-img" src="assets/stills/%(slug)s.webp"
-       srcset="assets/stills/%(slug)s-480.webp 480w, assets/stills/%(slug)s.webp 1280w"
-       sizes="100vw" width="1280" height="720"
-       alt="Still from %(hero_title_e)s (%(hero_year_e)s)" fetchpriority="high" decoding="async">
+    elif len(slide_films) == 1:
+        sf = slide_films[0]
+        src = "assets/hero/hero.webp" if (use_hero_json and os.path.isfile(hero_webp_path)) else "assets/stills/%s.webp" % sf["slug"]
+        srcset = ("assets/hero/hero-1280.webp 1280w, assets/hero/hero.webp 1920w"
+                  if (use_hero_json and os.path.isfile(hero_webp_path))
+                  else "assets/stills/%(s)s-480.webp 480w, assets/stills/%(s)s.webp 1280w" % {"s": sf["slug"]})
+        featured_credit = (
+            '<p class="featured"><span class="tag">Featured</span> '
+            '<a href="films/%(slug)s.html"><b>%(title)s (%(year)s)</b></a></p>'
+        ) % {"slug": e(sf["slug"]), "title": e(sf["title"]), "year": e(sf.get("year", ""))}
+        hero_section = """<section class="hero">
+  <img class="hero-img" src="%(src)s" srcset="%(srcset)s" sizes="100vw"
+       fetchpriority="high" decoding="async" alt="Still from %(title)s (%(year)s)">
   <div class="hero-inner">
     <p class="eyebrow">Velvet Octopus Films</p>
     <h1>A library of<br>classic films.</h1>
@@ -846,16 +853,11 @@ def build_home(films):
     </div>
     %(featured_credit)s
   </div>
-</section>""" % {
-                "slug": e(slug),
-                "hero_title_e": e(hero_title),
-                "hero_year_e": e(hero_year),
-                "total": total,
-                "featured_credit": featured_credit,
-            }
-        else:
-            # Fallback: no still available (or none wide enough)
-            hero_section = """<section class="hero hero-no-still">
+</section>""" % {"src": src, "srcset": srcset, "title": e(sf["title"]), "year": e(sf.get("year", "")),
+                  "total": total, "featured_credit": featured_credit}
+    else:
+        # No stills at all
+        hero_section = """<section class="hero hero-no-still">
   <div class="hero-inner">
     <img class="hero-logo-bg" src="assets/brand/logo-icon-simple.svg" alt="" aria-hidden="true" width="320" height="320">
     <p class="eyebrow">Velvet Octopus Films</p>

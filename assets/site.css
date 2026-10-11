@@ -343,6 +343,13 @@ body:not(.page-home) .site-head {
   }
 }
 
+/* Hero slideshow crossfade */
+.hero-slide {
+  opacity: 0;
+  transition: opacity 1.4s ease-in-out;
+}
+.hero-slide.active { opacity: 1; }
+
 /* No-still hero fallback */
 .hero-no-still { background: var(--surface); }
 .hero-logo-bg {
