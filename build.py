@@ -14,6 +14,7 @@ Env vars:
                (CI sets this for branch/preview deploys)
 """
 
+import argparse
 import csv
 import html
 import json
@@ -28,6 +29,9 @@ DIST = os.path.join(HERE, "dist")
 
 SITE_BASE = os.environ.get("SITE_BASE", "").rstrip("/")
 NOINDEX = bool(os.environ.get("NOINDEX", ""))
+
+# Parsed from CLI args in main(); default velvet
+THEME = "velvet"
 
 SITE_NAME = "Velvet Octopus Films"
 SITE_TAGLINE = "Films worth a second look."
@@ -295,12 +299,10 @@ def movie_jsonld(f):
 # --------------------------------------------------------------------------
 
 NAV = [
-    ("Home", "index.html"),
+    ("Films", "browse.html"),
     ("Collections", "collections.html"),
-    ("Browse", "browse.html"),
     ("Watch", "watch.html"),
-    ("Licensing", "licensing.html"),
-    ("Submit a film", "submit.html"),
+    ("License", "licensing.html"),
     ("About", "about.html"),
 ]
 
@@ -311,12 +313,14 @@ def page(title, body, current, depth=0, description="",
     nav = []
     for label, href in NAV:
         cur = ' aria-current="page"' if href == current else ""
-        cls = ' class="nav-home"' if href == "index.html" else ""
-        nav.append('<a href="%s%s"%s%s>%s</a>' % (up, href, cls, cur, label))
+        nav.append('<a href="%s%s"%s>%s</a>' % (up, href, cur, label))
+    # Search icon (links to browse)
     nav.append(
-        '<a class="cta" href="%slicensing.html">'
-        '<span class="cta-long">Licensing inquiry</span>'
-        '<span class="cta-short">Inquire</span></a>' % up
+        '<a class="nav-search" href="%sbrowse.html" aria-label="Search films">'
+        '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">'
+        '<circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" stroke-width="1.5"/>'
+        '<path d="M13 13l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>'
+        '</svg></a>' % up
     )
     desc = description or (
         "%d films across three collections — classic Hollywood, international "
@@ -354,8 +358,10 @@ def page(title, body, current, depth=0, description="",
     if extra_jsonld:
         jsonld_blocks += '<script type="application/ld+json">%s</script>\n' % extra_jsonld
 
+    theme_attr = ' data-theme="ink"' if THEME == "ink" else ""
+
     return """<!doctype html>
-<html lang="en">
+<html lang="en"%(theme_attr)s>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -380,7 +386,7 @@ def page(title, body, current, depth=0, description="",
       <img class="brand-icon" src="%(up)sassets/brand/logo-icon-simple.svg"
            alt="" width="36" height="36" decoding="async">
       <span class="brand-name">
-        <span class="brand-wordmark">ve<span class="brand-bar">|</span>vet<strong>octopus</strong></span>
+        <span class="brand-wordmark">velvet<strong>octopus</strong></span>
         <span class="brand-films">FILMS</span>
       </span>
     </a>
@@ -397,7 +403,7 @@ def page(title, body, current, depth=0, description="",
         <img class="brand-icon" src="%(up)sassets/brand/logo-icon-simple.svg"
              alt="" width="32" height="32" decoding="async" loading="lazy">
         <span class="brand-name">
-          <span class="brand-wordmark">ve<span class="brand-bar">|</span>vet<strong>octopus</strong></span>
+          <span class="brand-wordmark">velvet<strong>octopus</strong></span>
           <span class="brand-films">FILMS</span>
         </span>
       </a>
@@ -432,7 +438,131 @@ def page(title, body, current, depth=0, description="",
         "ogimg": ogimg_tags,
         "jsonld": jsonld_blocks,
         "year": 2026,
+        "theme_attr": theme_attr,
     }
+
+
+# --------------------------------------------------------------------------
+# stills helpers
+# --------------------------------------------------------------------------
+
+
+def still_exists(slug):
+    """Return True if assets/stills/<slug>.webp is present."""
+    return os.path.isfile(os.path.join(ASSETS, "stills", slug + ".webp"))
+
+
+def shelf_card_html(f, up=""):
+    """16:9 still card or typographic fallback for a shelf."""
+    slug = f["slug"]
+    title = f["title"]
+    year = f.get("year", "")
+    runtime = ("%dm" % f["runtime_n"]) if f["runtime_n"] else ""
+    meta_parts = [p for p in [year, runtime] if p]
+    meta_str = " · ".join(meta_parts)
+    href = "%sfilms/%s.html" % (up, e(slug))
+
+    if still_exists(slug):
+        return """<a class="shelf-card" href="%(href)s">
+  <div class="shelf-thumb">
+    <img src="%(up)sassets/stills/%(slug)s.webp"
+         srcset="%(up)sassets/stills/%(slug)s-480.webp 480w, %(up)sassets/stills/%(slug)s.webp 960w"
+         sizes="(max-width:767px) 72vw, 220px"
+         width="960" height="540" loading="lazy" decoding="async"
+         alt="Still from %(title_e)s (%(year_e)s)">
+  </div>
+  <p class="shelf-title">%(title_e)s</p>
+  <p class="shelf-meta">%(meta_e)s</p>
+</a>""" % {
+            "href": href,
+            "up": up,
+            "slug": e(slug),
+            "title_e": e(title),
+            "year_e": e(year),
+            "meta_e": e(meta_str),
+        }
+    else:
+        return """<a class="shelf-card shelf-card-typo" href="%(href)s">
+  <div class="shelf-thumb shelf-thumb-typo">
+    <img class="shelf-typo-mark" src="%(up)sassets/brand/logo-icon-simple.svg" alt="" width="32" height="32" aria-hidden="true">
+    <p class="shelf-typo-title">%(title_e)s</p>
+    <p class="shelf-typo-year">%(year_e)s</p>
+  </div>
+  <p class="shelf-title">%(title_e)s</p>
+  <p class="shelf-meta">%(meta_e)s</p>
+</a>""" % {
+            "href": href,
+            "up": up,
+            "title_e": e(title),
+            "year_e": e(year),
+            "meta_e": e(meta_str),
+        }
+
+
+def filter_films_for_shelf(films, filter_spec):
+    """Filter films according to a shelf filter spec string."""
+    if filter_spec == "has_still":
+        return [f for f in films if still_exists(f["slug"])]
+    if filter_spec.startswith("genre:"):
+        genres = filter_spec[6:].split(",")
+        return [f for f in films if any(g in f["genre_list"] for g in genres)]
+    if filter_spec == "lang:non-english":
+        return [f for f in films if f.get("language") and f["language"] != "English"]
+    return films
+
+
+def build_shelves_html(films):
+    """Build all shelf sections from shelves.json. Returns (html, hidden_shelf_ids)."""
+    shelf_config_path = os.path.join(HERE, "shelves.json")
+    if not os.path.isfile(shelf_config_path):
+        return "", []
+    with open(shelf_config_path, encoding="utf-8") as fh:
+        shelf_configs = json.load(fh)
+
+    hidden = []
+    shelf_sections = []
+
+    for cfg in shelf_configs:
+        filtered = filter_films_for_shelf(films, cfg["filter"])[:cfg["max"]]
+        if len(filtered) < 6:
+            hidden.append(cfg["id"])
+            continue
+
+        cards_html = "\n".join(shelf_card_html(f) for f in filtered)
+
+        # Build "see all" link
+        filt = cfg["filter"]
+        if filt == "has_still":
+            see_href = "browse.html?yt=1"
+        elif filt.startswith("genre:"):
+            primary_genre = filt[6:].split(",")[0]
+            see_href = "browse.html?genre=%s" % urllib.parse.quote(primary_genre)
+        elif filt == "lang:non-english":
+            see_href = "browse.html?intl=1"
+        else:
+            see_href = "browse.html"
+
+        shelf_sections.append("""<div class="shelf">
+  <div class="shelf-head">
+    <h2>%(title)s</h2>
+    <a class="shelf-see-all" href="%(see_href)s">See all &rarr;</a>
+  </div>
+  <p class="label-caps">%(reason)s</p>
+  <div class="shelf-track">
+%(cards)s
+  </div>
+</div>""" % {
+            "title": e(cfg["title"]),
+            "see_href": see_href,
+            "reason": e(cfg["reason"]),
+            "cards": cards_html,
+        })
+
+    html_out = ""
+    if shelf_sections:
+        html_out = '<div class="shelves-wrap"><div class="wrap">\n' + "\n".join(shelf_sections) + "\n</div></div>"
+
+    return html_out, hidden
 
 
 # --------------------------------------------------------------------------
@@ -549,139 +679,125 @@ def build_featured(films, keys=None, start=0, as_index=False):
 
 def build_home(films):
     total = len(films)
-    intl = sum(1 for f in films if f["language"] and f["language"] != "English")
+    cfv = in_catalog(films, "best-b-movies")
 
-    tiles = []
-    for label, genres, sub in HIGHLIGHTS:
-        if genres is None:
-            count = intl
-            href = "browse.html?intl=1"
-        else:
-            count = sum(1 for f in films if any(g in f["genre_list"] for g in genres))
-            href = "browse.html?genre=" + urllib.parse.quote(genres[0])
-        tiles.append(
-            """      <a class="tile" href="%s">
-        <span class="count">%d</span>
-        <span class="label">%s</span>
-        <span class="sub">%s</span>
-      </a>"""
-            % (href, count, e(label), e(sub))
-        )
+    # Featured still: first own-catalog film that has a still
+    featured_film = None
+    for f in cfv:
+        if still_exists(f["slug"]):
+            featured_film = f
+            break
 
-    decades = {}
-    for f in films:
-        if f["decade"]:
-            decades[f["decade"]] = decades.get(f["decade"], 0) + 1
-    chips = "".join(
-        '<a class="decade-chip" href="browse.html?decade=%s"><b>%d</b> from the %s</a>'
-        % (d, decades[d], d)
-        for d in sorted(decades)
+    # Hero still HTML
+    if featured_film:
+        still_slug = featured_film["slug"]
+        hero_still_html = """<div class="hero-still">
+      <img src="assets/stills/%(slug)s.webp"
+           srcset="assets/stills/%(slug)s-480.webp 480w, assets/stills/%(slug)s.webp 960w"
+           sizes="(max-width:767px) 100vw, 50vw"
+           width="960" height="540" loading="eager" decoding="async"
+           alt="Still from %(title)s">
+      <span class="hero-still-label">%(title)s (%(year)s)</span>
+    </div>""" % {
+            "slug": e(still_slug),
+            "title": e(featured_film["title"]),
+            "year": e(featured_film["year"]),
+        }
+    else:
+        hero_still_html = ""
+
+    # Browse-by strip: decades + hardcoded genre chips
+    decades = sorted({f["decade"] for f in films if f["decade"]})
+    decade_chips = "".join(
+        '<a class="bchip" href="browse.html?decade=%s">%s</a>' % (d, e(d))
+        for d in decades
     )
+    # Genre chips: only show those with >= 5 films in the combined catalog
+    genre_chip_candidates = [
+        ("Film-Noir", "Noir"),
+        ("Western", "Westerns"),
+        ("Horror", "Horror"),
+        ("Mystery", "Mystery"),
+        ("Science Fiction", "Sci-fi"),
+    ]
+    genre_chips = ""
+    for genre_key, genre_label in genre_chip_candidates:
+        count = sum(1 for f in films if genre_key in f["genre_list"])
+        if count >= 5:
+            genre_chips += '<a class="bchip" href="browse.html?genre=%s">%s</a>' % (
+                urllib.parse.quote(genre_key), genre_label
+            )
+    genre_chips += '<a class="bchip" href="browse.html?intl=1">World cinema</a>'
 
-    licensed = sum(1 for f in films if f["status"] == "Licensed")
-
-    split = "\n".join(
-        '      <li><a href="browse.html?catalog=%s"><b>%d</b> %s</a></li>'
-        % (urllib.parse.quote(c["key"]), len(in_catalog(films, c["key"])), e(c["name"]))
-        for c in CATALOGS
-    )
+    # Shelves
+    shelves_html, hidden_shelves = build_shelves_html(films)
 
     body = """
 <section class="hero">
   <div class="wrap">
-    <h1>Films worth<br>a second look.</h1>
-    <p class="hero-sub">An independent film library for licensing &mdash;
-      classic Hollywood, international cinema, and contemporary independent features.</p>
-    <div class="hero-stats">
-      <div class="hero-stat">
-        <span class="stat-n">%(cfv)d</span>
-        <span class="stat-label">Velvet Octopus</span>
+    <div class="hero-inner">
+      <div class="hero-text">
+        <p class="label-caps">Velvet Octopus Films</p>
+        <h1>A library of<br>classic films.</h1>
+        <p class="hero-sub">%(total)d films, from 1930s Hollywood noir and B-westerns to landmark world cinema. Watch on YouTube, or license a film for your platform.</p>
+        <div class="hero-actions">
+          <a class="btn btn-gold" href="browse.html">Browse the films</a>
+          <a class="btn btn-outline" href="licensing.html">License a film</a>
+        </div>
       </div>
-      <div class="hero-stat">
-        <span class="stat-n">%(bf)d</span>
-        <span class="stat-label">Blue Finch</span>
-      </div>
-      <div class="hero-stat">
-        <span class="stat-n">%(sc)d</span>
-        <span class="stat-label">SC Films</span>
-      </div>
+      %(hero_still)s
     </div>
-    <div class="hero-actions">
-      <a class="btn btn-gold" href="browse.html">Browse all %(total)d titles</a>
-    </div>
-  </div>
-</section>
-%(featured)s
-<section class="section %(lib_shade)s">
-  <div class="wrap">
-    <div class="rule-head"><h2>Across all three collections</h2></div>
-    <div class="tiles">
-%(tiles)s
-    </div>
-    <div class="decades">%(chips)s</div>
   </div>
 </section>
 
-<div class="tiktok-strip">
+<section class="section what-we-do">
   <div class="wrap">
-    <h2>Short clips on TikTok</h2>
-    <p>Rare footage, forgotten performances, scenes that hold up. Follow %(handle)s for a daily cut.</p>
-    <a class="btn btn-gold btn-ext" href="%(tiktok)s" target="_blank" rel="noopener noreferrer">
-      Follow on TikTok<span class="vh"> (opens in a new tab)</span></a>
+    <div class="three-up">
+      <div class="three-card">
+        <h3>Watch</h3>
+        <p>Many of our films are free to watch on YouTube, and clips run on TikTok at %(handle)s.</p>
+      </div>
+      <div class="three-card">
+        <h3>Discover</h3>
+        <p>Browse by genre, decade, country and collection. Every film has its own page.</p>
+      </div>
+      <div class="three-card">
+        <h3>License</h3>
+        <p>Non-exclusive licensing for streaming, broadcast and digital platforms. Territory and term are set per deal.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+%(shelves)s
+
+<div class="browse-strip">
+  <div class="wrap">
+    <p class="label-caps">Browse by</p>
+    <div class="browse-chips">
+      %(decade_chips)s%(genre_chips)s
+    </div>
   </div>
 </div>
 
-<section class="section %(how_shade)s">
+<section class="buyer-band">
   <div class="wrap">
-    <div class="rule-head"><h2>How licensing works</h2></div>
-    <div class="tiles">
-      <div class="tile">
-        <span class="label">Three collections, one inquiry</span>
-        <span class="sub">%(cfv)d titles in the Velvet Octopus library, plus
-          %(bf)d for Blue Finch Film Releasing and %(sc)d for SC Films
-          International. Every title page says which.</span>
-      </div>
-      <div class="tile">
-        <span class="label">Terms stated, not implied</span>
-        <span class="sub">Velvet Octopus titles are offered non-exclusively,
-          territory and term per deal. Agency-represented titles carry no assumed
-          position &mdash; availability is confirmed per inquiry.</span>
-      </div>
-      <div class="tile">
-        <span class="label">Nothing hidden</span>
-        <span class="sub">%(licensed)d Velvet Octopus titles currently carry a
-          non-exclusive licence with another platform. They are flagged in the
-          catalog and remain available to license.</span>
-      </div>
-      <div class="tile">
-        <span class="label">Single titles to full catalog</span>
-        <span class="sub">Package one title, a themed bundle, or explore any of our
-          three collections. Tell us the volume and we&rsquo;ll confirm terms per
-          title.</span>
-      </div>
-    </div>
-    <p class="mt-action">
-      <a class="btn btn-solid" href="licensing.html">Start a licensing inquiry</a>
-    </p>
+    <h2>Looking to license?</h2>
+    <p>Tell us which titles, territories and terms you&rsquo;re after.</p>
+    <a class="btn btn-gold" href="licensing.html">Start an inquiry</a>
   </div>
 </section>
 """ % {
         "total": total,
-        "split": split,
-        "cfv": len(in_catalog(films, "best-b-movies")),
-        "bf": len(in_catalog(films, "blue-finch")),
-        "sc": len(in_catalog(films, "sc-films")),
-        "featured": build_featured(films, keys=["best-b-movies"]),
-        "lib_shade": band_shade(1),
-        "how_shade": band_shade(2),
-        "tiles": "\n".join(tiles),
-        "chips": chips,
-        "licensed": licensed,
-        "tiktok": e(TIKTOK_URL),
+        "hero_still": hero_still_html,
         "handle": e(TIKTOK_HANDLE),
+        "shelves": shelves_html,
+        "decade_chips": decade_chips,
+        "genre_chips": genre_chips,
     }
+
     return page(
-        "Velvet Octopus Films — films worth a second look",
+        "Velvet Octopus Films — a library of classic films",
         body,
         "index.html",
         canonical_path="index.html",
@@ -1272,6 +1388,14 @@ def build_submit():
       <p>Fill in the form below. We&rsquo;ll read every submission and reply
         if it&rsquo;s a good fit. We can&rsquo;t guarantee a response to every
         inquiry, but we do look at all of them.</p>
+    </div>
+
+    <div class="submit-note">
+      <strong>We don&rsquo;t just list your film &mdash; we cut it.</strong>
+      <p>Every title we represent is eligible for short-form promotional
+        material: trailers, social cuts, genre reels across the channels we
+        operate. If a project has been sitting, the right clip in the right
+        feed can open a new door.</p>
     </div>
 
     <div class="form-card mt-form-card">
