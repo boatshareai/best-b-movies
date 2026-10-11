@@ -75,6 +75,12 @@ CATALOG_BY_KEY = {c["key"]: c for c in CATALOGS}
 
 COUNTS = {"total": 0, "best-b-movies": 0, "blue-finch": 0, "sc-films": 0}
 
+# ── Temporary hide — set to empty set() to restore all catalogs ───────────
+HIDDEN_CATALOGS = {"blue-finch", "sc-films"}
+if HIDDEN_CATALOGS:
+    CATALOGS = [c for c in CATALOGS if c["key"] not in HIDDEN_CATALOGS]
+    CATALOG_BY_KEY = {c["key"]: c for c in CATALOGS}
+
 
 LICENSING_TERMS = (
     "Velvet Octopus Films represents a library of %(cfv)d films spanning classic "
@@ -167,6 +173,7 @@ FEATURED = [
         ],
     ),
 ]
+FEATURED = [(k, h, t) for (k, h, t) in FEATURED if k not in HIDDEN_CATALOGS]
 
 
 def e(s):
@@ -378,13 +385,13 @@ def page(title, body, current, depth=0, description="",
 <meta name="theme-color" content="#5B2A86">
 <link rel="preload" href="%(up)sassets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="%(up)sassets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="%(up)sassets/site.css?v=2">
+<link rel="stylesheet" href="%(up)sassets/site.css?v=9">
 </head>
 <body%(body_class)s>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-head">
   <a class="logo" href="%(up)sindex.html" aria-label="Velvet Octopus Films, home">
-    <img src="%(up)sassets/brand/logo-wordmark-films.svg" alt="Velvet Octopus Films" width="160" height="44">
+    <img src="%(up)sassets/brand/logo-retro-transparent.png" alt="Velvet Octopus Films" width="180" height="117">
   </a>
   <nav class="nav" aria-label="Main">
     %(nav)s
@@ -402,7 +409,7 @@ def page(title, body, current, depth=0, description="",
 <footer class="site-footer">
   <div class="foot-top">
     <div>
-      <img src="%(up)sassets/brand/logo-wordmark-films.svg" alt="Velvet Octopus Films" width="140" height="34" loading="lazy">
+      <img src="%(up)sassets/brand/logo-retro-transparent.png" alt="Velvet Octopus Films" width="150" height="97" loading="lazy">
       <p class="tagline">Films worth a second look.</p>
     </div>
     <nav class="foot-links" aria-label="Footer">
@@ -730,7 +737,7 @@ def build_featured(films, keys=None, start=0, as_index=False):
         )
     if not sections:
         return ""
-    return "\n".join(sections) + '\n<script src="assets/carousel.js"></script>'
+    return "\n".join(sections) + '\n<script src="assets/carousel.js?v=2"></script>'
 
 
 def build_home(films):
@@ -808,8 +815,14 @@ def build_home(films):
       <a class="btn btn-line" href="licensing.html">License a film</a>
     </div>
   </div>
-  %(featured_credit)s
-  <script src="assets/hero-slide.js" defer></script>
+  <div class="hero-controls">
+    %(featured_credit)s
+    <div class="hero-nav" aria-label="Slideshow controls">
+      <button type="button" class="hero-nav-btn" data-dir="-1" aria-label="Previous film">&#8249;</button>
+      <button type="button" class="hero-nav-btn" data-dir="1" aria-label="Next film">&#8250;</button>
+    </div>
+  </div>
+  <script src="assets/hero-slide.js?v=2" defer></script>
 </section>""" % {
             "slides": slides_html,
             "total": total,
@@ -960,8 +973,8 @@ def build_collections(films):
   </div>
   <div class="coll-hero-text">
     <h1>Collections</h1>
-    <p>%(total)d titles across three collections — our own library,
-      plus two we present on behalf of their rights holders.</p>
+    <p>%(total)d titles from our own library — classic Hollywood, international
+      cinema, and independent film available for licensing.</p>
     <a class="btn btn-gold" href="browse.html">Search all titles</a>
   </div>
 </div>
@@ -977,9 +990,8 @@ def build_collections(films):
         body,
         "collections.html",
         canonical_path="collections.html",
-        description="Three collections totalling %d titles: Velvet Octopus, "
-        "Blue Finch Film Releasing, and SC Films International."
-        % len(films),
+        description="Velvet Octopus Films: %d titles of classic Hollywood and "
+        "international cinema available for licensing." % len(films),
     )
 
 
@@ -1100,7 +1112,8 @@ def build_browse(films):
   </div>
 </section>
 <script id="catalog-data" type="application/json">%(json)s</script>
-<script src="assets/catalog.js"></script>
+<script src="assets/basket.js?v=1"></script>
+<script src="assets/catalog.js?v=2"></script>
 """ % {
         "total": len(films),
         "cats": cat_opts,
@@ -1341,9 +1354,17 @@ def build_film(f, films, posters_dict=None):
             '      <a class="btn btn-line" href="%s">License this film</a>' % e(inquire)
         )
 
+    basket_btn = ""
+    if f["catalog"] == "best-b-movies":
+        basket_btn = (
+            '<button class="btn btn-basket" type="button" id="basket-btn" '
+            'data-slug="%(slug)s" data-title="%(title)s">+ Add to inquiry</button>'
+            % {"slug": e(f["slug"]), "title": e(f["title"])}
+        )
+
     ctas_html = ""
-    if watch_btn or license_btn:
-        ctas_html = '<div class="film-ctas">%s%s</div>' % (watch_btn, license_btn)
+    if watch_btn or basket_btn or license_btn:
+        ctas_html = '<div class="film-ctas">%s%s%s</div>' % (watch_btn, basket_btn, license_btn)
 
     # Related films: same genre, same catalog, up to 5
     related_genres = f["genre_list"][:1]
@@ -1412,7 +1433,7 @@ def build_film(f, films, posters_dict=None):
     </aside>
   </div>
 </div>
-%(related)s%(watch_script)s
+%(related)s<script src="../assets/basket.js?v=1"></script>%(watch_script)s
 """ % {
         "title": e(f["title"]),
         "meta": meta_html,
@@ -1475,11 +1496,9 @@ def build_licensing(films):
       <p>We offer non-exclusive licensing for individual titles, themed packages,
         or full-catalog deals. Territory, term and platform are set per deal.
         Use the form below to tell us what you&rsquo;re looking for.</p>
-      <p>Our own library has %(cfv)d titles. Alongside that we represent
-        %(bf)d titles for Blue Finch Film Releasing and %(sc)d for
-        SC Films International — %(total)d in all. For agency-represented
-        titles, availability and terms are confirmed per inquiry. Every title page
-        states which collection it comes from.</p>
+      <p>Our own library has %(cfv)d titles. Use the form below to tell us
+        what you&rsquo;re looking for and we&rsquo;ll come back with
+        availability, territory options, and rates.</p>
     </div>
 
     <h2 class="section-h2">Send an inquiry</h2>
@@ -1552,7 +1571,8 @@ def build_licensing(films):
     </div>
   </div>
 </section>
-<script src="assets/config.js"></script>
+<script src="assets/basket.js?v=1"></script>
+<script src="assets/config.js?v=2"></script>
 <script src="assets/inquiry.js"></script>
 """ % {
         "cfv": len(in_catalog(films, "best-b-movies")),
@@ -1684,7 +1704,7 @@ def build_submit():
     </div>
   </div>
 </section>
-<script src="assets/config.js"></script>
+<script src="assets/config.js?v=2"></script>
 <script src="assets/submit.js"></script>
 """ % {
         "confirm": e(SUBMISSION_CONFIRMATION),
