@@ -799,6 +799,7 @@ def build_home(films):
 
         hero_section = """<section class="hero">
 %(slides)s
+  <a class="hero-slide-overlay" href="films/%(first_slug)s.html" aria-label="View featured film" tabindex="-1"></a>
   <div class="hero-inner">
     <p class="eyebrow">Velvet Octopus Films</p>
     <h1>A library of<br>classic films.</h1>
@@ -809,23 +810,11 @@ def build_home(films):
     </div>
     %(featured_credit)s
   </div>
-  <script>
-(function(){
-  var slides=Array.from(document.querySelectorAll('.hero .hero-slide'));
-  if(slides.length<2)return;
-  var cur=0,nameEl=document.querySelector('.hero-film-name'),linkEl=document.querySelector('.hero-film-link');
-  setInterval(function(){
-    slides[cur].classList.remove('active');
-    cur=(cur+1)%%slides.length;
-    var s=slides[cur];
-    s.classList.add('active');
-    if(nameEl)nameEl.textContent=s.dataset.title+' ('+s.dataset.year+')';
-    if(linkEl)linkEl.href='films/'+s.dataset.slug+'.html';
-  },6000);
-})();
-  </script>
+  <div class="hero-dots" aria-label="Hero navigation"></div>
+  <script src="assets/hero-slide.js" defer></script>
 </section>""" % {
             "slides": slides_html,
+            "first_slug": e(slide_films[0]["slug"]),
             "total": total,
             "featured_credit": featured_credit,
         }
