@@ -943,19 +943,45 @@ def build_collections(films):
             % (e(cat["name"]), n, e(desc), urllib.parse.quote(cat["key"]))
         )
 
+    # Poster strip — pick genre-diverse images we have on disk
+    _strip_candidates = [
+        ("stagecoach-1939.jpg",             "Stagecoach (1939)"),
+        ("house-of-usher-1960.jpg",         "House of Usher (1960)"),
+        ("ikiru-1952.jpg",                  "Ikiru (1952)"),
+        ("charade-1963.jpg",                "Charade (1963)"),
+        ("the-rules-of-the-game-1939.jpg",  "The Rules of the Game (1939)"),
+        ("the-quiet-man-1952.jpg",          "The Quiet Man (1952)"),
+        ("drunken-angel-1948.jpg",          "Drunken Angel (1948)"),
+        ("mirror-1975.jpg",                 "Mirror (1975)"),
+        ("shock-corridor-1963.jpg",         "Shock Corridor (1963)"),
+        ("sansho-the-bailiff-1954.jpg",     "Sansho the Bailiff (1954)"),
+    ]
+    _strip_imgs = []
+    for fname, alt in _strip_candidates:
+        if os.path.isfile(os.path.join(ASSETS, "posters", fname)):
+            _strip_imgs.append(
+                '<img src="assets/posters/%s" alt="%s" loading="lazy" decoding="async">'
+                % (e(fname), e(alt))
+            )
+    poster_strip = "\n    ".join(_strip_imgs)
+
     body = """
-<section class="section section-cream">
-  <div class="wrap">
-    <div class="rule-head"><h1>Collections</h1></div>
-    <p class="lede">%(total)d titles across three collections. Our own library,
-      plus two we present on behalf of their rights holders.
-      <a href="browse.html">Search all three at once</a>.</p>
+<div class="coll-hero">
+  <div class="coll-poster-strip" aria-hidden="true">
+    %(poster_strip)s
   </div>
-</section>
+  <div class="coll-hero-text">
+    <h1>Collections</h1>
+    <p>%(total)d titles across three collections — our own library,
+      plus two we present on behalf of their rights holders.</p>
+    <a class="btn btn-gold" href="browse.html">Search all titles</a>
+  </div>
+</div>
 %(rows)s
 """ % {
         "total": len(films),
         "rows": build_featured(films, as_index=True, start=1),
+        "poster_strip": poster_strip,
     }
 
     return page(

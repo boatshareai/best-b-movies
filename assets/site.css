@@ -902,6 +902,72 @@ body:not(.page-home) .site-head {
 
 /* 22 ── Collections page ─────────────────────────────────────────────────── */
 
+/* Collections page hero */
+.coll-hero {
+  position: relative;
+  background: var(--ground);
+  overflow: hidden;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+}
+.coll-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right,
+    var(--ground) 28%,
+    rgba(15,9,25,.85) 52%,
+    rgba(15,9,25,.2) 78%,
+    transparent 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.coll-hero-text {
+  position: relative;
+  z-index: 2;
+  padding: var(--s8) var(--pad);
+  max-width: 540px;
+}
+.coll-hero-text h1 {
+  font: 400 clamp(2.25rem, 5vw, 3.75rem)/1.05 var(--serif);
+  color: var(--cream);
+}
+.coll-hero-text p {
+  color: var(--muted);
+  margin-top: var(--s3);
+  margin-bottom: var(--s5);
+  font-size: .9375rem;
+  max-width: 38ch;
+}
+.coll-poster-strip {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-inline: var(--s5);
+}
+.coll-poster-strip img {
+  height: 260px;
+  width: auto;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 6px 28px rgba(0,0,0,.55);
+}
+.coll-poster-strip img:nth-child(even) { transform: translateY(-14px); }
+.coll-poster-strip img:nth-child(odd)  { transform: translateY(10px); }
+@media (max-width: 600px) {
+  .coll-poster-strip { opacity: .25; }
+  .coll-hero::after { background: linear-gradient(to right, var(--ground) 45%, rgba(15,9,25,.95) 85%, var(--ground) 100%); }
+}
+@media (min-width: 900px) {
+  .coll-poster-strip img { height: 300px; }
+}
+
 .featured-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
 .featured-head h2 { font: 400 clamp(1.5rem, 3vw, 2.25rem)/1.1 var(--serif); color: var(--cream); }
 .all-link { font: 500 .75rem/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); text-decoration: none; white-space: nowrap; }
