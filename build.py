@@ -1617,7 +1617,7 @@ def build_licensing(films):
   </div>
 </section>
 <script src="assets/basket.js?v=2"></script>
-<script src="assets/config.js?v=2"></script>
+<script src="assets/config.js?v=3"></script>
 <script src="assets/inquiry.js?v=2"></script>
 """ % {
         "cfv": len(in_catalog(films, "best-b-movies")),
@@ -1749,7 +1749,7 @@ def build_submit():
     </div>
   </div>
 </section>
-<script src="assets/config.js?v=2"></script>
+<script src="assets/config.js?v=3"></script>
 <script src="assets/submit.js"></script>
 """ % {
         "confirm": e(SUBMISSION_CONFIRMATION),
