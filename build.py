@@ -1037,6 +1037,7 @@ def build_browse(films):
             "yt": f.get("youtube_id", ""),
             "dr": (f.get("director") or "").strip(),
             "ca": (f.get("cast") or "").strip(),
+            "pr": (f.get("producer") or "").strip(),
         }
         for f in films
     ]
@@ -1134,7 +1135,7 @@ def build_browse(films):
 </section>
 <script id="catalog-data" type="application/json">%(json)s</script>
 <script src="assets/basket.js?v=2"></script>
-<script src="assets/catalog.js?v=4"></script>
+<script src="assets/catalog.js?v=5"></script>
 """ % {
         "total": len(films),
         "cats": cat_opts,

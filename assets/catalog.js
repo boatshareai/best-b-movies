@@ -104,7 +104,8 @@
       if (pv) {
         var dr = (f.dr || "").toLowerCase();
         var ca = (f.ca || "").toLowerCase();
-        if (dr.indexOf(pv) === -1 && ca.indexOf(pv) === -1) return false;
+        var pr = (f.pr || "").toLowerCase();
+        if (dr.indexOf(pv) === -1 && ca.indexOf(pv) === -1 && pr.indexOf(pv) === -1) return false;
       }
       if (cat && f.c !== cat) return false;
       if (genre && f.g.indexOf(genre) === -1) return false;
