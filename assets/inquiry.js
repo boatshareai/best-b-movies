@@ -16,21 +16,52 @@
   var titleInput = document.getElementById("titles");
   var banner = document.getElementById("titles-banner");
 
+  function escHtml(s) {
+    return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function syncTitlesField(items) {
+    if (titleInput) titleInput.value = items.map(function (i) { return i.title; }).join("\n");
+  }
+
   function renderBanner(items) {
-    if (!banner || !items.length) return;
-    var n = items.length;
+    if (!banner) return;
+    if (!items || !items.length) { banner.hidden = true; return; }
     banner.hidden = false;
+    var chips = items.map(function (item) {
+      return '<span class="basket-tag">' + escHtml(item.title) +
+        '<button type="button" class="basket-tag-remove" data-slug="' + escHtml(item.slug) +
+        '" aria-label="Remove ' + escHtml(item.title) + '">&times;</button></span>';
+    }).join("");
     banner.innerHTML =
-      '<span class="titles-count">' + n + ' title' + (n === 1 ? '' : 's') + ' from your selection</span>' +
+      '<div class="basket-chips">' + chips + '</div>' +
       '<span class="titles-banner-actions">' +
-        '<a href="films.html" class="titles-action">Browse catalog</a>' +
+        '<a href="/browse.html" class="titles-action">Browse catalog</a>' +
         '<button type="button" class="titles-action titles-clear" id="titles-clear-btn">Clear all</button>' +
       '</span>';
-    document.getElementById("titles-clear-btn").addEventListener("click", function () {
-      if (window.VOF_BASKET) window.VOF_BASKET.clear();
-      if (titleInput) titleInput.value = "";
-      banner.hidden = true;
+    if (titleInput) titleInput.style.display = "none";
+    syncTitlesField(items);
+
+    banner.querySelectorAll(".basket-tag-remove").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var slug = btn.dataset.slug;
+        if (window.VOF_BASKET) window.VOF_BASKET.toggle(slug, "");
+        var remaining = window.VOF_BASKET ? window.VOF_BASKET.getAll() : [];
+        syncTitlesField(remaining);
+        renderBanner(remaining);
+        if (!remaining.length && titleInput) titleInput.style.display = "";
+      });
     });
+
+    var clearBtn = document.getElementById("titles-clear-btn");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", function () {
+        if (window.VOF_BASKET) window.VOF_BASKET.clear();
+        syncTitlesField([]);
+        banner.hidden = true;
+        if (titleInput) { titleInput.style.display = ""; titleInput.value = ""; }
+      });
+    }
   }
 
   if (titleInput) {

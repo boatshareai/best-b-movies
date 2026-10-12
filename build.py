@@ -399,7 +399,7 @@ def page(title, body, current, depth=0, description="",
 <meta name="theme-color" content="#5B2A86">
 <link rel="preload" href="%(up)sassets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="%(up)sassets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="%(up)sassets/site.css?v=12">
+<link rel="stylesheet" href="%(up)sassets/site.css?v=13">
 </head>
 <body%(body_class)s>
 <a class="skip" href="#main">Skip to content</a>
@@ -1131,8 +1131,8 @@ def build_browse(films):
     <div class="filter-foot">
       <span class="result-count" id="count" role="status" aria-live="polite"></span>
       <span class="filter-foot-actions">
-        <button type="button" class="link-btn" id="add-all" hidden>Add all to inquiry</button>
-        <button type="button" class="link-btn" id="reset">Clear</button>
+        <button type="button" class="btn btn-gold add-all-btn" id="add-all" hidden>Add all to inquiry</button>
+        <button type="button" class="link-btn" id="reset">Clear filters</button>
       </span>
     </div>
   </div>
@@ -1149,7 +1149,7 @@ def build_browse(films):
 </section>
 <script id="catalog-data" type="application/json">%(json)s</script>
 <script src="assets/basket.js?v=2"></script>
-<script src="assets/catalog.js?v=5"></script>
+<script src="assets/catalog.js?v=6"></script>
 """ % {
         "total": len(films),
         "cats": cat_opts,
@@ -1577,7 +1577,7 @@ def build_licensing(films):
             <div id="titles-banner" class="titles-banner" hidden></div>
             <textarea id="titles" name="titles" rows="4"
               placeholder="e.g. Stagecoach, Charade, or describe what you&rsquo;re after (a director, genre, era)&hellip;"></textarea>
-            <p class="hint">Add films from individual pages, or just describe what you&rsquo;re looking for above. <a href="films.html">Browse catalog &rsaquo;</a></p>
+            <p class="hint">Add films from individual pages, or just describe what you&rsquo;re looking for above. <a href="/browse.html">Browse catalog &rsaquo;</a></p>
           </div>
           <div class="field">
             <label for="use">Intended use</label>
@@ -1618,7 +1618,7 @@ def build_licensing(films):
 </section>
 <script src="assets/basket.js?v=2"></script>
 <script src="assets/config.js?v=3"></script>
-<script src="assets/inquiry.js?v=2"></script>
+<script src="assets/inquiry.js?v=3"></script>
 """ % {
         "cfv": len(in_catalog(films, "best-b-movies")),
         "total": len(films),
