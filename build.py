@@ -385,7 +385,7 @@ def page(title, body, current, depth=0, description="",
 <meta name="theme-color" content="#5B2A86">
 <link rel="preload" href="%(up)sassets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="%(up)sassets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="%(up)sassets/site.css?v=11">
+<link rel="stylesheet" href="%(up)sassets/site.css?v=12">
 </head>
 <body%(body_class)s>
 <a class="skip" href="#main">Skip to content</a>
@@ -1097,7 +1097,10 @@ def build_browse(films):
     </div>
     <div class="filter-foot">
       <span class="result-count" id="count" role="status" aria-live="polite"></span>
-      <button type="button" class="link-btn" id="reset">Clear</button>
+      <span class="filter-foot-actions">
+        <button type="button" class="link-btn" id="add-all" hidden>Add all to inquiry</button>
+        <button type="button" class="link-btn" id="reset">Clear</button>
+      </span>
     </div>
   </div>
 </form>
@@ -1113,7 +1116,7 @@ def build_browse(films):
 </section>
 <script id="catalog-data" type="application/json">%(json)s</script>
 <script src="assets/basket.js?v=2"></script>
-<script src="assets/catalog.js?v=2"></script>
+<script src="assets/catalog.js?v=3"></script>
 """ % {
         "total": len(films),
         "cats": cat_opts,

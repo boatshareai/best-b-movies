@@ -763,7 +763,8 @@ body:not(.page-home) .site-head {
 .filter-check input { position: absolute; opacity: 0; width: 0; height: 0; }
 .filter-check:has(input:checked) { background: var(--velvet); border-color: var(--velvet); color: var(--cream); }
 
-.filter-foot { display: flex; align-items: center; gap: 16px; margin-top: 6px; }
+.filter-foot { display: flex; align-items: center; gap: 12px; margin-top: 6px; flex-wrap: wrap; }
+.filter-foot-actions { display: flex; align-items: center; gap: 12px; }
 .result-count { font-size: 12px; color: var(--muted); letter-spacing: 0.03em; }
 
 .filter-grid { display: none; }

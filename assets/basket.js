@@ -50,6 +50,18 @@
       emit();
     },
 
+    addAll: function (newItems) {
+      var items = load();
+      newItems.forEach(function (ni) {
+        if (!items.some(function (i) { return i.slug === ni.slug; })) {
+          items.push({ slug: ni.slug, title: ni.title });
+        }
+      });
+      save(items);
+      sync();
+      emit();
+    },
+
     clear: function () {
       save([]);
       sync();

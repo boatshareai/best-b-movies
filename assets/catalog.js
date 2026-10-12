@@ -8,6 +8,7 @@
   var grid = document.getElementById("rows");
   var empty = document.getElementById("empty");
   var countEl = document.getElementById("count");
+  var addAllBtn = document.getElementById("add-all");
 
   var q = document.getElementById("q");
   var catSel = document.getElementById("catalog");
@@ -50,12 +51,21 @@
     var bcls = BADGE[f.st] || "badge-available";
     var btxt = f.st || "Available";
     var ytDot = f.yt ? '<span class="status-dot badge-yt">YouTube</span>' : "";
+    var inBasket = window.VOF_BASKET && window.VOF_BASKET.has(f.s);
+    var toggleLabel = inBasket ? "Remove from inquiry" : "Add to inquiry";
+    var basketBtn =
+      '<button class="basket-toggle' + (inBasket ? " in-basket" : "") + '" ' +
+      'type="button" data-slug="' + esc(f.s) + '" data-title="' + esc(f.t) + '" ' +
+      'aria-label="' + toggleLabel + '" title="' + toggleLabel + '">' +
+      (inBasket ? "✓" : "+") +
+      "</button>";
     return (
       '<a class="film-card" href="films/' + esc(f.s) + '.html" title="' + esc(f.t) + '">' +
         '<span class="poster">' +
           posterHTML(f) +
           '<span class="status-dot ' + bcls + '">' + esc(btxt) + "</span>" +
           ytDot +
+          basketBtn +
         "</span>" +
         '<span class="cap">' +
           "<b>" + esc(f.t) + "</b>" +
@@ -117,12 +127,23 @@
     return copy;
   }
 
+  var _lastResults = [];
+
   function render() {
-    var results = sort(filter(data));
-    grid.innerHTML = results.map(card).join("");
-    empty.hidden = results.length > 0;
+    _lastResults = sort(filter(data));
+    grid.innerHTML = _lastResults.map(card).join("");
+    empty.hidden = _lastResults.length > 0;
     if (countEl) {
-      countEl.innerHTML = "<b>" + results.length + "</b> of " + data.length + " titles";
+      countEl.textContent = "";
+      var b = document.createElement("b");
+      b.textContent = _lastResults.length;
+      countEl.appendChild(b);
+      countEl.appendChild(document.createTextNode(" of " + data.length + " titles"));
+    }
+    if (addAllBtn) {
+      var filtered = _lastResults.length < data.length;
+      addAllBtn.hidden = !filtered;
+      addAllBtn.textContent = "Add all " + _lastResults.length + " to inquiry";
     }
   }
 
@@ -187,6 +208,35 @@
       pushUrl();
       syncPillState();
       render();
+    });
+  }
+
+  if (addAllBtn) {
+    addAllBtn.addEventListener("click", function () {
+      if (!window.VOF_BASKET) return;
+      window.VOF_BASKET.addAll(_lastResults.map(function (f) {
+        return { slug: f.s, title: f.t };
+      }));
+      addAllBtn.textContent = "✓ " + _lastResults.length + " titles added";
+      addAllBtn.disabled = true;
+      setTimeout(function () {
+        addAllBtn.disabled = false;
+        addAllBtn.textContent = "Add all " + _lastResults.length + " to inquiry";
+      }, 2000);
+    });
+  }
+
+  // Re-render when basket changes so toggle states stay current.
+  document.addEventListener("vof:basket", render);
+
+  // Delegate basket-toggle clicks so they work on dynamically rendered cards.
+  if (grid) {
+    grid.addEventListener("click", function (evt) {
+      var btn = evt.target.closest(".basket-toggle");
+      if (!btn || !window.VOF_BASKET) return;
+      evt.preventDefault();
+      evt.stopPropagation();
+      window.VOF_BASKET.toggle(btn.dataset.slug, btn.dataset.title);
     });
   }
 
