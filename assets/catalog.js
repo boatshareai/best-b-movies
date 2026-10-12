@@ -58,7 +58,7 @@
     var toggleLabel = inBasket ? "Remove from inquiry" : "Add to inquiry";
     var basketBtn =
       '<button class="basket-toggle' + (inBasket ? " in-basket" : "") + '" ' +
-      'type="button" data-slug="' + esc(f.s) + '" data-title="' + esc(f.t) + '" ' +
+      'type="button" data-slug="' + esc(f.s) + '" data-title="' + esc(f.t) + '" data-year="' + esc(f.y || "") + '" ' +
       'aria-label="' + toggleLabel + '" title="' + toggleLabel + '">' +
       (inBasket ? "✓" : "+") +
       "</button>";
@@ -242,7 +242,7 @@
     addAllBtn.addEventListener("click", function () {
       if (!window.VOF_BASKET) return;
       window.VOF_BASKET.addAll(_lastResults.map(function (f) {
-        return { slug: f.s, title: f.t };
+        return { slug: f.s, title: f.t, year: f.y || "" };
       }));
       addAllBtn.textContent = "✓ " + _lastResults.length + " titles added";
       addAllBtn.disabled = true;
@@ -263,7 +263,7 @@
       if (!btn || !window.VOF_BASKET) return;
       evt.preventDefault();
       evt.stopPropagation();
-      window.VOF_BASKET.toggle(btn.dataset.slug, btn.dataset.title);
+      window.VOF_BASKET.toggle(btn.dataset.slug, btn.dataset.title, btn.dataset.year);
     });
   }
 

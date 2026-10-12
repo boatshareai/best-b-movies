@@ -40,10 +40,10 @@
       return load().some(function (i) { return i.slug === slug; });
     },
 
-    toggle: function (slug, title) {
+    toggle: function (slug, title, year) {
       var items = load(), idx = -1;
       items.forEach(function (i, n) { if (i.slug === slug) idx = n; });
-      if (idx === -1) items.push({ slug: slug, title: title });
+      if (idx === -1) items.push({ slug: slug, title: title, year: year || "" });
       else items.splice(idx, 1);
       save(items);
       sync();
@@ -54,7 +54,7 @@
       var items = load();
       newItems.forEach(function (ni) {
         if (!items.some(function (i) { return i.slug === ni.slug; })) {
-          items.push({ slug: ni.slug, title: ni.title });
+          items.push({ slug: ni.slug, title: ni.title, year: ni.year || "" });
         }
       });
       save(items);
@@ -113,6 +113,7 @@
     if (filmBtn) {
       var slug  = filmBtn.dataset.slug;
       var title = filmBtn.dataset.title;
+      var year  = filmBtn.dataset.year || "";
 
       function updateFilmBtn() {
         if (api.has(slug)) {
@@ -126,7 +127,7 @@
 
       updateFilmBtn();
       filmBtn.addEventListener("click", function () {
-        api.toggle(slug, title);
+        api.toggle(slug, title, year);
         updateFilmBtn();
       });
     }

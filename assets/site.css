@@ -699,6 +699,7 @@ body:not(.page-home) .site-head {
   border-radius: 6px; padding: 10px 12px; margin-bottom: 8px;
   font-size: .85rem;
 }
+.titles-banner[hidden] { display: none !important; }
 .basket-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
 .basket-tag {
   display: inline-flex; align-items: center; gap: 4px;

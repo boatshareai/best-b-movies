@@ -21,7 +21,9 @@
   }
 
   function syncTitlesField(items) {
-    if (titleInput) titleInput.value = items.map(function (i) { return i.title; }).join("\n");
+    if (titleInput) titleInput.value = items.map(function (i) {
+      return i.title + (i.year ? " (" + i.year + ")" : "");
+    }).join("\n");
   }
 
   function renderBanner(items) {
@@ -33,7 +35,8 @@
     }
     banner.hidden = false;
     var chips = items.map(function (item) {
-      return '<span class="basket-tag">' + escHtml(item.title) +
+      var label = item.year ? escHtml(item.title) + ' <span class="basket-tag-year">(' + escHtml(item.year) + ')</span>' : escHtml(item.title);
+      return '<span class="basket-tag">' + label +
         '<button type="button" class="basket-tag-remove" data-slug="' + escHtml(item.slug) +
         '" aria-label="Remove ' + escHtml(item.title) + '">&times;</button></span>';
     }).join("");

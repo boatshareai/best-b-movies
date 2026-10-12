@@ -399,7 +399,7 @@ def page(title, body, current, depth=0, description="",
 <meta name="theme-color" content="#5B2A86">
 <link rel="preload" href="%(up)sassets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="%(up)sassets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="%(up)sassets/site.css?v=14">
+<link rel="stylesheet" href="%(up)sassets/site.css?v=15">
 </head>
 <body%(body_class)s>
 <a class="skip" href="#main">Skip to content</a>
@@ -1148,8 +1148,8 @@ def build_browse(films):
   </div>
 </section>
 <script id="catalog-data" type="application/json">%(json)s</script>
-<script src="assets/basket.js?v=2"></script>
-<script src="assets/catalog.js?v=6"></script>
+<script src="assets/basket.js?v=3"></script>
+<script src="assets/catalog.js?v=7"></script>
 """ % {
         "total": len(films),
         "cats": cat_opts,
@@ -1396,8 +1396,8 @@ def build_film(f, films, posters_dict=None):
     if f["catalog"] == "best-b-movies":
         basket_btn = (
             '<button class="btn btn-basket" type="button" id="basket-btn" '
-            'data-slug="%(slug)s" data-title="%(title)s">+ Add to inquiry</button>'
-            % {"slug": e(f["slug"]), "title": e(f["title"])}
+            'data-slug="%(slug)s" data-title="%(title)s" data-year="%(year)s">+ Add to inquiry</button>'
+            % {"slug": e(f["slug"]), "title": e(f["title"]), "year": e(f["year"] or "")}
         )
 
     ctas_html = ""
@@ -1471,7 +1471,7 @@ def build_film(f, films, posters_dict=None):
     </aside>
   </div>
 </div>
-%(related)s<script src="../assets/basket.js?v=2"></script>%(watch_script)s
+%(related)s<script src="../assets/basket.js?v=3"></script>%(watch_script)s
 """ % {
         "title": e(f["title"]),
         "meta": meta_html,
@@ -1616,9 +1616,9 @@ def build_licensing(films):
     </div>
   </div>
 </section>
-<script src="assets/basket.js?v=2"></script>
+<script src="assets/basket.js?v=3"></script>
 <script src="assets/config.js?v=3"></script>
-<script src="assets/inquiry.js?v=5"></script>
+<script src="assets/inquiry.js?v=6"></script>
 """ % {
         "cfv": len(in_catalog(films, "best-b-movies")),
         "total": len(films),
