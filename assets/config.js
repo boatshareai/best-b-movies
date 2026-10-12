@@ -3,7 +3,7 @@
    Leave them empty during local dev; the forms will show a mailto fallback.
    Never put RESEND_API_KEY here — it lives in the Worker env vars only. */
 window.VOF_CONFIG = {
-  ENDPOINT: "",
+  ENDPOINT: "/.netlify/functions/inquiry",
   SUBMISSION_ENDPOINT: "",
   SITE_CONTACT_EMAIL: "hello@velvetoctopusfilms.com",
   LICENSING_EMAIL: "licensing@velvetoctopusfilms.com",
