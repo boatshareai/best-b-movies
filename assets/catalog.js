@@ -11,9 +11,12 @@
   var addAllBtn = document.getElementById("add-all");
 
   var q = document.getElementById("q");
+  var peopleSel = document.getElementById("people");
   var catSel = document.getElementById("catalog");
   var genreSel = document.getElementById("genre");
   var decadeSel = document.getElementById("decade");
+  var yrFrom = document.getElementById("yr_from");
+  var yrTo = document.getElementById("yr_to");
   var langSel = document.getElementById("lang");
   var runtimeSel = document.getElementById("runtime");
   var statusSel = document.getElementById("status");
@@ -84,6 +87,7 @@
 
   function filter(films) {
     var qv = (q.value || "").trim().toLowerCase();
+    var pv = peopleSel ? (peopleSel.value || "").trim().toLowerCase() : "";
     var cat = catSel.value;
     var genre = genreSel.value;
     var decade = decadeSel.value;
@@ -92,9 +96,16 @@
     var status = statusSel.value;
     var ytOnly = ytCb && ytCb.checked;
     var intlOnly = intlCb && intlCb.checked;
+    var yfrom = yrFrom ? parseInt(yrFrom.value, 10) : NaN;
+    var yto = yrTo ? parseInt(yrTo.value, 10) : NaN;
 
     return films.filter(function (f) {
       if (qv && f.t.toLowerCase().indexOf(qv) === -1 && (f.o || "").toLowerCase().indexOf(qv) === -1) return false;
+      if (pv) {
+        var dr = (f.dr || "").toLowerCase();
+        var ca = (f.ca || "").toLowerCase();
+        if (dr.indexOf(pv) === -1 && ca.indexOf(pv) === -1) return false;
+      }
       if (cat && f.c !== cat) return false;
       if (genre && f.g.indexOf(genre) === -1) return false;
       if (decade) {
@@ -110,6 +121,8 @@
       if (!matchRuntime(f, rt)) return false;
       if (status && f.st !== status) return false;
       if (ytOnly && !f.yt) return false;
+      if (!isNaN(yfrom) && (f.yn === null || f.yn === undefined || f.yn < yfrom)) return false;
+      if (!isNaN(yto) && (f.yn === null || f.yn === undefined || f.yn > yto)) return false;
       return true;
     });
   }
@@ -150,12 +163,15 @@
   function readUrl() {
     var params = new URLSearchParams(location.search);
     if (params.get("q")) q.value = params.get("q");
+    if (params.get("people") && peopleSel) peopleSel.value = params.get("people");
     if (params.get("catalog")) catSel.value = params.get("catalog");
     if (params.get("genre")) genreSel.value = params.get("genre");
     if (params.get("decade")) decadeSel.value = params.get("decade");
     if (params.get("lang")) langSel.value = params.get("lang");
     if (params.get("runtime")) runtimeSel.value = params.get("runtime");
     if (params.get("status")) statusSel.value = params.get("status");
+    if (params.get("yr_from") && yrFrom) yrFrom.value = params.get("yr_from");
+    if (params.get("yr_to") && yrTo) yrTo.value = params.get("yr_to");
     if (params.get("yt") === "1" && ytCb) ytCb.checked = true;
     if (params.get("intl") === "1" && intlCb) intlCb.checked = true;
   }
@@ -163,12 +179,15 @@
   function pushUrl() {
     var p = new URLSearchParams();
     if (q.value) p.set("q", q.value);
+    if (peopleSel && peopleSel.value) p.set("people", peopleSel.value);
     if (catSel.value) p.set("catalog", catSel.value);
     if (genreSel.value) p.set("genre", genreSel.value);
     if (decadeSel.value) p.set("decade", decadeSel.value);
     if (langSel.value) p.set("lang", langSel.value);
     if (runtimeSel.value) p.set("runtime", runtimeSel.value);
     if (statusSel.value) p.set("status", statusSel.value);
+    if (yrFrom && yrFrom.value) p.set("yr_from", yrFrom.value);
+    if (yrTo && yrTo.value) p.set("yr_to", yrTo.value);
     if (ytCb && ytCb.checked) p.set("yt", "1");
     if (intlCb && intlCb.checked) p.set("intl", "1");
     var s = p.toString();
@@ -176,32 +195,39 @@
   }
 
   function syncPillState() {
-    [catSel, genreSel, decadeSel, langSel, runtimeSel, statusSel, sortSel].forEach(function (el) {
+    [catSel, genreSel, decadeSel, langSel, runtimeSel, statusSel, sortSel, yrFrom, yrTo].forEach(function (el) {
       if (!el) return;
-      if (el.value && el.value !== el.options[0].value) {
-        el.dataset.active = "1";
-      } else {
-        delete el.dataset.active;
+      if (el.tagName === "SELECT") {
+        if (el.value && el.value !== el.options[0].value) {
+          el.dataset.active = "1";
+        } else {
+          delete el.dataset.active;
+        }
       }
     });
     if (q) q.dataset.active = q.value ? "1" : "";
+    if (peopleSel) peopleSel.dataset.active = peopleSel.value ? "1" : "";
   }
 
   function onChange() { pushUrl(); syncPillState(); render(); }
 
-  [catSel, genreSel, decadeSel, langSel, runtimeSel, statusSel, sortSel].forEach(function (el) {
+  [catSel, genreSel, decadeSel, langSel, runtimeSel, statusSel, sortSel, yrFrom, yrTo].forEach(function (el) {
     if (el) el.addEventListener("change", onChange);
   });
   if (ytCb) ytCb.addEventListener("change", onChange);
   if (intlCb) intlCb.addEventListener("change", onChange);
   q.addEventListener("input", onChange);
+  if (peopleSel) peopleSel.addEventListener("input", onChange);
 
   if (resetBtn) {
     resetBtn.addEventListener("click", function () {
       q.value = "";
+      if (peopleSel) peopleSel.value = "";
       [catSel, genreSel, decadeSel, langSel, runtimeSel, statusSel].forEach(function (el) {
         if (el) el.value = "";
       });
+      if (yrFrom) yrFrom.value = "";
+      if (yrTo) yrTo.value = "";
       if (ytCb) ytCb.checked = false;
       if (intlCb) intlCb.checked = false;
       if (sortSel) sortSel.value = "t";

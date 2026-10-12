@@ -1005,9 +1005,13 @@ def build_browse(films):
     decades = sorted({f["decade"] for f in films if f["decade"]})
     langs = sorted({f["language"] for f in films if f["language"]})
     statuses = sorted({f["status"] for f in films if f["status"]})
+    years = sorted({int(f["year"]) for f in films if str(f.get("year", "")).strip().isdigit()})
 
     def opts(values):
         return "".join('<option value="%s">%s</option>' % (e(v), e(v)) for v in values)
+
+    def yr_opts(ys):
+        return "".join('<option value="%d">%d</option>' % (y, y) for y in ys)
 
     cat_opts = "".join(
         '<option value="%s">%s (%d)</option>'
@@ -1020,6 +1024,7 @@ def build_browse(films):
             "s": f["slug"],
             "t": f["title"],
             "y": f["year"],
+            "yn": int(f["year"]) if str(f.get("year", "")).strip().isdigit() else 0,
             "d": f["decade"],
             "g": f["genre_list"],
             "l": f["language"],
@@ -1030,6 +1035,8 @@ def build_browse(films):
             "c": f["catalog"],
             "cn": f["catalog_name"],
             "yt": f.get("youtube_id", ""),
+            "dr": (f.get("director") or "").strip(),
+            "ca": (f.get("cast") or "").strip(),
         }
         for f in films
     ]
@@ -1062,6 +1069,17 @@ def build_browse(films):
         <option value="">All decades</option>%(decades)s
         <option value="__none">Not listed</option>
       </select>
+      <label class="vh" for="yr_from">From year</label>
+      <select id="yr_from" class="filter-pill filter-pill-sm">
+        <option value="">From</option>%(yr_from_opts)s
+      </select>
+      <label class="vh" for="yr_to">To year</label>
+      <select id="yr_to" class="filter-pill filter-pill-sm">
+        <option value="">To</option>%(yr_to_opts)s
+      </select>
+      <label class="vh" for="people">Director / cast</label>
+      <input type="search" id="people" name="people" class="filter-search filter-search-sm"
+             placeholder="Director or cast&hellip;" autocomplete="off">
       <label class="vh" for="lang">Language</label>
       <select id="lang" class="filter-pill">
         <option value="">All languages</option>%(langs)s
@@ -1116,12 +1134,14 @@ def build_browse(films):
 </section>
 <script id="catalog-data" type="application/json">%(json)s</script>
 <script src="assets/basket.js?v=2"></script>
-<script src="assets/catalog.js?v=3"></script>
+<script src="assets/catalog.js?v=4"></script>
 """ % {
         "total": len(films),
         "cats": cat_opts,
         "genres": opts(genres),
         "decades": opts(decades),
+        "yr_from_opts": yr_opts(years),
+        "yr_to_opts": yr_opts(years),
         "langs": opts(langs),
         "statuses": opts(statuses),
         "json": json.dumps(payload, separators=(",", ":")).replace("<", "\\u003c"),

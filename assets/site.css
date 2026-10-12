@@ -642,6 +642,20 @@ body:not(.page-home) .site-head {
 .film-card:hover .basket-toggle { opacity: 1; }
 .basket-toggle.in-basket { opacity: 1; background: var(--velvet); border-color: var(--velvet); }
 
+/* Selected (in-basket) card — whole card gets a gold ring + dimmed poster */
+.film-card:has(.basket-toggle.in-basket) .poster {
+  outline: 2px solid var(--gold, #c9a84c);
+  outline-offset: 0;
+}
+.film-card:has(.basket-toggle.in-basket) .poster::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: rgba(201,168,76,.08);
+  pointer-events: none;
+  z-index: 1;
+}
+.film-card:has(.basket-toggle.in-basket) .cap b { color: var(--gold, #c9a84c); }
+
 /* Floating basket chip */
 .basket-chip {
   position: fixed;
