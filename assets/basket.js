@@ -59,6 +59,10 @@
 
   // ── Build floating chip ──────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", function () {
+    // Don't show the chip on the licensing page itself — you're already there
+    var p = location.pathname;
+    if (p === "/licensing" || p === "/licensing.html" || p.endsWith("/licensing")) return;
+
     // Use root-relative URL so this works from any depth
     var licUrl = "/licensing.html";
 

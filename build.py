@@ -385,7 +385,7 @@ def page(title, body, current, depth=0, description="",
 <meta name="theme-color" content="#5B2A86">
 <link rel="preload" href="%(up)sassets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="%(up)sassets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="%(up)sassets/site.css?v=9">
+<link rel="stylesheet" href="%(up)sassets/site.css?v=10">
 </head>
 <body%(body_class)s>
 <a class="skip" href="#main">Skip to content</a>
