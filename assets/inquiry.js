@@ -42,41 +42,45 @@
     if (titleInput) titleInput.style.display = "none";
     syncTitlesField(items);
 
-    banner.querySelectorAll(".basket-tag-remove").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var slug = btn.dataset.slug;
+    // Use event delegation so listeners survive innerHTML replacement
+    banner.addEventListener("click", function (e) {
+      var removeBtn = e.target.closest(".basket-tag-remove");
+      if (removeBtn) {
+        var slug = removeBtn.dataset.slug;
         if (window.VOF_BASKET) window.VOF_BASKET.toggle(slug, "");
         var remaining = window.VOF_BASKET ? window.VOF_BASKET.getAll() : [];
         syncTitlesField(remaining);
         renderBanner(remaining);
         if (!remaining.length && titleInput) titleInput.style.display = "";
-      });
-    });
-
-    var clearBtn = document.getElementById("titles-clear-btn");
-    if (clearBtn) {
-      clearBtn.addEventListener("click", function () {
+        return;
+      }
+      if (e.target.classList.contains("titles-clear")) {
         if (window.VOF_BASKET) window.VOF_BASKET.clear();
         syncTitlesField([]);
         banner.hidden = true;
         if (titleInput) { titleInput.style.display = ""; titleInput.value = ""; }
-      });
+      }
+    });
+  }
+
+  function initBasket() {
+    if (!titleInput || !window.VOF_BASKET) return;
+    var basketItems = window.VOF_BASKET.getAll();
+    if (basketItems.length) {
+      renderBanner(basketItems);
+    } else {
+      var params = new URLSearchParams(location.search);
+      var preTitle = params.get("title");
+      if (preTitle && !titleInput.value) titleInput.value = preTitle;
     }
   }
 
-  if (titleInput) {
-    var params = new URLSearchParams(location.search);
-    var preTitle = params.get("title");
-    if (preTitle && !titleInput.value) {
-      titleInput.value = preTitle;
-    } else if (!titleInput.value && window.VOF_BASKET) {
-      var basketItems = window.VOF_BASKET.getAll();
-      if (basketItems.length) {
-        titleInput.value = basketItems.map(function (i) { return i.title; }).join("\n");
-        renderBanner(basketItems);
-      }
-    }
-  }
+  initBasket();
+
+  // Re-init when browser restores page from bfcache (back/forward navigation)
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) initBasket();
+  });
 
   // ── Unconfigured fallback ─────────────────────────────────────────────────
   if (!cfg.ENDPOINT) {

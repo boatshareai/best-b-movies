@@ -399,7 +399,7 @@ def page(title, body, current, depth=0, description="",
 <meta name="theme-color" content="#5B2A86">
 <link rel="preload" href="%(up)sassets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="%(up)sassets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="%(up)sassets/site.css?v=13">
+<link rel="stylesheet" href="%(up)sassets/site.css?v=14">
 </head>
 <body%(body_class)s>
 <a class="skip" href="#main">Skip to content</a>
@@ -1618,7 +1618,7 @@ def build_licensing(films):
 </section>
 <script src="assets/basket.js?v=2"></script>
 <script src="assets/config.js?v=3"></script>
-<script src="assets/inquiry.js?v=3"></script>
+<script src="assets/inquiry.js?v=4"></script>
 """ % {
         "cfv": len(in_catalog(films, "best-b-movies")),
         "total": len(films),
