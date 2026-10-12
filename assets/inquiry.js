@@ -26,7 +26,11 @@
 
   function renderBanner(items) {
     if (!banner) return;
-    if (!items || !items.length) { banner.hidden = true; return; }
+    if (!items || !items.length) {
+      banner.hidden = true;
+      if (titleInput) titleInput.style.display = "";
+      return;
+    }
     banner.hidden = false;
     var chips = items.map(function (item) {
       return '<span class="basket-tag">' + escHtml(item.title) +
@@ -37,24 +41,28 @@
       '<div class="basket-chips">' + chips + '</div>' +
       '<span class="titles-banner-actions">' +
         '<a href="/browse.html" class="titles-action">Browse catalog</a>' +
-        '<button type="button" class="titles-action titles-clear" id="titles-clear-btn">Clear all</button>' +
+        '<button type="button" class="titles-clear titles-action">Clear all</button>' +
       '</span>';
     if (titleInput) titleInput.style.display = "none";
     syncTitlesField(items);
+  }
 
-    // Use event delegation so listeners survive innerHTML replacement
+  // Banner click handler wired once — handles × removes and Clear all
+  if (banner) {
     banner.addEventListener("click", function (e) {
-      var removeBtn = e.target.closest(".basket-tag-remove");
+      var t = e.target;
+      // × remove button (or its parent span)
+      var removeBtn = t.classList.contains("basket-tag-remove") ? t
+                    : (t.parentElement && t.parentElement.classList.contains("basket-tag-remove") ? t.parentElement : null);
       if (removeBtn) {
-        var slug = removeBtn.dataset.slug;
-        if (window.VOF_BASKET) window.VOF_BASKET.toggle(slug, "");
+        if (window.VOF_BASKET) window.VOF_BASKET.toggle(removeBtn.dataset.slug, "");
         var remaining = window.VOF_BASKET ? window.VOF_BASKET.getAll() : [];
         syncTitlesField(remaining);
         renderBanner(remaining);
-        if (!remaining.length && titleInput) titleInput.style.display = "";
         return;
       }
-      if (e.target.classList.contains("titles-clear")) {
+      // Clear all button
+      if (t.classList.contains("titles-clear")) {
         if (window.VOF_BASKET) window.VOF_BASKET.clear();
         syncTitlesField([]);
         banner.hidden = true;

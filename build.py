@@ -1618,7 +1618,7 @@ def build_licensing(films):
 </section>
 <script src="assets/basket.js?v=2"></script>
 <script src="assets/config.js?v=3"></script>
-<script src="assets/inquiry.js?v=4"></script>
+<script src="assets/inquiry.js?v=5"></script>
 """ % {
         "cfv": len(in_catalog(films, "best-b-movies")),
         "total": len(films),
