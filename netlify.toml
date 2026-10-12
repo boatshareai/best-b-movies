@@ -3,6 +3,9 @@
   publish   = "dist"
   functions = "netlify/functions"
 
+[build.environment]
+  SITE_BASE = "https://velvetoctopusfilms.com"
+
 # ── Security headers on every response ────────────────────────────────────────
 [[headers]]
   for = "/*"

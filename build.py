@@ -290,6 +290,20 @@ def movie_jsonld(f):
             for n in dir_val.split(",")
             if n.strip()
         ]
+    cast_val = (f.get("cast") or "").strip()
+    if cast_val:
+        data["actor"] = [
+            {"@type": "Person", "name": n.strip()}
+            for n in cast_val.split(",")
+            if n.strip()
+        ]
+    prod_val = (f.get("producer") or "").strip()
+    if prod_val:
+        data["producer"] = [
+            {"@type": "Person", "name": n.strip()}
+            for n in prod_val.split(",")
+            if n.strip()
+        ]
     if SITE_BASE:
         data["url"] = "%s/films/%s.html" % (SITE_BASE, f["slug"])
     p = (f.get("poster") or "").strip()
@@ -1493,9 +1507,15 @@ def build_film(f, films, posters_dict=None):
         body,
         "",
         depth=1,
-        description="%s%s — %sRepresented by %s. Contact us to confirm "
+        description="%s%s%s — %sRepresented by %s. Contact us to confirm "
         "licensing availability."
-        % (f["title"], year, meta_logline(f["logline"]), f["catalog_name"]),
+        % (
+            f["title"], year,
+            (", directed by %s" % (f.get("director") or "").split(",")[0].strip())
+            if (f.get("director") or "").strip() else "",
+            meta_logline(f["logline"]),
+            f["catalog_name"],
+        ),
         canonical_path=slug_path,
         ogimg_override=og_img,
         extra_jsonld=movie_jsonld(f),
@@ -2059,6 +2079,91 @@ def build_catalog_redirect():
 
 
 # --------------------------------------------------------------------------
+# director pages
+# --------------------------------------------------------------------------
+
+
+def _director_slug(name):
+    import unicodedata
+    s = unicodedata.normalize("NFKD", name.lower().strip())
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    s = re.sub(r"[^a-z0-9]+", "-", s)
+    return s.strip("-")
+
+
+def build_director(director_name, films):
+    slug = _director_slug(director_name)
+    dir_films = sorted(
+        [f for f in films if director_name in (f.get("director") or "")],
+        key=lambda f: f["year"] or "0",
+    )
+    cards = []
+    for f in dir_films:
+        cards.append(
+            '<a class="film-card" href="../films/%s.html">'
+            '<div class="card-img-wrap">%s</div>'
+            '<div class="card-body">'
+            '<p class="card-title">%s</p>'
+            '<p class="card-meta">%s</p>'
+            "</div></a>"
+            % (
+                e(f["slug"]),
+                poster_art(f, prefix="../"),
+                e(f["title"]),
+                e(f["year"] or ""),
+            )
+        )
+    grid = '<div class="film-grid">' + "".join(cards) + "</div>"
+
+    logline_blurb = (
+        "<p>%d films available for licensing. Explore the full collection below "
+        "and <a href=\"../licensing.html\">contact us</a> to discuss rights, "
+        "territory, and rates.</p>" % len(dir_films)
+    )
+
+    body = (
+        '<section class="section section-cream">'
+        '<div class="wrap">'
+        '<div class="rule-head"><h1>%s</h1></div>'
+        '<div class="prose director-intro">%s</div>'
+        "</div></section>"
+        '<section class="section">'
+        '<div class="wrap">%s</div>'
+        "</section>"
+    ) % (e(director_name), logline_blurb, grid)
+
+    dir_jsonld = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": director_name,
+        **({"url": "%s/directors/%s.html" % (SITE_BASE, slug)} if SITE_BASE else {}),
+    }, separators=(",", ":"))
+
+    return page(
+        "%s — Films for Licensing — %s" % (director_name, SITE_NAME),
+        body,
+        "",
+        depth=1,
+        description="%s: %d films available for licensing through %s. "
+        "Classic cinema available worldwide." % (director_name, len(dir_films), SITE_NAME),
+        canonical_path="directors/%s.html" % slug,
+        extra_jsonld=dir_jsonld,
+    )
+
+
+def director_pages(films):
+    """Return list of (slug, director_name) for directors with 2+ films."""
+    from collections import Counter
+    counts = Counter()
+    for f in films:
+        for d in (f.get("director") or "").split(","):
+            d = d.strip()
+            if d:
+                counts[d] += 1
+    return [(_director_slug(d), d) for d, c in sorted(counts.items()) if c >= 2]
+
+
+# --------------------------------------------------------------------------
 # main
 # --------------------------------------------------------------------------
 
@@ -2072,6 +2177,7 @@ def main():
     if os.path.isdir(DIST):
         shutil.rmtree(DIST)
     os.makedirs(os.path.join(DIST, "films"))
+    os.makedirs(os.path.join(DIST, "directors"))
     shutil.copytree(ASSETS, os.path.join(DIST, "assets"))
 
     # Copy _headers into dist so Cloudflare Pages picks it up
@@ -2105,11 +2211,16 @@ def main():
     for f in films:
         write(os.path.join("films", f["slug"] + ".html"), build_film(f, films, posters_dict))
 
+    dir_list = director_pages(films)
+    for slug, name in dir_list:
+        write(os.path.join("directors", slug + ".html"), build_director(name, films))
+
     urls = [
         "index.html", "collections.html", "browse.html", "licensing.html",
         "submit.html", "about.html", "contact.html", "privacy.html",
     ]
     urls += ["films/%s.html" % f["slug"] for f in films]
+    urls += ["directors/%s.html" % slug for slug, _ in dir_list]
 
     if SITE_BASE:
         write(
@@ -2139,6 +2250,7 @@ def main():
     if NOINDEX:
         print("  NOINDEX=1 — all pages carry noindex,nofollow")
     print("  %d film pages" % len(films))
+    print("  %d director pages" % len(dir_list))
     print("  stills: %d films have stills, %d use typographic fallback" % (n_stills, len(films) - n_stills))
     if hidden_shelves:
         print("  shelves hidden (< 6 films): %s" % ", ".join(hidden_shelves))
