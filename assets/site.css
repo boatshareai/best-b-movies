@@ -678,19 +678,20 @@ body:not(.page-home) .site-head {
 .btn-basket:hover { border-color: var(--cream); }
 .btn-basket.in-basket { background: var(--velvet); border-color: var(--velvet); color: var(--cream); }
 
-/* Licensing form — removable title chips */
-.basket-chips-edit { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.basket-chip-tag {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2);
-  border-radius: 4px; padding: 3px 6px 3px 10px;
-  font-size: .85rem; color: inherit; white-space: nowrap;
+/* Licensing form — basket banner */
+.titles-banner {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 6px; padding: 8px 12px; margin-bottom: 8px;
+  font-size: .85rem;
 }
-.chip-remove {
-  background: none; border: none; cursor: pointer; color: inherit;
-  opacity: .55; font-size: 1.1rem; line-height: 1; padding: 0 2px;
+.titles-banner-actions { display: flex; gap: 12px; }
+.titles-action {
+  background: none; border: none; cursor: pointer; color: var(--gold, #c9a84c);
+  font-size: .85rem; text-decoration: underline; padding: 0;
 }
-.chip-remove:hover { opacity: 1; }
+.titles-action:hover { opacity: .8; }
+#titles { resize: vertical; min-height: 80px; }
 
 /* 14 ── Browse filters ───────────────────────────────────────────────────── */
 

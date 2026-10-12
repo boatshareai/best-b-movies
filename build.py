@@ -385,7 +385,7 @@ def page(title, body, current, depth=0, description="",
 <meta name="theme-color" content="#5B2A86">
 <link rel="preload" href="%(up)sassets/fonts/InstrumentSerif-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="%(up)sassets/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="%(up)sassets/site.css?v=10">
+<link rel="stylesheet" href="%(up)sassets/site.css?v=11">
 </head>
 <body%(body_class)s>
 <a class="skip" href="#main">Skip to content</a>
@@ -1112,7 +1112,7 @@ def build_browse(films):
   </div>
 </section>
 <script id="catalog-data" type="application/json">%(json)s</script>
-<script src="assets/basket.js?v=1"></script>
+<script src="assets/basket.js?v=2"></script>
 <script src="assets/catalog.js?v=2"></script>
 """ % {
         "total": len(films),
@@ -1433,7 +1433,7 @@ def build_film(f, films, posters_dict=None):
     </aside>
   </div>
 </div>
-%(related)s<script src="../assets/basket.js?v=1"></script>%(watch_script)s
+%(related)s<script src="../assets/basket.js?v=2"></script>%(watch_script)s
 """ % {
         "title": e(f["title"]),
         "meta": meta_html,
@@ -1530,9 +1530,10 @@ def build_licensing(films):
           </div>
           <div class="field full">
             <label for="titles">Titles of interest</label>
-            <input type="text" id="titles" name="titles"
-              placeholder="e.g. Stagecoach, A Bittersweet Life, or &lsquo;browsing the full catalog&rsquo;">
-            <p class="hint">Coming from a film page? We&rsquo;ll fill this in for you.</p>
+            <div id="titles-banner" class="titles-banner" hidden></div>
+            <textarea id="titles" name="titles" rows="4"
+              placeholder="e.g. Stagecoach, Charade, or describe what you&rsquo;re after (a director, genre, era)&hellip;"></textarea>
+            <p class="hint">Add films from individual pages, or just describe what you&rsquo;re looking for above. <a href="films.html">Browse catalog &rsaquo;</a></p>
           </div>
           <div class="field">
             <label for="use">Intended use</label>
@@ -1571,9 +1572,9 @@ def build_licensing(films):
     </div>
   </div>
 </section>
-<script src="assets/basket.js?v=1"></script>
+<script src="assets/basket.js?v=2"></script>
 <script src="assets/config.js?v=2"></script>
-<script src="assets/inquiry.js"></script>
+<script src="assets/inquiry.js?v=2"></script>
 """ % {
         "cfv": len(in_catalog(films, "best-b-movies")),
         "total": len(films),

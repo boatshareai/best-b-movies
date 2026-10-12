@@ -12,55 +12,25 @@
   var submitBtn = document.getElementById("submit");
   var statusLine = document.getElementById("status-line");
 
-  // Pre-fill titles from ?title= query param or inquiry basket.
-  // When coming from the basket, render removable chip tags so individual
-  // titles can be deleted before submitting.
+  // ── Titles field: pre-fill from basket or ?title= param ──────────────────
   var titleInput = document.getElementById("titles");
+  var banner = document.getElementById("titles-banner");
 
-  function escHtml(s) {
-    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
-
-  function renderChips(items) {
-    var group = titleInput.parentNode;
-    var wrap = document.createElement("div");
-    wrap.className = "basket-chips-edit";
-    wrap.id = "basket-chips-edit";
-    items.forEach(function (item) {
-      var tag = document.createElement("span");
-      tag.className = "basket-chip-tag";
-      tag.dataset.slug = item.slug;
-      tag.innerHTML = escHtml(item.title) +
-        '<button type="button" class="chip-remove" aria-label="Remove ' + escHtml(item.title) + '">×</button>';
-      wrap.appendChild(tag);
+  function renderBanner(items) {
+    if (!banner || !items.length) return;
+    var n = items.length;
+    banner.hidden = false;
+    banner.innerHTML =
+      '<span class="titles-count">' + n + ' title' + (n === 1 ? '' : 's') + ' from your selection</span>' +
+      '<span class="titles-banner-actions">' +
+        '<a href="films.html" class="titles-action">Browse catalog</a>' +
+        '<button type="button" class="titles-action titles-clear" id="titles-clear-btn">Clear all</button>' +
+      '</span>';
+    document.getElementById("titles-clear-btn").addEventListener("click", function () {
+      if (window.VOF_BASKET) window.VOF_BASKET.clear();
+      if (titleInput) titleInput.value = "";
+      banner.hidden = true;
     });
-    group.insertBefore(wrap, titleInput);
-    titleInput.type = "hidden";
-    updateHidden(wrap);
-
-    wrap.addEventListener("click", function (e) {
-      var btn = e.target.closest ? e.target.closest(".chip-remove") :
-        (e.target.className === "chip-remove" ? e.target : null);
-      if (!btn) return;
-      var tag = btn.parentNode;
-      var slug = tag.dataset.slug;
-      if (window.VOF_BASKET) window.VOF_BASKET.toggle(slug, tag.childNodes[0].textContent.trim());
-      tag.remove();
-      updateHidden(wrap);
-      if (!wrap.querySelector(".basket-chip-tag")) {
-        wrap.remove();
-        titleInput.type = "text";
-        titleInput.value = "";
-      }
-    });
-  }
-
-  function updateHidden(wrap) {
-    var titles = [];
-    wrap.querySelectorAll(".basket-chip-tag").forEach(function (t) {
-      titles.push(t.childNodes[0].textContent.trim());
-    });
-    titleInput.value = titles.join(", ");
   }
 
   if (titleInput) {
@@ -71,15 +41,16 @@
     } else if (!titleInput.value && window.VOF_BASKET) {
       var basketItems = window.VOF_BASKET.getAll();
       if (basketItems.length) {
-        renderChips(basketItems);
+        titleInput.value = basketItems.map(function (i) { return i.title; }).join("\n");
+        renderBanner(basketItems);
       }
     }
   }
 
+  // ── Unconfigured fallback ─────────────────────────────────────────────────
   if (!cfg.ENDPOINT) {
     if (unconfiguredEl) {
       unconfiguredEl.hidden = false;
-      // Update mailto link with configured email
       var email = cfg.LICENSING_EMAIL || cfg.SITE_CONTACT_EMAIL || "";
       if (email) {
         unconfiguredEl.textContent = "";
@@ -120,7 +91,6 @@
     evt.preventDefault();
     if (!validate()) return;
 
-    // Honeypot check
     var hp = form.querySelector('[name="website"]');
     if (hp && hp.value) return;
 
